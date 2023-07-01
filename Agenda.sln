@@ -36,6 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "�
 		GitVersion.yml = GitVersion.yml
 		global.json = global.json
 		integration-tests.props = integration-tests.props
+		README.md = README.md
 		tests.props = tests.props
 	EndProjectSection
 EndProject
