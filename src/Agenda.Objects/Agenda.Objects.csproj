@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Candoumbe.DataAccess" Version="0.1.0-beta0001" />
+    <PackageReference Include="Candoumbe.DataAccess" Version="0.1.0-beta0145" />
   </ItemGroup>
 
   <ItemGroup>
