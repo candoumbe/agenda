@@ -28,7 +28,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" PrivateAssets="all" />
     <PackageReference Include="NodaTime.Serialization.SystemTextJson" Version="1.0.0" />
     <PackageReference Include="CorrelationId" Version="3.0.1" />
-    <PackageReference Include="Candoumbe.Forms" Version="0.3.0-beta0004" />
+    <PackageReference Include="Candoumbe.Forms" Version="0.3.0-beta0005" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="7.0.0" />
     <PackageReference Include="Extensions.Hosting.AsyncInitialization" Version="1.0.0" />
     <PackageReference Include="DataFilters.AspNetCore" Version="0.4.0" />
