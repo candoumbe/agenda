@@ -36,7 +36,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.20" />
     <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="7.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="7.0.18" />
-    <PackageReference Include="Fluxera.StronglyTypedId.SystemTextJson" Version="7.1.7" />
+    <PackageReference Include="Fluxera.StronglyTypedId.SystemTextJson" Version="8.3.6" />
     <PackageReference Include="JsonPatch.Net" Version="2.1.0" />
     <PackageReference Include="Ardalis.ApiEndpoints" Version="4.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
