@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NodaTime.Serialization.JsonNet" Version="3.0.0" />
+    <PackageReference Include="NodaTime.Serialization.JsonNet" Version="3.1.0" />
     <PackageReference Include="TestContainers.PostgreSql" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.20" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="7.0.20" />
