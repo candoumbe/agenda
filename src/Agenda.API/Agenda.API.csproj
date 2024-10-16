@@ -34,7 +34,7 @@
     <PackageReference Include="DataFilters.AspNetCore" Version="0.4.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.20" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.20" />
-    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="7.0.0" />
+    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="8.0.1" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="7.0.18" />
     <PackageReference Include="Fluxera.StronglyTypedId.SystemTextJson" Version="8.3.6" />
     <PackageReference Include="JsonPatch.Net" Version="3.1.1" />
