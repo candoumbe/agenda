@@ -7,12 +7,12 @@
   <Choose>
     <When Condition="'$(TargetFramework)' == 'net7.0'">
       <ItemGroup>
-        <PackageReference Include="Fluxera.StronglyTypedId" Version="7.1.7" />
+        <PackageReference Include="Fluxera.StronglyTypedId" Version="8.3.6" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Fluxera.StronglyTypedId" Version="6.1.6" />
+        <PackageReference Include="Fluxera.StronglyTypedId" Version="8.3.6" />
       </ItemGroup>
     </Otherwise>
   </Choose>
