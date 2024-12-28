@@ -8,3 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### 🚀 New features
 - Project setup
+
+### 🧹 Housekeeping
+- Updated Candoumbe.Pipelines to 0.12.1 and fixed mutation test projects detection.
