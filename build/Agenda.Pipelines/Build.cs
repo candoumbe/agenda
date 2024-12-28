@@ -18,7 +18,8 @@ using System.Linq;
 
 [GitHubActions(
     "integration",
-    GitHubActionsImage.UbuntuLatest,
+GitHubActionsImage.UbuntuLatest,
+    AutoGenerate = false,
     FetchDepth = 0,
     OnPushBranchesIgnore = new[] { IHaveMainBranch.MainBranchName },
     PublishArtifacts = true,
@@ -38,9 +39,10 @@ using System.Linq;
     }
 )]
 [GitHubActions(
-    "delivery",
+    "delivery",    
     GitHubActionsImage.UbuntuLatest,
     FetchDepth = 0,
+    AutoGenerate = false,
     OnPushBranches = new[] { IHaveMainBranch.MainBranchName, IGitFlow.ReleaseBranch + "/*" },
     InvokedTargets = new[] { nameof(IUnitTest.UnitTests), nameof(IPushNugetPackages.Publish), nameof(ICreateGithubRelease.AddGithubRelease) },
     EnableGitHubToken = true,
