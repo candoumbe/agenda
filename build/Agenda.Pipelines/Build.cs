@@ -21,45 +21,45 @@ using System.Linq;
 GitHubActionsImage.UbuntuLatest,
     AutoGenerate = false,
     FetchDepth = 0,
-    OnPushBranchesIgnore = new[] { IHaveMainBranch.MainBranchName },
+    OnPushBranchesIgnore = [IHaveMainBranch.MainBranchName],
     PublishArtifacts = true,
-    InvokedTargets = new[] { nameof(IUnitTest.UnitTests), nameof(IPushNugetPackages.Publish), nameof(IPack.Pack), nameof(IBuildDockerImage.BuildDockerImages) },
-    CacheKeyFiles = new[] { "global.json", "src/**/*.csproj" },
-    ImportSecrets = new[]
-    {
-            nameof(NugetApiKey),
-            nameof(IReportCoverage.CodecovToken),
-    },
-    OnPullRequestExcludePaths = new[]
-    {
-            "docs/*",
+    InvokedTargets = [nameof(IUnitTest.UnitTests), nameof(IPushNugetPackages.Publish), nameof(IPack.Pack), nameof(IBuildDockerImage.BuildDockerImages)],
+    CacheKeyFiles = ["global.json", "src/**/*.csproj"],
+    ImportSecrets =
+    [
+        nameof(NugetApiKey),
+            nameof(IReportCoverage.CodecovToken)
+    ],
+    OnPullRequestExcludePaths =
+    [
+        "docs/*",
             "README.md",
             "CHANGELOG.md",
             "LICENSE"
-    }
+    ]
 )]
 [GitHubActions(
     "delivery",    
     GitHubActionsImage.UbuntuLatest,
     FetchDepth = 0,
     AutoGenerate = false,
-    OnPushBranches = new[] { IHaveMainBranch.MainBranchName, IGitFlow.ReleaseBranch + "/*" },
-    InvokedTargets = new[] { nameof(IUnitTest.UnitTests), nameof(IPushNugetPackages.Publish), nameof(ICreateGithubRelease.AddGithubRelease) },
+    OnPushBranches = [IHaveMainBranch.MainBranchName, IGitFlow.ReleaseBranch + "/*"],
+    InvokedTargets = [nameof(IUnitTest.UnitTests), nameof(IPushNugetPackages.Publish), nameof(ICreateGithubRelease.AddGithubRelease)],
     EnableGitHubToken = true,
-    CacheKeyFiles = new[] { "global.json", "src/**/*.csproj" },
+    CacheKeyFiles = ["global.json", "src/**/*.csproj"],
     PublishArtifacts = true,
-    ImportSecrets = new[]
-    {
-            nameof(NugetApiKey),
+    ImportSecrets =
+    [
+        nameof(NugetApiKey),
             nameof(IReportCoverage.CodecovToken)
-    },
-    OnPullRequestExcludePaths = new[]
-    {
-            "docs/*",
+    ],
+    OnPullRequestExcludePaths =
+    [
+        "docs/*",
             "README.md",
             "CHANGELOG.md",
             "LICENSE"
-    }
+    ]
 )]
 
 public class Build : EnhancedNukeBuild,
@@ -132,26 +132,26 @@ public class Build : EnhancedNukeBuild,
                                                             .GlobFiles("**/*.csproj", "!**/*.API.csproj");
 
     ///<inheritdoc/>
-    IEnumerable<PushNugetPackageConfiguration> IPushNugetPackages.PublishConfigurations => new PushNugetPackageConfiguration[]
-    {
-            new NugetPushConfiguration   (apiKey: NugetApiKey,
+    IEnumerable<PushNugetPackageConfiguration> IPushNugetPackages.PublishConfigurations =>
+    [
+        new NugetPushConfiguration   (apiKey: NugetApiKey,
                                           source: new Uri("https://api.nuget.org/v3/index.json"),
                                           () => NugetApiKey is not null),
             new GitHubPushNugetConfiguration(githubToken: this.Get<IHaveGitHubRepository>().GitHubToken,
                                            source: new Uri($"https://nukpg.github.com/{GitHubActions?.RepositoryOwner}/index.json"),
                                            () => this is ICreateGithubRelease && this.Get<ICreateGithubRelease>()?.GitHubToken is not null)
-    };
+    ];
 
     ///<inheritdoc/>
-    IEnumerable<DockerFile> IBuildDockerImage.DockerFiles => new[]
-    {
+    IEnumerable<DockerFile> IBuildDockerImage.DockerFiles =>
+    [
         new DockerFile(this.Get<IHaveSourceDirectory>().SourceDirectory / "Agenda.API" / "Dockerfile", "Agenda.API".ToLowerInvariant(), this.Get<IHaveGitVersion>().MajorMinorPatchVersion),
         new DockerFile(this.Get<IHaveSourceDirectory>().SourceDirectory / "Agenda.API" / "Dockerfile", "Agenda.API".ToLowerInvariant(), this.Get<IHaveGitRepository>().GitRepository.Branch switch {
                 IHaveDevelopBranch.DevelopBranchName => "latest-alpha",
                 IHaveMainBranch.MainBranchName => "latest",
                 _ => $"{this.Get<IHaveGitVersion>().GitVersion.EscapedBranchName.ToLowerInvariant()}"
         })
-    };
+    ];
 
     ///<inheritdoc/>
     Configure<DockerBuildSettings> IBuildDockerImage.BuildSettings => _ => _.SetPath(".");
@@ -162,10 +162,10 @@ public class Build : EnhancedNukeBuild,
                                                         .Select(x => $"{x.Name}{(string.IsNullOrWhiteSpace(x.Tag) ? string.Empty : $":{x.Tag}")}");
 
     ///<inheritdoc/>
-    IEnumerable<PushDockerImageConfiguration> IPushDockerImages.Registries => new[]
-    {
+    IEnumerable<PushDockerImageConfiguration> IPushDockerImages.Registries =>
+    [
         new PushDockerImageConfiguration(new Uri($"ghcr.io/{GitHubActions?.Repository}/"))
-    };
+    ];
     
     protected override void OnBuildCreated()
     {
