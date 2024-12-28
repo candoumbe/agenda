@@ -1,4 +1,6 @@
-﻿namespace Agenda.API.Resources.Appointments.v1.Update;
+﻿using Microsoft.AspNetCore.Http;
+
+namespace Agenda.API.Resources.Appointments.v1.Update;
 
 using Ardalis.ApiEndpoints;
 
@@ -16,8 +18,9 @@ public class PatchAppointmentByIdEndpoint : EndpointBaseAsync.WithRequest<JsonPa
 {
     ///<inheritdoc/>
     [HttpPatch("/appointments/id")]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesDefaultResponseType]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public override Task<ActionResult> HandleAsync(JsonPatchDocument<PatchAppointmentRequest> req, CancellationToken ct)
     {
         return Task.FromResult<ActionResult>(new NotFoundResult());

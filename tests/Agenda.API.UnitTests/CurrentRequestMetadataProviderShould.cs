@@ -52,13 +52,13 @@ public class CurrentRequestMetadataProviderShould
     }
 
     [Fact]
-    public void Returns_the_found_in_the_request()
+    public void Returns_the_timezone_found_in_the_request_When_the_request_contains_a_DateTimeZone_information()
     {
         // Arrange
         DefaultHttpContext httpContext = new DefaultHttpContext();
 
         DateTimeZone expected = DateTimeZone.ForOffset(Offset.FromTimeSpan(Faker.PickRandom(TimeZoneInfo.GetSystemTimeZones().ToArray()).BaseUtcOffset));
-        httpContext.Request.Headers.Add(CurrentRequestMetadataInfoProvider.TimeZoneHeaderName, new StringValues(expected.Id));
+        httpContext.Request.Headers.Append(CurrentRequestMetadataInfoProvider.TimeZoneHeaderName, new StringValues(expected.Id));
 
         _httpContextAccessorMock.Setup(mock => mock.HttpContext)
                                 .Returns(httpContext);
