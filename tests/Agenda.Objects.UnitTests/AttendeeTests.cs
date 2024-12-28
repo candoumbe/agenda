@@ -1,66 +1,65 @@
-namespace Agenda.Objects.UnitTests
+namespace Agenda.Objects.UnitTests;
+
+using Agenda.Ids;
+
+using FluentAssertions;
+
+using System;
+
+using Xunit;
+using Xunit.Categories;
+
+[Feature("Agenda")]
+[UnitTest]
+public class AttendeeTests
 {
-    using Agenda.Ids;
-
-    using FluentAssertions;
-
-    using System;
-
-    using Xunit;
-    using Xunit.Categories;
-
-    [Feature("Agenda")]
-    [UnitTest]
-    public class AttendeeTests
+    [Fact]
+    public void ChangingAttendee_Name_ToNull_Throws_ArgumentNullException()
     {
-        [Fact]
-        public void ChangingAttendee_Name_ToNull_Throws_ArgumentNullException()
-        {
-            // Arrange
-            Attendee attendee = new(AttendeeId.New(), "Bruce");
+        // Arrange
+        Attendee attendee = new(AttendeeId.New(), "Bruce");
 
-            // Act
-            Action action = () => attendee.ChangeNameTo(null);
+        // Act
+        Action action = () => attendee.ChangeNameTo(null);
 
-            // Assert
-            action.Should()
-                .Throw<ArgumentNullException>($"Attendee's {nameof(Attendee.Name)} cannot be changed to null");
-        }
+        // Assert
+        action.Should()
+            .Throw<ArgumentNullException>($"Attendee's {nameof(Attendee.Name)} cannot be changed to null");
+    }
 
-        [Fact]
-        public void CreatingAttendee_With_Null_Name_Throws_ArgumentNullException()
-        {
-            // Act
-            Action action = () => new Attendee(AttendeeId.New(), null);
+    [Fact]
+    public void CreatingAttendee_With_Null_Name_Throws_ArgumentNullException()
+    {
+        // Act
+        Action action = () => new Attendee(AttendeeId.New(), null);
 
-            // Assert
-            action.Should()
-                .Throw<ArgumentNullException>($"Attendee's {nameof(Attendee.Name)} cannot be null");
-        }
+        // Assert
+        action.Should()
+            .Throw<ArgumentNullException>($"Attendee's {nameof(Attendee.Name)} cannot be null");
+    }
 
-        [Theory]
-        [InlineData("bruce Wayne", "Bruce Wayne")]
-        [InlineData("Cyrille-alexandre", "Cyrille-Alexandre")]
-        public void Ctor_Builds_ValidObject(string name, string expectedName)
-        {
-            // Arrange
-            AttendeeId id = AttendeeId.New();
+    [Theory]
+    [InlineData("bruce Wayne", "Bruce Wayne")]
+    [InlineData("Cyrille-alexandre", "Cyrille-Alexandre")]
+    public void Ctor_Builds_ValidObject(string name, string expectedName)
+    {
+        // Arrange
+        AttendeeId id = AttendeeId.New();
 
-            // Act
-            Attendee attendee = new(id, name);
+        // Act
+        Attendee attendee = new(id, name);
 
-            // Assert
-            attendee.Id.Should()
-                .Be(id);
-            attendee.Name.Should()
-                .Be(expectedName);
-            attendee.PhoneNumber.Should()
-                .BeNull();
-            attendee.Email.Should()
-                .BeNull();
+        // Assert
+        attendee.Id.Should()
+            .Be(id);
+        attendee.Name.Should()
+            .Be(expectedName);
+        attendee.PhoneNumber.Should()
+            .BeNull();
+        attendee.Email.Should()
+            .BeNull();
 
-            attendee.Appointments.Should()
-                .BeEmpty();
-        }
+        attendee.Appointments.Should()
+            .BeEmpty();
     }
 }

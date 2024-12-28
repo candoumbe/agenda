@@ -1,108 +1,107 @@
-﻿namespace Agenda.Objects
+﻿namespace Agenda.Objects;
+
+using Agenda.Ids;
+
+using Candoumbe.DataAccess.Abstractions.Entities;
+
+using NodaTime;
+
+using Optional;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+/// <summary>
+/// An meeting wih a location and a subject
+/// </summary>
+public class Appointment : AuditableEntity<AppointmentId, Appointment>
 {
-    using Agenda.Ids;
-
-    using Candoumbe.DataAccess.Abstractions.Entities;
-
-    using NodaTime;
-
-    using Optional;
-
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
+    private readonly IList<Attendee> _attendees;
 
     /// <summary>
-    /// An meeting wih a location and a subject
+    /// Location of the appointment
     /// </summary>
-    public class Appointment : AuditableEntity<AppointmentId, Appointment>
+    public string Location { get; }
+
+    /// <summary>
+    /// Subject of the <see cref="Appointment"/>
+    /// </summary>
+    public string Subject { get; private set; }
+
+    /// <summary>
+    /// Start date of the appointment
+    /// </summary>
+    public Instant StartDate { get; private set; }
+
+    /// <summary>
+    /// End date of the <see cref="Appointment"/>
+    /// </summary>
+    public Instant EndDate { get; private set; }
+
+    /// <summary>
+    /// Participants of the <see cref="Appointment"/>
+    /// </summary>
+    public IList<Attendee> Attendees => _attendees;
+
+    public AppointmentStatus Status { get; }
+
+    /// <summary>
+    /// Builds a new <see cref="Appointment"/> that spans from <paramref name="startDate"/> to <paramref name="endDate"/>.
+    /// </summary>
+    /// <param name="id">identifier of the appointment to create</param>
+    /// <param name="subject"></param>
+    /// <param name="location"></param>
+    /// <param name="startDate">defines when the appointment starts</param>
+    /// <param name="endDate">defines when the appointment ends</param>
+    /// <remarks>
+    /// The instanciated appointment has no 
+    /// </remarks>
+    public Appointment(AppointmentId id, string subject, string location, Instant startDate, Instant endDate) : base(id)
     {
-        private readonly IList<Attendee> _attendees;
+        Subject = subject;
+        Location = location ?? string.Empty;
+        StartDate = startDate;
+        EndDate = endDate;
+        _attendees = new List<Attendee>();
+    }
 
-        /// <summary>
-        /// Location of the appointment
-        /// </summary>
-        public string Location { get; }
+    /// <summary>
+    /// Adds an attendee to the current instance
+    /// </summary>
+    /// <param name="attendee">The participant to add</param>
+    public void AddAttendee(Attendee attendee)
+    {
+        _attendees.Add(attendee);
+    }
 
-        /// <summary>
-        /// Subject of the <see cref="Appointment"/>
-        /// </summary>
-        public string Subject { get; private set; }
+    /// <summary>
+    /// Removes the <see cref="Attendee"/> with the specified <see cref="Attendee.UUID"/>
+    /// </summary>
+    /// <param name="attendeeId">ID of the attendee to remove</param>
+    public void RemoveAttendee(AttendeeId attendeeId)
+    {
+        Option<Attendee> optionalAttendeee = _attendees.SingleOrDefault(x => x.Id == attendeeId)
+            .SomeNotNull();
 
-        /// <summary>
-        /// Start date of the appointment
-        /// </summary>
-        public Instant StartDate { get; private set; }
+        optionalAttendeee.MatchSome((attendee) => _attendees.Remove(attendee));
+    }
 
-        /// <summary>
-        /// End date of the <see cref="Appointment"/>
-        /// </summary>
-        public Instant EndDate { get; private set; }
+    /// <summary>
+    /// Update the <see cref="Subject"/> of the <see cref="Appointment"/>
+    /// </summary>
+    /// <param name="newSubject">The new subject</param>
+    /// <exception cref="ArgumentNullException">if <paramref name="newSubject"/> is <c>null</c></exception>
+    public void ChangeSubjectTo(string newSubject) => Subject = newSubject ?? throw new ArgumentNullException(nameof(newSubject));
 
-        /// <summary>
-        /// Participants of the <see cref="Appointment"/>
-        /// </summary>
-        public IList<Attendee> Attendees => _attendees;
-
-        public AppointmentStatus Status { get; }
-
-        /// <summary>
-        /// Builds a new <see cref="Appointment"/> that spans from <paramref name="startDate"/> to <paramref name="endDate"/>.
-        /// </summary>
-        /// <param name="id">identifier of the appointment to create</param>
-        /// <param name="subject"></param>
-        /// <param name="location"></param>
-        /// <param name="startDate">defines when the appointment starts</param>
-        /// <param name="endDate">defines when the appointment ends</param>
-        /// <remarks>
-        /// The instanciated appointment has no 
-        /// </remarks>
-        public Appointment(AppointmentId id, string subject, string location, Instant startDate, Instant endDate) : base(id)
-        {
-            Subject = subject;
-            Location = location ?? string.Empty;
-            StartDate = startDate;
-            EndDate = endDate;
-            _attendees = new List<Attendee>();
-        }
-
-        /// <summary>
-        /// Adds an attendee to the current instance
-        /// </summary>
-        /// <param name="attendee">The participant to add</param>
-        public void AddAttendee(Attendee attendee)
-        {
-            _attendees.Add(attendee);
-        }
-
-        /// <summary>
-        /// Removes the <see cref="Attendee"/> with the specified <see cref="Attendee.UUID"/>
-        /// </summary>
-        /// <param name="attendeeId">ID of the attendee to remove</param>
-        public void RemoveAttendee(AttendeeId attendeeId)
-        {
-            Option<Attendee> optionalAttendeee = _attendees.SingleOrDefault(x => x.Id == attendeeId)
-                                                           .SomeNotNull();
-
-            optionalAttendeee.MatchSome((attendee) => _attendees.Remove(attendee));
-        }
-
-        /// <summary>
-        /// Update the <see cref="Subject"/> of the <see cref="Appointment"/>
-        /// </summary>
-        /// <param name="newSubject">The new subject</param>
-        /// <exception cref="ArgumentNullException">if <paramref name="newSubject"/> is <c>null</c></exception>
-        public void ChangeSubjectTo(string newSubject) => Subject = newSubject ?? throw new ArgumentNullException(nameof(newSubject));
-
-        /// <summary>
-        /// Changes the <see cref="StartDate"/> and <see cref="EndDate"/> of the <see cref="Appointment"/>
-        /// </summary>
-        /// <param name="newStartDate"></param>
-        /// <param name="newEndDate"></param>
-        public void Reschedule(ZonedDateTime newStartDate, ZonedDateTime newEndDate)
-        {
-            StartDate = newStartDate.ToInstant();
-            EndDate = newEndDate.ToInstant();
-        }
+    /// <summary>
+    /// Changes the <see cref="StartDate"/> and <see cref="EndDate"/> of the <see cref="Appointment"/>
+    /// </summary>
+    /// <param name="newStartDate"></param>
+    /// <param name="newEndDate"></param>
+    public void Reschedule(ZonedDateTime newStartDate, ZonedDateTime newEndDate)
+    {
+        StartDate = newStartDate.ToInstant();
+        EndDate = newEndDate.ToInstant();
     }
 }
