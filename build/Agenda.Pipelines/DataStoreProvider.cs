@@ -1,23 +1,22 @@
-﻿namespace Agenda.Pipelines
+﻿namespace Agenda.Pipelines;
+
+using Nuke.Common.Tooling;
+
+using System.ComponentModel;
+
+[TypeConverter(typeof(TypeConverter<DataStoreProvider>))]
+public class DataStoreProvider : Enumeration
 {
-    using Nuke.Common.Tooling;
+    /// <summary>
+    /// Sqlite database engine
+    /// </summary>
+    public static readonly DataStoreProvider Sqlite = new() { Value = nameof(Sqlite) };
 
-    using System.ComponentModel;
+    /// <summary>
+    /// Postgres database engine
+    /// </summary>
+    public static readonly DataStoreProvider Postgres = new() { Value = nameof(Postgres) };
 
-    [TypeConverter(typeof(TypeConverter<DataStoreProvider>))]
-    public class DataStoreProvider : Enumeration
-    {
-        /// <summary>
-        /// Sqlite database engine
-        /// </summary>
-        public static readonly DataStoreProvider Sqlite = new() { Value = nameof(Sqlite) };
-
-        /// <summary>
-        /// Postgres database engine
-        /// </summary>
-        public static readonly DataStoreProvider Postgres = new() { Value = nameof(Postgres) };
-
-        ///<inheritdoc/>
-        public static implicit operator string(DataStoreProvider provider) => provider.Value;
-    }
+    ///<inheritdoc/>
+    public static implicit operator string(DataStoreProvider provider) => provider.Value;
 }

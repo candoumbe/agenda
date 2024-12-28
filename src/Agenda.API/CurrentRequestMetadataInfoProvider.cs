@@ -1,56 +1,55 @@
-﻿namespace Agenda.API
-{
-    using Microsoft.Extensions.Primitives;
+﻿namespace Agenda.API;
 
-    using NodaTime;
+using Microsoft.Extensions.Primitives;
+
+using NodaTime;
+
+/// <summary>
+/// Extracts various informations from the incoming from the incoming HTTP request 
+/// </summary>
+public class CurrentRequestMetadataInfoProvider
+{
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<CurrentRequestMetadataInfoProvider> _logger;
 
     /// <summary>
-    /// Extracts various informations from the incoming from the incoming HTTP request 
+    /// /
     /// </summary>
-    public class CurrentRequestMetadataInfoProvider
+    public const string TimeZoneHeaderName = "x-timezone";
+
+    /// <summary>
+    /// Builds a new <see cref="CurrentRequestMetadataInfoProvider"/>
+    /// </summary>
+    /// <param name="httpContextAccessor"></param>
+    /// <param name="logger"></param>
+    public CurrentRequestMetadataInfoProvider(IHttpContextAccessor httpContextAccessor, ILogger<CurrentRequestMetadataInfoProvider> logger)
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<CurrentRequestMetadataInfoProvider> _logger;
+        _httpContextAccessor = httpContextAccessor;
+        _logger = logger;
+    }
 
-        /// <summary>
-        /// /
-        /// </summary>
-        public const string TimeZoneHeaderName = "x-timezone";
+    /// <summary>
+    /// Gets the <see cref="DateTimeZone"/> for the current request by reading the HTTP header named <see cref="TimeZoneHeaderName"/>
+    /// </summary>
+    /// <returns>The current <see cref="DateTimeZone"/> or <see cref="DateTimeZone.Utc"/></returns>
+    public DateTimeZone GetCurrentDateTimeZone()
+    {
+        DateTimeZone dateTimeZone = DateTimeZone.Utc;
 
-        /// <summary>
-        /// Builds a new <see cref="CurrentRequestMetadataInfoProvider"/>
-        /// </summary>
-        /// <param name="httpContextAccessor"></param>
-        /// <param name="logger"></param>
-        public CurrentRequestMetadataInfoProvider(IHttpContextAccessor httpContextAccessor, ILogger<CurrentRequestMetadataInfoProvider> logger)
+        if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue(TimeZoneHeaderName, out StringValues headers))
         {
-            _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
-        }
-
-        /// <summary>
-        /// Gets the <see cref="DateTimeZone"/> for the current request by reading the HTTP header named <see cref="TimeZoneHeaderName"/>
-        /// </summary>
-        /// <returns>The current <see cref="DateTimeZone"/> or <see cref="DateTimeZone.Utc"/></returns>
-        public DateTimeZone GetCurrentDateTimeZone()
-        {
-            DateTimeZone dateTimeZone = DateTimeZone.Utc;
-
-            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue(TimeZoneHeaderName, out StringValues headers))
+            try
             {
-                try
-                {
-                    string timeZoneId = headers.First();
-                    dateTimeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(timeZoneId) ?? DateTimeZone.Utc;
-                    _logger.LogTrace("Detected {TimeZoneId} from {HeaderName}", dateTimeZone.Id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "An error occured while trying to extract {HeaderName}. The UTC timezone will be used instead", TimeZoneHeaderName);
-                }
+                string timeZoneId = headers.First();
+                dateTimeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(timeZoneId) ?? DateTimeZone.Utc;
+                _logger.LogTrace("Detected {TimeZoneId} from {HeaderName}", dateTimeZone.Id);
             }
-
-            return dateTimeZone;
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "An error occured while trying to extract {HeaderName}. The UTC timezone will be used instead", TimeZoneHeaderName);
+            }
         }
+
+        return dateTimeZone;
     }
 }

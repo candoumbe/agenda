@@ -1,21 +1,20 @@
-﻿namespace Agenda.Objects
+﻿namespace Agenda.Objects;
+
+using Agenda.Ids;
+
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Relation between a <see cref="Attendee"/> and an <see cref="Appointment"/>
+/// </summary>
+public class AppointmentAttendee
 {
-    using Agenda.Ids;
+    public Attendee Attendee { get; set; }
 
-    using System.Text.Json.Serialization;
+    public AttendeeId AttendeeId { get; set; }
 
-    /// <summary>
-    /// Relation between a <see cref="Attendee"/> and an <see cref="Appointment"/>
-    /// </summary>
-    public class AppointmentAttendee
-    {
-        public Attendee Attendee { get; set; }
+    public AppointmentId AppointmentId { get; set; }
 
-        public AttendeeId AttendeeId { get; set; }
-
-        public AppointmentId AppointmentId { get; set; }
-
-        [JsonIgnore]
-        public Appointment Appointment { get; set; }
-    }
+    [JsonIgnore]
+    public Appointment Appointment { get; set; }
 }
