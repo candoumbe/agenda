@@ -60,7 +60,7 @@ using System.Linq;
     }
 )]
 
-public class Build : NukeBuild,
+public class Build : EnhancedNukeBuild,
     IHaveGitVersion,
     IHaveArtifacts,
     IHaveChangeLog,
@@ -111,11 +111,13 @@ public class Build : NukeBuild,
     IEnumerable<Project> IUnitTest.UnitTestsProjects => Solution.GetAllProjects("*UnitTests");
 
     ///<inheritdoc/>
-    IEnumerable<(Project, IEnumerable<Project>)> IMutationTest.MutationTestsProjects => new[] {
-        (Solution.GetProject("Agenda.API"), Solution.GetAllProjects("Agenda.API.UnitTests")),
-        (Solution.GetProject("Agenda.Ids"), Solution.GetAllProjects("Agenda.Ids.UnitTests")),
-        (Solution.GetProject("Agenda.Objects"), Solution.GetAllProjects("Agenda.Objects.UnitTests"))
-    };
+    IEnumerable<MutationProjectConfiguration> IMutationTest.MutationTestsProjects
+                => new[] { "Agenda.API", "Agenda.CQRS", "Agenda.Ids", "Agenda.Objects", "Agenda.Validators" }
+                    .Select(projectName => new MutationProjectConfiguration(sourceProject: Solution.AllProjects.Single(csproj => string.Equals(csproj.Name, projectName, StringComparison.InvariantCultureIgnoreCase)),
+                                                                            testProjects: Solution.AllProjects.Where(csproj => string.Equals(csproj.Name, $"{projectName}.UnitTests", StringComparison.InvariantCultureIgnoreCase)),
+                                                                            configurationFile: this.Get<IHaveTestDirectory>().TestDirectory / $"{projectName}.UnitTests" / "stryker-config.json"))
+                    .ToArray();
+
 
     ///<inheritdoc/>
     IEnumerable<Project> IBenchmark.BenchmarkProjects => Solution.GetAllProjects("*.PerfomanceTests");
@@ -162,7 +164,7 @@ public class Build : NukeBuild,
     {
         new PushDockerImageConfiguration(new Uri($"ghcr.io/{GitHubActions?.Repository}/"))
     };
-
+    
     protected override void OnBuildCreated()
     {
         if (IsServerBuild)
