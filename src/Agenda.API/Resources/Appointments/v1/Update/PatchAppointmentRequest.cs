@@ -1,14 +1,30 @@
 ﻿namespace Agenda.API.Resources.Appointments.v1.Update;
 
 using NodaTime;
+using Resources.v1.Appointments;
 
-public class PatchAppointmentRequest
+/// <summary>
+/// Request to partially modify an <see cref="AppointmentInfo"/>
+/// </summary>
+public record PatchAppointmentRequest
 {
-    public string Location { get; set; }
+    /// <summary>
+    /// Location of the appointment
+    /// </summary>
+    public string Location { get; init; }
 
-    public string Subject { get; set; }
+    /// <summary>
+    /// Subject of the appointment
+    /// </summary>
+    public string Subject { get; init; }
 
-    public ZonedDateTime? StartDate { get; set; }
+    /// <summary>
+    /// When the appointment starts
+    /// </summary>
+    public ZonedDateTime? StartDate { get; init; }
 
-    public ZonedDateTime? EndDate { get; set; }
+    /// <summary>
+    /// When the appointment ends
+    /// </summary>
+    public ZonedDateTime? EndDate { get; init; }
 }

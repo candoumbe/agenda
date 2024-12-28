@@ -188,8 +188,7 @@ public class SearchAppointmentEndpointShould : IClassFixture<AgendaWebApplicatio
         }
 
         // Act
-        using HttpResponseMessage getResponse = await _client.GetAsync($"/appointments/?{search}")
-                                                       .ConfigureAwait(false);
+        using HttpResponseMessage getResponse = await _client.GetAsync($"/appointments/?{search}");
 
         _outputHelper.WriteLine($"GetResponse : '{await getResponse.Content.ReadAsStringAsync()}'");
         // Assert

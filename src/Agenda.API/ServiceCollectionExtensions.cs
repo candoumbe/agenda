@@ -144,7 +144,6 @@ public static class ServiceCollectionExtensions
     /// Adds Swagger middlewares
     /// </summary>
     /// <param name="services"></param>
-    /// <param name="hostingEnvironment"></param>
     /// <param name="configuration"></param>
     public static IServiceCollection AddCustomizedSwagger(this IServiceCollection services, IConfiguration configuration)
     {
