@@ -36,13 +36,13 @@ public class CurrentRequestMetadataInfoProvider
     {
         DateTimeZone dateTimeZone = DateTimeZone.Utc;
 
-        if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue(TimeZoneHeaderName, out StringValues headers))
+        if (_httpContextAccessor.HttpContext?.Request.Headers.TryGetValue(TimeZoneHeaderName, out StringValues headers) is true && headers.Count > 0)
         {
             try
             {
-                string timeZoneId = headers.First();
+                string timeZoneId = headers[0] ?? string.Empty;
                 dateTimeZone = DateTimeZoneProviders.Tzdb.GetZoneOrNull(timeZoneId) ?? DateTimeZone.Utc;
-                _logger.LogTrace("Detected {TimeZoneId} from {HeaderName}", dateTimeZone.Id);
+                _logger.LogTrace("Detected {TimeZoneId} from {HeaderName}", dateTimeZone.Id, TimeZoneHeaderName);
             }
             catch (Exception ex)
             {
