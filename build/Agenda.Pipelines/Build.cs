@@ -112,14 +112,16 @@ public class Build : EnhancedNukeBuild,
     ///<inheritdoc/>
     IEnumerable<Project> IUnitTest.UnitTestsProjects => Solution.GetAllProjects("*UnitTests");
 
+
+    private static readonly string[] ProjectWithUnitTests = ["Agenda.API", "Agenda.CQRS", "Agenda.Ids", "Agenda.Objects", "Agenda.Validators"];
+
     ///<inheritdoc/>
     IEnumerable<MutationProjectConfiguration> IMutationTest.MutationTestsProjects
-                => new[] { "Agenda.API", "Agenda.CQRS", "Agenda.Ids", "Agenda.Objects", "Agenda.Validators" }
+                => ProjectWithUnitTests
                     .Select(projectName => new MutationProjectConfiguration(sourceProject: Solution.AllProjects.Single(csproj => string.Equals(csproj.Name, projectName, StringComparison.InvariantCultureIgnoreCase)),
                                                                             testProjects: Solution.AllProjects.Where(csproj => string.Equals(csproj.Name, $"{projectName}.UnitTests", StringComparison.InvariantCultureIgnoreCase)),
                                                                             configurationFile: this.Get<IHaveTestDirectory>().TestDirectory / $"{projectName}.UnitTests" / "stryker-config.json"))
                     .ToArray();
-
 
     ///<inheritdoc/>
     IEnumerable<Project> IBenchmark.BenchmarkProjects => Solution.GetAllProjects("*.PerfomanceTests");
