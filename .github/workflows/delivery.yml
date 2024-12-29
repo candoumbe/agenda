@@ -43,8 +43,8 @@ jobs:
             .nuke/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('global.json', 'src/**/*.csproj') }}
-      - name: 'Run: UnitTests, Publish, AddGithubRelease'
-        run: ./build.cmd UnitTests Publish AddGithubRelease
+      - name: 'Run: UnitTests, IntegrationTests, Publish, AddGithubRelease'
+        run: ./build.cmd UnitTests IntegrationTests Publish AddGithubRelease
         env:
           NugetApiKey: ${{ secrets.NUGET_API_KEY }}
           CodecovToken: ${{ secrets.CODECOV_TOKEN }}
@@ -64,6 +64,16 @@ jobs:
         with:
           name: coverage-history
           path: output/artifacts/reports/coverage-history
+      - name: 'Publish: integration-tests'
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-tests
+          path: output/artifacts/tests-results/integration-tests
+      - name: 'Publish: integration-tests'
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-tests
+          path: output/artifacts/reports/coverage-report/integration-tests
       - name: 'Publish: packages'
         uses: actions/upload-artifact@v4
         with:
