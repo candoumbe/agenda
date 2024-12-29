@@ -26,9 +26,7 @@ public interface IIntegrationTest : IReportCoverage
     /// <summary>
     /// Integration test projects.
     /// </summary>
-    IEnumerable<Project> Projects => this.Get<IHaveSolution>()
-        .Solution
-        .GetAllProjects("*.IntegrationTests");
+    IEnumerable<Project> Projects { get; }
 
 
     public Target IntegrationTests => _ => _
