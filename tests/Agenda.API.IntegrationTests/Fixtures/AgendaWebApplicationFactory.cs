@@ -1,28 +1,24 @@
 ﻿namespace Agenda.API.IntegrationTests.Fixtures;
 
-using Agenda.DataStores;
-
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Mime;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using DataStores;
 using Fluxera.StronglyTypedId.SystemTextJson;
-
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-
+using Microsoft.Extensions.Logging;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
-
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Mime;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-
 using Testcontainers.PostgreSql;
-
 using Xunit;
 
 public class AgendaWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
@@ -51,7 +47,7 @@ public class AgendaWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
     {
         _database = new PostgreSqlBuilder()
             .WithName(Guid.NewGuid().ToString("D"))
-            .WithImage("postgres:15-alpine")
+            .WithImage("postgres:17-alpine")
             .WithDatabase("test-database")
             .WithUsername("username")
             .WithPassword("p4ssW0rd!")
@@ -69,31 +65,34 @@ public class AgendaWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
     protected override void ConfigureClient(HttpClient client)
     {
         base.ConfigureClient(client);
-        client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
     }
 
     ///<inheritdoc/>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-
-        builder.ConfigureTestServices(services =>
+        builder
+            .UseEnvironment("Development")
+            // .UseTestServer()
+            .ConfigureLogging(
+                loggerBuilder =>
+                {
+                    loggerBuilder.ClearProviders();
+                })
+            .ConfigureTestServices(services =>
         {
             services.RemoveAll<AgendaDataStore>();
             IConfiguration configuration = new ConfigurationBuilder()
-                    .AddInMemoryCollection(new[]
-                    {
+                    .AddInMemoryCollection([
                         KeyValuePair.Create("ConnectionStrings:Agenda", _database.GetConnectionString())
-                    })
+                    ])
                     .Build();
             services.AddDataStores(configuration);
         });
     }
 
     ///<inheritdoc/>
-    public override async ValueTask DisposeAsync()
-    {
-        await _database.StopAsync().ConfigureAwait(false);
-    }
+    public override async ValueTask DisposeAsync() => await _database.StopAsync().ConfigureAwait(false);
 
     ///<inheritdoc/>
     async Task IAsyncLifetime.DisposeAsync()

@@ -1,10 +1,7 @@
-﻿namespace Agenda.Pipelines;
-
+using System.ComponentModel;
 using Nuke.Common.Tooling;
 
-using System.ComponentModel;
-
-[TypeConverter(typeof(TypeConverter<DataStoreProvider>))]
+[TypeConverter(typeof(Enumeration.TypeConverter<DataStoreProvider>))]
 public class DataStoreProvider : Enumeration
 {
     /// <summary>
@@ -16,7 +13,11 @@ public class DataStoreProvider : Enumeration
     /// Postgres database engine
     /// </summary>
     public static readonly DataStoreProvider Postgres = new() { Value = nameof(Postgres) };
-
-    ///<inheritdoc/>
+    
+    /// <summary>
+    /// Implicit cast from <see cref="DataStoreProvider"/> to <see />
+    /// </summary>
+    /// <param name="provider"></param>
+    /// <returns></returns>
     public static implicit operator string(DataStoreProvider provider) => provider.Value;
 }

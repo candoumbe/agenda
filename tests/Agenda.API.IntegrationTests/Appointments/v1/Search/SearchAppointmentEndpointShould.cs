@@ -178,7 +178,7 @@ public class SearchAppointmentEndpointShould : IClassFixture<AgendaWebApplicatio
 
     [Theory]
     [MemberData(nameof(SearchAppointmentCases))]
-    public async Task Should_match_expectations(IEnumerable<NewAppointmentInfo> initialData, string search, Expression<Func<HttpResponseMessage, bool>> responseExpectation, Expression<Func<PageOf<Browsable<AppointmentInfo>>, bool>> pageExpectation)
+    public async Task Should_return_response_which_matches_expectation(IEnumerable<NewAppointmentInfo> initialData, string search, Expression<Func<HttpResponseMessage, bool>> responseExpectation, Expression<Func<PageOf<Browsable<AppointmentInfo>>, bool>> pageExpectation)
     {
         // Arrange
         foreach (NewAppointmentInfo newAppointmentInfo in initialData)

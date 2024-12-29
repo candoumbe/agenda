@@ -4,6 +4,4 @@
     <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
-
 </Project>
