@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JsonSchemaMappingsProjectConfiguration">
+    <state>
+      <map>
+        <entry key="xUnit">
+          <value>
+            <SchemaInfo>
+              <option name="generatedName" value="New Schema" />
+              <option name="name" value="xUnit" />
+              <option name="relativePathToSchema" value="https://xunit.net/schema/current/xunit.runner.schema.json" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value="tests/Agenda.API.IntegrationTests/xunit.runner.json" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+      </map>
+    </state>
+  </component>
+</project>
