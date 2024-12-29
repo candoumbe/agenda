@@ -4,14 +4,14 @@ services:
   agenda.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_URLS=http://+:80
       - CONNECTIONSTRINGS__AGENDA=Server=agenda.db;Database=agenda;User ID=postgres;Password=P4ssW0rd!
     ports:
       - "80"
-      - "443"
-    volumes:
-      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+#      - "443"
+#    volumes:
+#      - /root/.microsoft/usersecrets:/root/.microsoft/usersecrets:ro
+#      - /root/.aspnet/https:/root/.aspnet/https:ro
   agenda.db:
     environment:
       POSTGRES_PASSWORD: P4ssW0rd!

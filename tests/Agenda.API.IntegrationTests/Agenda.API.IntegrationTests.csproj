@@ -22,10 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Agenda.API\Agenda.API.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Appointments\v1\Participation\" />
+    <PackageReference Update="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.14" />
   </ItemGroup>
 
 </Project>
