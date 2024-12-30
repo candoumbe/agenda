@@ -13,4 +13,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed detection of integration test projects
 
 ### 🧹 Housekeeping
-- Updated `Candoumbe.Pipelines` to 0.13.0-rc.32
+- Updated `Candoumbe.Pipelines` to 0.13.0-rc.34
