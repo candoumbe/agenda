@@ -14,7 +14,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using Nuke.Common.Tools.Codecov;
+using Nuke.Common.Tools.Coverlet;
+using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitHub;
+using Nuke.Common.Tools.ReportGenerator;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 [GitHubActions(
@@ -166,6 +170,12 @@ public class Build : EnhancedNukeBuild,
     [
         new (new Uri($"ghcr.io/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubName()}"))
     ];
+    
+    /// <inheritdoc />
+    Configure<CodecovSettings> IReportIntegrationTestCoverage.CodecovSettings => _ => _.SetFlags("integration-tests");
+
+    /// <inheritdoc />
+    Configure<CodecovSettings> IReportUnitTestCoverage.CodecovSettings => _ => _.SetFlags("unit-tests");
     
     protected override void OnBuildCreated()
     {
