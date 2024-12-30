@@ -72,12 +72,10 @@ public class Build : EnhancedNukeBuild,
     IGitFlowWithPullRequest,
     IClean,
     IRestore,
-    ICompile,
-    IUnitTest,
-    IIntegrationTest,
     IMutationTest,
     IBenchmark,
-    IReportCoverage,
+    IReportUnitTestCoverage,
+    IReportIntegrationTestCoverage,
     IPack,
     IPushNugetPackages,
     ICreateGithubRelease,
@@ -97,7 +95,7 @@ public class Build : EnhancedNukeBuild,
     IEnumerable<AbsolutePath> IClean.DirectoriesToDelete => 
     [
         .. this.Get<IHaveSourceDirectory>().SourceDirectory.GlobDirectories("**/bin", "**/obj"),
-        ..this.Get<IHaveTestDirectory>().TestDirectory.GlobDirectories("**/bin", "**/obj")
+        .. this.Get<IHaveTestDirectory>().TestDirectory.GlobDirectories("**/bin", "**/obj")
     ];
 
     ///<inheritdoc/>
@@ -110,7 +108,7 @@ public class Build : EnhancedNukeBuild,
     IEnumerable<Project> IUnitTest.UnitTestsProjects => Solution.GetAllProjects("*.UnitTests");
     
     ///<inheritdoc/>
-    IEnumerable<Project> IIntegrationTest.Projects => Solution.GetAllProjects("*.IntegrationTests");
+    IEnumerable<Project> IIntegrationTest.IntegrationTestsProjects => Solution.GetAllProjects("*.IntegrationTests");
 
     private static readonly string[] ProjectWithUnitTests = ["Agenda.API", "Agenda.Ids", "Agenda.Objects"];
 
