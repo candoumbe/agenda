@@ -176,6 +176,18 @@ public class Build : EnhancedNukeBuild,
 
     /// <inheritdoc />
     Configure<CodecovSettings> IReportUnitTestCoverage.CodecovSettings => _ => _.SetFlags("unit-tests");
+
+    /// <inheritdoc />
+    string IReportIntegrationTestCoverage.CodeCoverageReportArtifactName => "integration-test-coverage-report";
+    
+    /// <inheritdoc />
+    string IReportIntegrationTestCoverage.CodeCoverageHistoryReportArtifactName => "integration-test-coverage-history-report";
+
+    /// <inheritdoc />
+    string IReportUnitTestCoverage.CodeCoverageReportArtifactName => "unit-test-coverage-report";
+    
+    /// <inheritdoc />
+    string IReportUnitTestCoverage.CodeCoverageHistoryReportArtifactName => "unit-test-coverage-history-report";
     
     protected override void OnBuildCreated()
     {
