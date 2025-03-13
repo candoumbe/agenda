@@ -50,7 +50,6 @@ public class AgendaWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
             .WithImage("postgres:17-alpine")
             .WithDatabase("test-database")
             .WithUsername("username")
-            .WithPassword("p4ssW0rd!")
             .WithPortBinding(5432, true)
             .Build();
     }
