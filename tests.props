@@ -19,7 +19,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="xunit.categories" Version="3.0.1" />
-    <PackageReference Include="FluentAssertions" Version="8.3.0" />
+    <PackageReference Include="FluentAssertions" Version="8.4.0" />
     <PackageReference Include="Bogus" Version="35.6.3" />
     <PackageReference Include="NodaTime.Bogus" Version="3.0.2" />
     <PackageReference Include="NodaTime.Testing" Version="3.2.2" />
