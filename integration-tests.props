@@ -8,6 +8,6 @@
   <ItemGroup>
     <PackageReference Include="Xunit.Extensions.Assemblyfixture" Version="2.6.0"/>
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.19"/>
-    <PackageReference Include="Meziantou.Extensions.Logging.Xunit" Version="1.0.15"/>
+    <PackageReference Include="Meziantou.Extensions.Logging.Xunit" Version="1.0.16"/>
   </ItemGroup>
 </Project>
