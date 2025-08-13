@@ -37,7 +37,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.19" />
-    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="8.0.1" />
+    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="9.2.1" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="9.0.4" />
     <PackageReference Include="Fluxera.StronglyTypedId.SystemTextJson" Version="9.2.0" />
     <PackageReference Include="JsonPatch.Net" Version="3.3.0" />
