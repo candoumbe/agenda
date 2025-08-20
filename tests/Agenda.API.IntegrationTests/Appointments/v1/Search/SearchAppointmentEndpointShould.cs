@@ -41,7 +41,8 @@ public class SearchAppointmentEndpointShould : IClassFixture<AgendaWebApplicatio
     private readonly AgendaWebApplicationFactory _applicationFactory;
     private static readonly Faker Faker = new();
     private readonly JsonSerializerOptions _jsonSerializerOptions;
-    public SearchAppointmentEndpointShould(ITestOutputHelper outputHelper, AgendaWebApplicationFactory applicationFactory)
+    public SearchAppointmentEndpointShould(ITestOutputHelper outputHelper,
+                                           AgendaWebApplicationFactory applicationFactory)
     {
         _client = applicationFactory.CreateClient();
         _outputHelper = outputHelper;
@@ -178,7 +179,10 @@ public class SearchAppointmentEndpointShould : IClassFixture<AgendaWebApplicatio
 
     [Theory]
     [MemberData(nameof(SearchAppointmentCases))]
-    public async Task Should_return_response_which_matches_expectation(IEnumerable<NewAppointmentInfo> initialData, string search, Expression<Func<HttpResponseMessage, bool>> responseExpectation, Expression<Func<PageOf<Browsable<AppointmentInfo>>, bool>> pageExpectation)
+    public async Task Should_return_response_which_matches_expectation(IEnumerable<NewAppointmentInfo> initialData,
+                                                                       string search,
+                                                                       Expression<Func<HttpResponseMessage, bool>> responseExpectation,
+                                                                       Expression<Func<PageOf<Browsable<AppointmentInfo>>, bool>> pageExpectation)
     {
         // Arrange
         foreach (NewAppointmentInfo newAppointmentInfo in initialData)
