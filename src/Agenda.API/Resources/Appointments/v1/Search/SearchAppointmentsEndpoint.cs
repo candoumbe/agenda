@@ -5,17 +5,12 @@ using Agenda.API.Resources.Appointments.v1.GetById;
 using Agenda.API.Resources.Appointments.v1.Search;
 using Agenda.API.Resources.v1.Appointments;
 using Agenda.Objects;
-
 using FastEndpoints;
-
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.Repositories;
 using Candoumbe.Forms;
-
 using DataFilters;
-
 using Microsoft.AspNetCore.Mvc;
-
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +18,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// Gets people that are part of an appointment
 /// </summary>
-public class SearchAppointmentsEndpoint : FastEndpoints.Endpoint<SearchAppointmentRequest, PageOf<Browsable<AppointmentInfo>>>
+public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, PageOf<Browsable<AppointmentInfo>>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IHttpContextAccessor _httpContext;
@@ -45,38 +40,39 @@ public class SearchAppointmentsEndpoint : FastEndpoints.Endpoint<SearchAppointme
         _currentRequestMetadataInfo = currentRequestMetadataInfo;
     }
 
+    /// <inheritdoc />
     public override void Configure()
     {
         Verbs(Http.GET, Http.HEAD);
         Routes("/appointments");
         AllowAnonymous();
         Summary(s =>
-        {
-            s.Summary = "Search appointments";
-            s.Description = "Returns a page of appointments matching optional filters";
-        });
+                {
+                    s.Summary = "Search appointments";
+                    s.Description = "Returns a page of appointments matching optional filters";
+                });
     }
 
     public override async Task HandleAsync(SearchAppointmentRequest search, CancellationToken ct)
     {
         NodaTime.DateTimeZone zone = _currentRequestMetadataInfo.GetCurrentDateTimeZone();
 
-        IList<IFilter> filters = new List<IFilter>();
+        List<IFilter> filters = [];
         if (search.From is not null || search.To is not null)
         {
-            filters.Add((search.From, search.To) switch
+            filters.Add(( search.From, search.To ) switch
             {
-                ({ }, { }) => new MultiFilter
+                (not null, not null) => new MultiFilter
                 {
                     Logic = FilterLogic.And,
-                    Filters = new[]
-                    {
+                    Filters =
+                    [
                         new Filter(nameof(Appointment.StartDate), FilterOperator.GreaterThanOrEqual, search.From.Value.ToInstant()),
                         new Filter(nameof(Appointment.EndDate), FilterOperator.LessThanOrEqualTo, search.To.Value.ToInstant())
-                    }
+                    ]
                 },
-                ({ }, null) => new Filter(nameof(Appointment.StartDate), FilterOperator.GreaterThanOrEqual, search.From.Value.ToInstant()),
-                (null, { }) => new Filter(nameof(Appointment.EndDate), FilterOperator.LessThanOrEqualTo, search.To.Value.ToInstant()),
+                (not null, null) => new Filter(nameof(Appointment.StartDate), FilterOperator.GreaterThanOrEqual, search.From.Value.ToInstant()),
+                (null, not null) => new Filter(nameof(Appointment.EndDate), FilterOperator.LessThanOrEqualTo, search.To.Value.ToInstant()),
             });
         }
 
@@ -85,29 +81,30 @@ public class SearchAppointmentsEndpoint : FastEndpoints.Endpoint<SearchAppointme
         {
             filters.Add($"{nameof(Appointment.Subject)}={subject}".ToFilter<Appointment>());
         }
+
         IOrder<Appointment> order = new Order<Appointment>(nameof(Appointment.StartDate));
 
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
 
-        Expression<Func<Appointment, bool>> predicate = (filters.Count switch
-        {
-            1 => filters.Single(),
-            > 1 => new MultiFilter { Logic = FilterLogic.And, Filters = filters },
-            _ => Filter.True
-        }).ToExpression<Appointment>(DataFilters.Expressions.NullableValueBehavior.AddNullCheck);
+        Expression<Func<Appointment, bool>> predicate = ( filters.Count switch
+                                                            {
+                                                                1   => filters.Single(),
+                                                                > 1 => new MultiFilter { Logic = FilterLogic.And, Filters = filters },
+                                                                _   => Filter.True
+                                                            } ).ToExpression<Appointment>(DataFilters.Expressions.NullableValueBehavior.AddNullCheck);
 
         Page<Appointment> pageOfAppointments = await unitOfWork.Repository<Appointment>()
-            .Where(predicate,
-                page: PageIndex.From(search.Page),
-                pageSize: PageSize.From(search.PageSize),
-                orderBy: order,
-                cancellationToken: ct)
-            .ConfigureAwait(false);
+                                                   .Where(predicate,
+                                                          page: PageIndex.From(search.Page),
+                                                          pageSize: PageSize.From(search.PageSize),
+                                                          orderBy: order,
+                                                          cancellationToken: ct)
+                                                   .ConfigureAwait(false);
 
         HttpContext http = _httpContext.HttpContext;
 
-        IEnumerable<Appointment> entries = pageOfAppointments.Entries;
-        int count = entries.TryGetNonEnumeratedCount(out count) ? count : entries.Count();
+        IReadOnlyList<Appointment> entries = [.. pageOfAppointments.Entries];
+        int count = entries.Count;
 
         PageOf<Browsable<AppointmentInfo>> content = new()
         {
@@ -115,30 +112,34 @@ public class SearchAppointmentsEndpoint : FastEndpoints.Endpoint<SearchAppointme
             PageSize = search.PageSize,
             Total = pageOfAppointments.Total,
             Count = count,
-            Items = entries.Select(x => new Browsable<AppointmentInfo>()
-            {
-                Resource = new AppointmentInfo
+            Items =
+            [
+                .. entries.Select(x => new Browsable<AppointmentInfo>()
                 {
-                    Id = x.Id,
-                    Location = x.Location,
-                    StartDate = x.StartDate.InZone(zone).ToOffsetDateTime(),
-                    EndDate = x.EndDate.InZone(zone).ToOffsetDateTime()
-                },
-                Links = new[]
-                {
-                    new Link
+                    Resource = new AppointmentInfo
                     {
-                        Href = _linkGenerator.GetUriByRouteValues(http, nameof(GetAppointmentByIdEndpoint), new { x.Id }),
-                        Relations = new []{ LinkRelation.Self }
+                        Id = x.Id,
+                        Location = x.Location,
+                        StartDate = x.StartDate.InZone(zone).ToOffsetDateTime(),
+                        EndDate = x.EndDate.InZone(zone).ToOffsetDateTime()
                     },
-                    new Link
-                    {
-                        Href = _linkGenerator.GetUriByRouteValues(http, nameof(DeleteEndpoint), new { x.Id }),
-                        Relations = new []{ "delete" }
-                    }
-                }
-            }).ToArray()
+                    Links =
+                    [
+                        new Link
+                        {
+                            Href = _linkGenerator.GetUriByRouteValues(http, nameof(GetAppointmentByIdEndpoint), new { x.Id }),
+                            Relations = [LinkRelation.Self]
+                        },
+                        new Link
+                        {
+                            Href = _linkGenerator.GetUriByRouteValues(http, nameof(DeleteEndpoint), new { x.Id }),
+                            Relations = ["delete"]
+                        }
+                    ]
+                })
+            ]
         };
+
 
         if (content.Total > content.Count)
         {

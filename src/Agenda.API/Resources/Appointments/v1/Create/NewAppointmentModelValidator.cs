@@ -17,17 +17,12 @@ public class NewAppointmentModelValidator : AbstractValidator<NewAppointmentInfo
     {
         ArgumentNullException.ThrowIfNull(clock);
 
-        RuleFor(x => x.EndDate)
-            .NotEmpty();
-        RuleFor(x => x.Location)
-            .NotEmpty();
-        RuleFor(x => x.StartDate)
-            .NotEmpty();
-        RuleFor(x => x.Subject)
-            .NotNull();
+        RuleFor(x => x.EndDate).NotEmpty();
+        RuleFor(x => x.Location).NotEmpty();
+        RuleFor(x => x.StartDate).NotEmpty();
+        RuleFor(x => x.Subject).NotNull();
 
-        RuleFor(x => x.Attendees)
-            .NotEmpty();
+        RuleFor(x => x.Attendees).NotEmpty();
 
         When(
             x => x.StartDate != default && x.EndDate != default,

@@ -37,6 +37,7 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
         _currentRequestMetadataInfoProvider = currentRequestMetadataInfoProvider;
     }
 
+    /// <inheritdoc />
     public override void Configure()
     {
         Get("/appointments/{id}");
