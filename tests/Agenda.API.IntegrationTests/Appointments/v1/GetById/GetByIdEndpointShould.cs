@@ -67,14 +67,14 @@ public class GetByIdEndpointShould : IClassFixture<AgendaWebApplicationFactory>
     public async Task Returns_the_appointment_when_Id_exists()
     {
         // Arrange
-        Instant startDate = Faker.Noda().Instant.Soon();
-        Instant endDate = Faker.Noda().Instant.Future(reference: startDate);
+        ZonedDateTime startDate = Faker.Noda().Instant.Soon().InZone(DefaultDateTimeZone);
+        ZonedDateTime endDate = Faker.Noda().Instant.Future(reference: startDate.ToInstant()).InZone(DefaultDateTimeZone);
 
         NewAppointmentInfo newAppointmentInfo = new()
         {
             Id = AppointmentId.New(),
-            StartDate = startDate.InZone(DefaultDateTimeZone).ToOffsetDateTime(),
-            EndDate = endDate.InZone(DefaultDateTimeZone).ToOffsetDateTime(),
+            StartDate = startDate.ToOffsetDateTime(),
+            EndDate = endDate.ToOffsetDateTime(),
             Location = Faker.Address.City(),
             Attendees = Faker.Make(2, action: () => new AttendeeInfo()
             {

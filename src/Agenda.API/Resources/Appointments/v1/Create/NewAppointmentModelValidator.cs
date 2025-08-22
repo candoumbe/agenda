@@ -1,8 +1,7 @@
-﻿namespace Agenda.API.Resources.Appointments.v1.Create;
-
+﻿using NodaTime;
 using FluentValidation;
 
-using NodaTime;
+namespace Agenda.API.Resources.Appointments.v1.Create;
 
 /// <summary>
 /// Validates <see cref="NewAppointmentInfo"/> instances.
@@ -16,10 +15,7 @@ public class NewAppointmentModelValidator : AbstractValidator<NewAppointmentInfo
     /// <exception cref="ArgumentNullException"><paramref name="clock"/> is null.</exception>
     public NewAppointmentModelValidator(IClock clock)
     {
-        if (clock == null)
-        {
-            throw new ArgumentNullException(nameof(clock));
-        }
+        ArgumentNullException.ThrowIfNull(clock);
 
         RuleFor(x => x.EndDate)
             .NotEmpty();

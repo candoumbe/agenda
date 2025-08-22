@@ -1,25 +1,19 @@
-﻿namespace Agenda.API.Resources.Appointments.v1.GetById;
-using Agenda.API.Resources;
-using Agenda.API.Resources.v1.Appointments;
-using Agenda.Ids;
+﻿using Agenda.API.Resources.v1.Appointments;
 using Agenda.Objects;
-
-using Ardalis.ApiEndpoints;
-
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.Repositories;
 using Candoumbe.Forms;
-
-using Microsoft.AspNetCore.Mvc;
-
+using FastEndpoints;
+using Microsoft.AspNetCore.Http.HttpResults;
+using NodaTime;
 using Optional;
 
+namespace Agenda.API.Resources.Appointments.v1.GetById;
 
 /// <summary>
 /// Gets an appointment by its id
 /// </summary>
-public class GetAppointmentByIdEndpoint : EndpointBaseAsync.WithRequest<AppointmentId>
-                                                           .WithActionResult<Browsable<GetAppointmentByIdResponse>>
+public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Browsable<GetAppointmentByIdResponse>>, NotFound>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly LinkGenerator _linkGenerator;
@@ -43,44 +37,52 @@ public class GetAppointmentByIdEndpoint : EndpointBaseAsync.WithRequest<Appointm
         _currentRequestMetadataInfoProvider = currentRequestMetadataInfoProvider;
     }
 
-    /// <inheritdoc/>
-    [HttpGet("/appointments/{id}", Name = RouteName)]
-    public override async Task<ActionResult<Browsable<GetAppointmentByIdResponse>>> HandleAsync(AppointmentId id, CancellationToken ct)
+    public override void Configure()
+    {
+        Get("/appointments/{id}");
+        Options(o => o.WithName(RouteName));
+        AllowAnonymous();
+    }
+
+
+    /// <inheritdoc />
+    public override async Task<Results<Ok<Browsable<GetAppointmentByIdResponse>>, NotFound>> ExecuteAsync(GetByIdRequest req, CancellationToken ct)
     {
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
         Option<Appointment> mayBeAppointment = await unitOfWork.Repository<Appointment>()
-                                                               .SingleOrDefault(predicate: (Appointment x) => x.Id == id,
-                                                                                includedProperties: new[] { IncludeClause<Appointment>.Create(x => x.Attendees) },
-                                                                                cancellationToken: ct)
-                                                               .ConfigureAwait(false);
+                                                   .SingleOrDefault(predicate: (Appointment x) => x.Id == req.Id,
+                                                                    includedProperties: [IncludeClause<Appointment>.Create(x => x.Attendees)],
+                                                                    cancellationToken: ct)
+                                                   .ConfigureAwait(false);
 
-        return mayBeAppointment.Match<ActionResult<Browsable<GetAppointmentByIdResponse>>>(
-            some: entity =>
-            {
-                NodaTime.DateTimeZone zone = _currentRequestMetadataInfoProvider.GetCurrentDateTimeZone();
-                GetAppointmentByIdResponse appointment = new GetAppointmentByIdResponse
-                {
-                    Id = entity.Id,
-                    StartDate = entity.StartDate.InZone(zone),
-                    EndDate = entity.EndDate.InZone(zone),
-                    Subject = entity.Subject,
-                    Location = entity.Location
-                };
+        return mayBeAppointment.Match<Results<Ok<Browsable<GetAppointmentByIdResponse>>, NotFound>>(some: entity =>
+                                                                                                          {
+                                                                                                              DateTimeZone zone = _currentRequestMetadataInfoProvider.GetCurrentDateTimeZone();
+                                                                                                              GetAppointmentByIdResponse appointment = new()
+                                                                                                              {
+                                                                                                                  Id = entity.Id,
+                                                                                                                  StartDate = entity.StartDate.InZone(zone),
+                                                                                                                  EndDate = entity.EndDate.InZone(zone),
+                                                                                                                  Subject = entity.Subject,
+                                                                                                                  Location = entity.Location
+                                                                                                              };
 
-                return new Browsable<GetAppointmentByIdResponse>()
-                {
-                    Resource = appointment,
-                    Links = new[]
-                    {
-                        new Link
-                        {
-                            Href = _linkGenerator.GetUriByName(HttpContext, nameof(GetAppointmentByIdEndpoint), new { Id = id.Value }),
-                            Method = "GET",
-                            Relations = (new [] { LinkRelation.Self }).ToHashSet()
-                        },
-                    }
-                };
-            },
-            none: () => new NotFoundResult());
+                                                                                                              Browsable<GetAppointmentByIdResponse> resource = new()
+                                                                                                              {
+                                                                                                                  Resource = appointment,
+                                                                                                                  Links =
+                                                                                                                  [
+                                                                                                                      new Link
+                                                                                                                      {
+                                                                                                                          Href = _linkGenerator.GetUriByName(HttpContext, nameof(GetAppointmentByIdEndpoint), new { Id = req.Id.Value }),
+                                                                                                                          Method = "GET",
+                                                                                                                          Relations = new[] { LinkRelation.Self }.ToHashSet()
+                                                                                                                      }
+                                                                                                                  ]
+                                                                                                              };
+
+                                                                                                              return TypedResults.Ok(resource);
+                                                                                                          },
+                                                                                                    none: () => TypedResults.NotFound());
     }
 }
