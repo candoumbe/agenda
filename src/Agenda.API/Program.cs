@@ -28,7 +28,6 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseFastEndpoints();
-app.MapControllers();
 
 using IServiceScope scope = app.Services.CreateScope();
 IServiceProvider services = scope.ServiceProvider;

@@ -36,13 +36,15 @@ public class CreateAppointmentEndpoint : FastEndpoints.Endpoint<NewAppointmentIn
         _currentRequestMetadataInfoProvider = currentRequestMetadataInfoProvider;
     }
 
-public override void Configure()
+    /// <inheritdoc />
+    public override void Configure()
 {
     Post("/appointments");
     AllowAnonymous();
 }
 
-public override async Task HandleAsync(NewAppointmentInfo req, CancellationToken ct)
+    /// <inheritdoc />
+    public override async Task HandleAsync(NewAppointmentInfo req, CancellationToken ct)
 {
     using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
 
@@ -69,21 +71,21 @@ public override async Task HandleAsync(NewAppointmentInfo req, CancellationToken
         Browsable<AppointmentInfo> browsable = new()
         {
             Resource = appointmentInfo,
-            Links = new[]
-            {
+            Links =
+            [
                 new Link
                 {
                     Href = _linkGenerator.GetUriByName(HttpContext, nameof(GetAppointmentByIdEndpoint), new { newAppointment.Id }),
                     Method = nameof(Get),
-                    Relations = new[] { LinkRelation.Self }
+                    Relations = [LinkRelation.Self]
                 },
                 new Link
                 {
                     Href = _linkGenerator.GetUriByName(HttpContext, nameof(DeleteEndpoint), new { newAppointment.Id }),
                     Method = nameof(Delete),
-                    Relations = new[] { "delete" }
-                },
-            }
+                    Relations = ["delete"]
+                }
+            ]
         };
 
         await SendCreatedAtAsync(GetAppointmentByIdEndpoint.RouteName, new { newAppointment.Id }, browsable, generateAbsoluteUrl: false, cancellation: ct);

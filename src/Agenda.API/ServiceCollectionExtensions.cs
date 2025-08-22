@@ -59,7 +59,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <param name="configuration"></param>
-    public static IServiceCollection AddDataStores(this IServiceCollection services, IConfiguration configuration)
+    public static void AddDataStores(this IServiceCollection services, IConfiguration configuration)
     {
         using IServiceScope scope = services.BuildServiceProvider().CreateScope();
 
@@ -80,12 +80,11 @@ public static class ServiceCollectionExtensions
 
         services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<AgendaDataStore>>();
 
-        return services;
+        return;
 
         static DbContextOptionsBuilder<AgendaDataStore> BuildDbContextOptions(IServiceProvider serviceProvider, IConfiguration configuration)
         {
             using IServiceScope scope = serviceProvider.CreateScope();
-            IHostEnvironment hostingEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
             DbContextOptionsBuilder<AgendaDataStore> builder = new();
 
             string connectionString = configuration.GetConnectionString("Agenda");
@@ -131,13 +130,11 @@ public static class ServiceCollectionExtensions
     /// <remarks>
     /// Adds the
     /// </remarks>
-    public static IServiceCollection AddCustomizedDependencyInjection(this IServiceCollection services)
+    public static void AddCustomizedDependencyInjection(this IServiceCollection services)
     {
         services.AddSingleton<IClock>(SystemClock.Instance);
         services.AddHttpContextAccessor();
         services.AddTransient<CurrentRequestMetadataInfoProvider>();
-
-        return services;
     }
 
     /// <summary>

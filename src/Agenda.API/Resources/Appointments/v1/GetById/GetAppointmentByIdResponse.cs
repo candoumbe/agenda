@@ -5,7 +5,7 @@ using Agenda.Ids;
 using NodaTime;
 
 /// <summary>
-/// An appointment beetween two or more people
+/// An appointment between two or more <see cref="AttendeeInfo">attendees</see>.
 /// </summary>
 public class GetAppointmentByIdResponse : Resource<AppointmentId>
 {
