@@ -5,7 +5,7 @@ using Agenda.API.Resources.Appointments.v1.GetById;
 using Agenda.API.Resources.v1.Appointments;
 using Agenda.Objects;
 
-using Ardalis.ApiEndpoints;
+using FastEndpoints;
 
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.Forms;
@@ -17,8 +17,7 @@ using static System.Net.Http.HttpMethod;
 /// <summary>
 /// Creates new appointment
 /// </summary>
-public class CreateAppointmentEndpoint : EndpointBaseAsync.WithRequest<NewAppointmentInfo>
-    .WithActionResult<Browsable<AppointmentInfo>>
+public class CreateAppointmentEndpoint : FastEndpoints.Endpoint<NewAppointmentInfo, Browsable<AppointmentInfo>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly LinkGenerator _linkGenerator;
@@ -37,13 +36,15 @@ public class CreateAppointmentEndpoint : EndpointBaseAsync.WithRequest<NewAppoin
         _currentRequestMetadataInfoProvider = currentRequestMetadataInfoProvider;
     }
 
-    ///<inheritdoc/>
-    [HttpPost("/appointments")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesDefaultResponseType]
-    public override async Task<ActionResult<Browsable<AppointmentInfo>>> HandleAsync([FromBody] NewAppointmentInfo req, CancellationToken ct)
-    {
-        using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
+public override void Configure()
+{
+    Post("/appointments");
+    AllowAnonymous();
+}
+
+public override async Task HandleAsync(NewAppointmentInfo req, CancellationToken ct)
+{
+    using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
 
         Appointment newAppointment = new(req.Id, req.Subject, req.Location, req.StartDate.ToInstant(), req.EndDate.ToInstant());
         foreach (AttendeeInfo attendee in req.Attendees)
@@ -62,13 +63,7 @@ public class CreateAppointmentEndpoint : EndpointBaseAsync.WithRequest<NewAppoin
             StartDate = newAppointment.StartDate.InZone(zone).ToOffsetDateTime(),
             EndDate = newAppointment.EndDate.InZone(zone).ToOffsetDateTime(),
             Subject = newAppointment.Subject,
-            Attendees = newAppointment.Attendees.Select(attendee => new AttendeeInfo
-            {
-                Id = attendee.Id,
-                Email = attendee.Email,
-                Name = attendee.Name,
-                PhoneNumber = attendee.PhoneNumber
-            })
+            Attendees = req.Attendees
         };
 
         Browsable<AppointmentInfo> browsable = new()
@@ -91,6 +86,6 @@ public class CreateAppointmentEndpoint : EndpointBaseAsync.WithRequest<NewAppoin
             }
         };
 
-        return new CreatedAtRouteResult(GetAppointmentByIdEndpoint.RouteName, new { newAppointment.Id }, browsable);
+        await SendCreatedAtAsync(GetAppointmentByIdEndpoint.RouteName, new { newAppointment.Id }, browsable, generateAbsoluteUrl: false, cancellation: ct);
     }
 }

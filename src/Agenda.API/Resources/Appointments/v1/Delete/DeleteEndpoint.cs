@@ -1,22 +1,14 @@
-﻿namespace Agenda.API.Resources.Appointments.v1.Delete;
-
-using Agenda.Ids;
-using Agenda.Objects;
-
-using Ardalis.ApiEndpoints;
-
+﻿using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
+using FastEndpoints;
+using Microsoft.AspNetCore.Http.HttpResults;
 
-using Microsoft.AspNetCore.Mvc;
-
-using System.Threading;
-using System.Threading.Tasks;
+namespace Agenda.API.Resources.Appointments.v1.Delete;
 
 /// <summary>
 /// Deletes an appointment by its identifier
 /// </summary>
-public class DeleteEndpoint : EndpointBaseAsync.WithRequest<AppointmentId>
-    .WithActionResult
+public class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, NotFound>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
@@ -29,30 +21,32 @@ public class DeleteEndpoint : EndpointBaseAsync.WithRequest<AppointmentId>
         _unitOfWorkFactory = unitOfWorkFactory;
     }
 
-    /// <summary>
-    /// Deletes an appointment
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    [HttpDelete("/appointments/{id}", Name = nameof(DeleteEndpoint))]
-    public override async Task<ActionResult> HandleAsync([FromRoute] AppointmentId id, CancellationToken ct)
+    /// <inheritdoc />
+    public override void Configure()
+    {
+        Delete("/appointments/{id}");
+        Options(o => o.WithName(nameof(DeleteEndpoint)));
+        AllowAnonymous();
+    }
+
+    /// <inheritdoc />
+    public override async Task<Results<NoContent, NotFound>> ExecuteAsync(DeleteByIdRequest req, CancellationToken ct)
     {
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
 
         IRepository<Appointment> repository = unitOfWork.Repository<Appointment>();
-        ActionResult actionResult;
-        if (await repository.Any(appointment => appointment.Id == id, ct))
+        Results<NoContent, NotFound> result;
+        if (await repository.Any(appointment => appointment.Id == req.Id, ct))
         {
-            await repository.Delete(appointment => appointment.Id == id, ct);
+            await repository.Delete(appointment => appointment.Id == req.Id, ct);
             await unitOfWork.SaveChangesAsync(ct);
-            actionResult = new NoContentResult();
+            result = TypedResults.NoContent();
         }
         else
         {
-            actionResult = new NotFoundResult();
+            result = TypedResults.NotFound();
         }
 
-        return actionResult;
+        return result;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Agenda.API.Resources.Appointments.v1.Update;
 
-using Ardalis.ApiEndpoints;
+using FastEndpoints;
 
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -13,16 +13,16 @@ using System.Threading.Tasks;
 /// <summary>
 /// Updates an appointment based on a PATCH document
 /// </summary>
-public class PatchAppointmentByIdEndpoint : EndpointBaseAsync.WithRequest<JsonPatchDocument<PatchAppointmentRequest>>
-    .WithActionResult
+public class PatchAppointmentByIdEndpoint : FastEndpoints.Endpoint<JsonPatchDocument<PatchAppointmentRequest>>
 {
-    ///<inheritdoc/>
-    [HttpPatch("/appointments/id")]
-    [ProducesDefaultResponseType]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public override Task<ActionResult> HandleAsync(JsonPatchDocument<PatchAppointmentRequest> req, CancellationToken ct)
+    public override void Configure()
     {
-        return Task.FromResult<ActionResult>(new NotFoundResult());
+        Patch("/appointments/id");
+        AllowAnonymous();
+    }
+
+    public override async Task HandleAsync(JsonPatchDocument<PatchAppointmentRequest> req, CancellationToken ct)
+    {
+        await SendNotFoundAsync(ct);
     }
 }

@@ -1,14 +1,14 @@
-﻿namespace Agenda.API.Resources.Appointments.v1.Create;
-
+﻿
 using Agenda.API.Resources.v1.Appointments;
 using Agenda.Ids;
-
 using NodaTime;
+
+namespace Agenda.API.Resources.Appointments.v1.Create;
 
 /// <summary>
 /// Contains data to create a new <see cref="AppointmentInfo"/> beetween two or more person
 /// </summary>
-public record NewAppointmentInfo : IEquatable<NewAppointmentInfo>
+public record NewAppointmentInfo
 {
     /// <summary>
     /// Identifier of the appointment
@@ -45,6 +45,6 @@ public record NewAppointmentInfo : IEquatable<NewAppointmentInfo>
     /// </summary>
     public NewAppointmentInfo()
     {
-        Attendees = Enumerable.Empty<AttendeeInfo>();
+        Attendees = [];
     }
 }

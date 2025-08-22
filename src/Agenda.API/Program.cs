@@ -1,6 +1,7 @@
 ﻿using Agenda.API;
 using Agenda.DataStores;
 using Serilog;
+using FastEndpoints;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddDataStores(builder.Configuration);
 builder.Services.AddCustomizedDependencyInjection();
 builder.Services.AddCustomizedMvc(builder.Configuration);
 builder.Services.AddCustomizedSwagger(builder.Configuration);
+builder.Services.AddFastEndpoints();
 
 builder.Host.UseSerilog((hosting, loggerConfig) => loggerConfig.MinimumLevel.Verbose()
             .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
@@ -25,6 +27,7 @@ app.UseRouting();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseFastEndpoints();
 app.MapControllers();
 
 using IServiceScope scope = app.Services.CreateScope();

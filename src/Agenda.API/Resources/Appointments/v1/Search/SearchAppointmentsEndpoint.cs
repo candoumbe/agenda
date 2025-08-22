@@ -6,7 +6,7 @@ using Agenda.API.Resources.Appointments.v1.Search;
 using Agenda.API.Resources.v1.Appointments;
 using Agenda.Objects;
 
-using Ardalis.ApiEndpoints;
+using FastEndpoints;
 
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.Repositories;
@@ -23,8 +23,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// Gets people that are part of an appointment
 /// </summary>
-public class SearchAppointmentsEndpoint : EndpointBaseAsync.WithRequest<SearchAppointmentRequest>
-    .WithActionResult<PageOf<Browsable<AppointmentInfo>>>
+public class SearchAppointmentsEndpoint : FastEndpoints.Endpoint<SearchAppointmentRequest, PageOf<Browsable<AppointmentInfo>>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IHttpContextAccessor _httpContext;
@@ -46,11 +45,19 @@ public class SearchAppointmentsEndpoint : EndpointBaseAsync.WithRequest<SearchAp
         _currentRequestMetadataInfo = currentRequestMetadataInfo;
     }
 
+    public override void Configure()
+    {
+        Verbs(Http.GET, Http.HEAD);
+        Routes("/appointments");
+        AllowAnonymous();
+        Summary(s =>
+        {
+            s.Summary = "Search appointments";
+            s.Description = "Returns a page of appointments matching optional filters";
+        });
+    }
 
-    ///<inheritdoc/>
-    [HttpGet("/appointments")]
-    [HttpHead("/appointments")]
-    public override async Task<ActionResult<PageOf<Browsable<AppointmentInfo>>>> HandleAsync([FromQuery] SearchAppointmentRequest search, CancellationToken ct)
+    public override async Task HandleAsync(SearchAppointmentRequest search, CancellationToken ct)
     {
         NodaTime.DateTimeZone zone = _currentRequestMetadataInfo.GetCurrentDateTimeZone();
 
@@ -133,8 +140,13 @@ public class SearchAppointmentsEndpoint : EndpointBaseAsync.WithRequest<SearchAp
             }).ToArray()
         };
 
-        return content.Total > content.Count
-            ? new OkObjectResult(content) { StatusCode = StatusCodes.Status206PartialContent }
-            : new OkObjectResult(content);
+        if (content.Total > content.Count)
+        {
+            await SendAsync(content, StatusCodes.Status206PartialContent, ct);
+        }
+        else
+        {
+            await SendOkAsync(content, ct);
+        }
     }
 }
