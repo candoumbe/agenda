@@ -28,7 +28,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     FetchDepth = 0,
     OnPushBranchesIgnore = [IHaveMainBranch.MainBranchName],
     PublishArtifacts = true,
-    InvokedTargets = [nameof(IUnitTest.UnitTests), nameof(IIntegrationTest.IntegrationTests), nameof(IPushNugetPackages.Publish), nameof(IPack.Pack), nameof(IBuildDockerImage.BuildDockerImages)],
+    InvokedTargets = [nameof(IUnitTest.UnitTests), nameof(IIntegrationTest.IntegrationTests), nameof(IPushNugetPackages.Publish), nameof(IPack.Pack)],
     CacheKeyFiles = ["global.json", "src/**/*.csproj"],
     ImportSecrets =
     [
@@ -82,8 +82,7 @@ public class Build : EnhancedNukeBuild,
     IReportIntegrationTestCoverage,
     IPack,
     IPushNugetPackages,
-    ICreateGithubRelease,
-    IPushDockerImages
+    ICreateGithubRelease
 {
     [CI] public GitHubActions GitHubActions;
 
@@ -145,32 +144,6 @@ public class Build : EnhancedNukeBuild,
             () => this.Get<ICreateGithubRelease>()?.GitHubToken is not null)
     ];
 
-    ///<inheritdoc/>
-    IEnumerable<DockerFile> IBuildDockerImage.DockerFiles =>
-    [
-        new(this.Get<IHaveSourceDirectory>().SourceDirectory / "Agenda.API" / "Dockerfile", "Agenda.API".ToLowerInvariant(), this.Get<IHaveGitVersion>().MajorMinorPatchVersion),
-        new(this.Get<IHaveSourceDirectory>().SourceDirectory / "Agenda.API" / "Dockerfile", "Agenda.API".ToLowerInvariant(), this.Get<IHaveGitRepository>().GitRepository.Branch switch
-        {
-            IHaveDevelopBranch.DevelopBranchName => "latest-alpha",
-            IHaveMainBranch.MainBranchName => "latest",
-            _ => $"{this.Get<IHaveGitVersion>().GitVersion.EscapedBranchName.ToLowerInvariant()}"
-        })
-    ];
-
-    ///<inheritdoc/>
-    Configure<DockerBuildSettings> IBuildDockerImage.BuildSettings => _ => _.SetPath(".");
-
-    ///<inheritdoc/>
-    IEnumerable<string> IPushDockerImages.Images => this.Get<IBuildDockerImage>()
-        .DockerFiles
-        .Select(x => $"{x.Name}{( string.IsNullOrWhiteSpace(x.Tag) ? string.Empty : $":{x.Tag}" )}");
-
-    ///<inheritdoc/>
-    IEnumerable<PushDockerImageConfiguration> IPushDockerImages.Registries =>
-    [
-        new (new Uri($"ghcr.io/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubName()}"))
-    ];
-    
     /// <inheritdoc />
     Configure<CodecovSettings> IReportIntegrationTestCoverage.CodecovSettings => _ => _.SetFlags("integration-tests");
 
