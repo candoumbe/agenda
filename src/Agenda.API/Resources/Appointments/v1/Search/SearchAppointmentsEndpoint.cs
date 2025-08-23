@@ -49,6 +49,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Pag
                 });
     }
 
+    /// <inheritdoc />
     public override async Task HandleAsync(SearchAppointmentRequest search, CancellationToken ct)
     {
         NodaTime.DateTimeZone zone = _currentRequestMetadataInfo.GetCurrentDateTimeZone();
@@ -91,11 +92,10 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Pag
 
         Page<Appointment> pageOfAppointments = await unitOfWork.Repository<Appointment>()
                                                    .Where(predicate,
-                                                          page: PageIndex.From(search.Page),
-                                                          pageSize: PageSize.From(search.PageSize),
-                                                          orderBy: order,
-                                                          cancellationToken: ct)
-                                                   .ConfigureAwait(false);
+                                                          order,
+                                                          PageSize.From(search.PageSize),
+                                                          PageIndex.From(search.Page),
+                                                          cancellationToken: ct);
 
         HttpContext http = _httpContext.HttpContext;
 
