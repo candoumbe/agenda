@@ -79,15 +79,16 @@ public class DeleteEndpointShould : IClassFixture<AgendaWebApplicationFactory>
 
         using HttpResponseMessage createBrowsableResponse = await _client.PostAsJsonAsync("/appointments", newAppointmentInfo, JsonSerializerOptions);
         Browsable<AppointmentInfo> browsable = await createBrowsableResponse.Content.ReadFromJsonAsync<Browsable<AppointmentInfo>>(JsonSerializerOptions);
+        string requestUri = $"/appointments/{browsable.Resource.Id}";
 
         // Act
-        using HttpResponseMessage response = await _client.DeleteAsync($"/appointments/{browsable.Resource.Id}");
+        using HttpResponseMessage response = await _client.DeleteAsync(requestUri);
 
         // Assert
         response.StatusCode.Should()
                            .Be(HttpStatusCode.NoContent);
 
-        using HttpResponseMessage getResponse = await _client.GetAsync($"/appointments/{browsable.Resource.Id}");
+        using HttpResponseMessage getResponse = await _client.GetAsync(requestUri);
 
         _outputHelper.WriteLine($"Content : {await getResponse.Content.ReadAsStringAsync()}");
         getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);

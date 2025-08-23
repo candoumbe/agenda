@@ -18,6 +18,7 @@
         /// <returns></returns>
         public static AttendeeId New() => new AttendeeId(Guid.NewGuid());
 
+#if NETSTANDARD2_1
         public static bool TryParse(string input, [NotNullWhen(true)] out AttendeeId output)
         {
             output = null;
@@ -31,6 +32,7 @@
 
             return parsed;
         }
+#endif
     }
 
 }

@@ -1,5 +1,6 @@
 ﻿using Agenda.API;
 using Agenda.DataStores;
+using Agenda.Ids;
 using FastEndpoints;
 using Serilog;
 
@@ -27,7 +28,10 @@ app.UseRouting();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseFastEndpoints();
+app.UseFastEndpoints(config =>
+                     {
+                         config.Binding.ValueParserFor<AppointmentId>(values => new ParseResult(AppointmentId.TryParse(values.ToString(), out AppointmentId id), id));
+                     });
 
 using IServiceScope scope = app.Services.CreateScope();
 IServiceProvider services = scope.ServiceProvider;
