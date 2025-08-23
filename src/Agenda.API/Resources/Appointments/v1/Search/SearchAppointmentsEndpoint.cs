@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection;
 using Agenda.API.Resources.Appointments.v1.Delete;
 using Agenda.API.Resources.Appointments.v1.GetById;
 using Agenda.API.Resources.v1.Appointments;
@@ -7,14 +8,19 @@ using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.Repositories;
 using Candoumbe.Forms;
 using DataFilters;
+using DataFilters.Expressions;
 using FastEndpoints;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Http.Metadata;
+using Microsoft.AspNetCore.Mvc;
+using NodaTime;
 
 namespace Agenda.API.Resources.Appointments.v1.Search;
 
 /// <summary>
 /// Gets people that are part of an appointment
 /// </summary>
-public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, PageOf<Browsable<AppointmentInfo>>>
+public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<PageOf<Browsable<AppointmentInfo>>>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly IHttpContextAccessor _httpContext;
@@ -50,9 +56,9 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Pag
     }
 
     /// <inheritdoc />
-    public override async Task HandleAsync(SearchAppointmentRequest search, CancellationToken ct)
+    public override async Task<Ok<PageOf<Browsable<AppointmentInfo>>>> ExecuteAsync(SearchAppointmentRequest search, CancellationToken ct)
     {
-        NodaTime.DateTimeZone zone = _currentRequestMetadataInfo.GetCurrentDateTimeZone();
+        DateTimeZone zone = _currentRequestMetadataInfo.GetCurrentDateTimeZone();
 
         List<IFilter> filters = [];
         if (search.From is not null || search.To is not null)
@@ -88,7 +94,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Pag
                                                                 1   => filters.Single(),
                                                                 > 1 => new MultiFilter { Logic = FilterLogic.And, Filters = filters },
                                                                 _   => Filter.True
-                                                            } ).ToExpression<Appointment>(DataFilters.Expressions.NullableValueBehavior.AddNullCheck);
+                                                            } ).ToExpression<Appointment>(NullableValueBehavior.AddNullCheck);
 
         Page<Appointment> pageOfAppointments = await unitOfWork.Repository<Appointment>()
                                                    .Where(predicate,
@@ -110,7 +116,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Pag
             Count = count,
             Items =
             [
-                .. entries.Select(x => new Browsable<AppointmentInfo>()
+                .. entries.Select(x => new Browsable<AppointmentInfo>
                 {
                     Resource = new AppointmentInfo
                     {
@@ -136,14 +142,6 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Pag
             ]
         };
 
-
-        if (content.Total > content.Count)
-        {
-            await SendAsync(content, StatusCodes.Status206PartialContent, ct);
-        }
-        else
-        {
-            await SendOkAsync(content, ct);
-        }
+        return TypedResults.Ok(content);
     }
 }

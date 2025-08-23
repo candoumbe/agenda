@@ -1,24 +1,14 @@
-﻿namespace Agenda.API;
-
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agenda.DataStores;
-
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;
-
 using Fluxera.StronglyTypedId.SystemTextJson;
-
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 
-using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+namespace Agenda.API;
 
 /// <summary>
 /// Provide extension method used to configure services collection
@@ -107,13 +97,13 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddCustomOptions(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions();
-        services.Configure<AgendaApiOptions>((options) =>
+        services.Configure<AgendaApiOptions>(options =>
         {
             options.DefaultPageSize = configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.DefaultPageSize)}", 30);
             options.MaxPageSize = configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.DefaultPageSize)}", 100);
         });
 
-        services.Configure<JwtOptions>((options) =>
+        services.Configure<JwtOptions>(options =>
         {
             options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
             options.Audience = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}");

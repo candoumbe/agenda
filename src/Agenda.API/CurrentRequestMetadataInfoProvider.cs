@@ -1,8 +1,7 @@
-﻿namespace Agenda.API;
-
-using Microsoft.Extensions.Primitives;
-
+﻿using Microsoft.Extensions.Primitives;
 using NodaTime;
+
+namespace Agenda.API;
 
 /// <summary>
 /// Extracts various informations from the incoming from the incoming HTTP request 

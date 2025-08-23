@@ -1,13 +1,10 @@
-﻿namespace Agenda.API;
-
+﻿using System.Data.Common;
 using Extensions.Hosting.AsyncInitialization;
-
 using Microsoft.EntityFrameworkCore;
-
 using Polly;
 using Polly.Retry;
 
-using System.Data.Common;
+namespace Agenda.API;
 
 /// <summary>
 /// Helper class to seed <typeparamref name="TDataStore"/> asynchronously.

@@ -1,3 +1,5 @@
+using FsCheck.Xunit;
+
 namespace Agenda.Ids.UnitTests;
 
 using FluentAssertions;
@@ -10,12 +12,9 @@ using Xunit.Categories;
 [UnitTest]
 public class AppointmentIdTests
 {
-    [Fact]
-    public void Given_value_is_not_empty_Then_Value_should_be_equal_to_value()
+    [Property]
+    public void Given_value_is_not_empty_Then_Value_should_be_equal_to_value(Guid expected)
     {
-        // Arrange
-        Guid expected = Guid.NewGuid();
-
         // Act
         AppointmentId appointmentId = new AppointmentId(expected);
 
@@ -23,15 +22,12 @@ public class AppointmentIdTests
         appointmentId.Value.Should().Be(expected);
     }
 
-    [Fact]
-    public void Two_ids_built_of_the_same_value_should_be_equal()
+    [Property]
+    public void Two_ids_built_of_the_same_value_should_be_equal(Guid value)
     {
-        // Arrange
-        Guid guid = Guid.NewGuid();
-
         // Act
-        AppointmentId first = new AppointmentId(guid);
-        AppointmentId second = new AppointmentId(guid);
+        AppointmentId first = new AppointmentId(value);
+        AppointmentId second = new AppointmentId(value);
 
         // Assert
         first.Should().Be(second);

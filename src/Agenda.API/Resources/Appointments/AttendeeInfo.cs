@@ -1,6 +1,6 @@
-﻿namespace Agenda.API.Resources.v1.Appointments;
+﻿using Agenda.Ids;
 
-using Agenda.Ids;
+namespace Agenda.API.Resources.v1.Appointments;
 
 /// <summary>
 /// A person who participate to an appointment

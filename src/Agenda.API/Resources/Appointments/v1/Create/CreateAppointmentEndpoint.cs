@@ -1,23 +1,19 @@
-﻿namespace Agenda.API.Resources.Appointments.v1.Create;
-
-using Agenda.API.Resources.Appointments.v1.Delete;
+﻿using Agenda.API.Resources.Appointments.v1.Delete;
 using Agenda.API.Resources.Appointments.v1.GetById;
 using Agenda.API.Resources.v1.Appointments;
 using Agenda.Objects;
-
-using FastEndpoints;
-
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.Forms;
+using FastEndpoints;
+using Microsoft.AspNetCore.Http.HttpResults;
+using NodaTime;
 
-using Microsoft.AspNetCore.Mvc;
-
-using static System.Net.Http.HttpMethod;
+namespace Agenda.API.Resources.Appointments.v1.Create;
 
 /// <summary>
 /// Creates new appointment
 /// </summary>
-public class CreateAppointmentEndpoint : FastEndpoints.Endpoint<NewAppointmentInfo, Browsable<AppointmentInfo>>
+public class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, CreatedAtRoute<Browsable<AppointmentInfo>>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly LinkGenerator _linkGenerator;
@@ -44,7 +40,7 @@ public class CreateAppointmentEndpoint : FastEndpoints.Endpoint<NewAppointmentIn
 }
 
     /// <inheritdoc />
-    public override async Task HandleAsync(NewAppointmentInfo req, CancellationToken ct)
+    public override async Task<CreatedAtRoute<Browsable<AppointmentInfo>>> ExecuteAsync(NewAppointmentInfo req, CancellationToken ct)
 {
     using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
 
@@ -57,7 +53,7 @@ public class CreateAppointmentEndpoint : FastEndpoints.Endpoint<NewAppointmentIn
         await unitOfWork.Repository<Appointment>().Create(newAppointment, ct);
         await unitOfWork.SaveChangesAsync(ct).ConfigureAwait(false);
 
-        NodaTime.DateTimeZone zone = _currentRequestMetadataInfoProvider.GetCurrentDateTimeZone();
+        DateTimeZone zone = _currentRequestMetadataInfoProvider.GetCurrentDateTimeZone();
         AppointmentInfo appointmentInfo = new()
         {
             Id = newAppointment.Id,
@@ -88,6 +84,6 @@ public class CreateAppointmentEndpoint : FastEndpoints.Endpoint<NewAppointmentIn
             ]
         };
 
-        await SendCreatedAtAsync(GetAppointmentByIdEndpoint.RouteName, new { newAppointment.Id }, browsable, generateAbsoluteUrl: false, cancellation: ct);
+        return TypedResults.CreatedAtRoute(browsable, GetAppointmentByIdEndpoint.RouteName, new { newAppointment.Id });
     }
 }

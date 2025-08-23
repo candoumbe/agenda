@@ -1,9 +1,7 @@
-﻿namespace Agenda.API.Resources.Appointments.v1.Search;
-
-using Agenda.API.Resources.Appointments;
-using Agenda.API.Resources.v1.Appointments;
-
+﻿using Agenda.API.Resources.v1.Appointments;
 using NodaTime;
+
+namespace Agenda.API.Resources.Appointments.v1.Search;
 
 /// <summary>
 /// Wraps search criteria

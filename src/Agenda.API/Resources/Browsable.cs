@@ -1,6 +1,6 @@
-﻿namespace Agenda.API.Resources;
+﻿using Candoumbe.Forms;
 
-using Candoumbe.Forms;
+namespace Agenda.API.Resources;
 
 /// <summary>
 /// Wraps a resource and its <see cref="Links"/>.

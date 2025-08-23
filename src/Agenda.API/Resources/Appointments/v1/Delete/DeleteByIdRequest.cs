@@ -1,6 +1,6 @@
-namespace Agenda.API.Resources.Appointments.v1.Delete;
+using Agenda.Ids;
 
-using Ids;
+namespace Agenda.API.Resources.Appointments.v1.Delete;
 
 /// <summary>
 /// Request to delete an appointment by its identifier

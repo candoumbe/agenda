@@ -1,16 +1,9 @@
-﻿namespace Agenda.API;
-
-using Extensions.Hosting.AsyncInitialization;
-
+﻿using Extensions.Hosting.AsyncInitialization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
 using Polly;
 using Polly.Retry;
 
-using System;
-using System.Threading.Tasks;
+namespace Agenda.API;
 
 /// <summary>
 /// Helper class to perform <typeparamref name="TDataStore"/> migrations asynchronously
