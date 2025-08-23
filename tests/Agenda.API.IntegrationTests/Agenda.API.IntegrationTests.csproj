@@ -6,12 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="xunit.runner.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="NodaTime.Serialization.JsonNet" Version="3.2.0" />
     <PackageReference Include="TestContainers.PostgreSql" Version="4.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.20" />
