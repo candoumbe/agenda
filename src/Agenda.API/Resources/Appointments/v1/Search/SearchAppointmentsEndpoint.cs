@@ -1,19 +1,15 @@
-﻿namespace Agenda.API.Resources.Appointments.v1.Participation;
-
+﻿using System.Linq.Expressions;
 using Agenda.API.Resources.Appointments.v1.Delete;
 using Agenda.API.Resources.Appointments.v1.GetById;
-using Agenda.API.Resources.Appointments.v1.Search;
 using Agenda.API.Resources.v1.Appointments;
 using Agenda.Objects;
-using FastEndpoints;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.Repositories;
 using Candoumbe.Forms;
 using DataFilters;
-using Microsoft.AspNetCore.Mvc;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
+using FastEndpoints;
+
+namespace Agenda.API.Resources.Appointments.v1.Search;
 
 /// <summary>
 /// Gets people that are part of an appointment
