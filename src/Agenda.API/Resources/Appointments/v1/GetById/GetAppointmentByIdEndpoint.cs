@@ -51,7 +51,7 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
     {
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
         Option<Appointment> mayBeAppointment = await unitOfWork.Repository<Appointment>()
-                                                   .SingleOrDefault(predicate: (Appointment x) => x.Id == req.Id,
+                                                   .SingleOrDefault(predicate: x => x.Id == req.Id,
                                                                     includedProperties: [IncludeClause<Appointment>.Create(x => x.Attendees)],
                                                                     cancellationToken: ct)
                                                    .ConfigureAwait(false);

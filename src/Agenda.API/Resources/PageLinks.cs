@@ -1,6 +1,6 @@
-﻿namespace Agenda.API.Resources;
+﻿using Candoumbe.Forms;
 
-using Candoumbe.Forms;
+namespace Agenda.API.Resources;
 
 /// <summary>
 /// Navigation links through pages of result

@@ -1,14 +1,9 @@
-﻿namespace Agenda.API.Context;
-
-using Agenda.DataStores;
-
+﻿using Agenda.DataStores;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
-
 using NodaTime;
 
-using System.IO;
+namespace Agenda.API.Context;
 
 /// <summary>
 /// <see cref="IDesignTimeDbContextFactory{TContext}"/> implementation for <see cref="AgendaDataStore"/>.

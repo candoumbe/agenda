@@ -1,7 +1,5 @@
 ﻿namespace Agenda.API.Resources;
 
-using System;
-
 /// <summary>
 /// Represents a resource
 /// </summary>

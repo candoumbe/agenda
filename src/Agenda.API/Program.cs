@@ -1,7 +1,7 @@
 ﻿using Agenda.API;
 using Agenda.DataStores;
-using Serilog;
 using FastEndpoints;
+using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 

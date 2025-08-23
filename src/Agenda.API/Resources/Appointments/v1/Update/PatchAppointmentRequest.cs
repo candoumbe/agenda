@@ -1,7 +1,7 @@
-﻿namespace Agenda.API.Resources.Appointments.v1.Update;
-
+﻿using Agenda.API.Resources.v1.Appointments;
 using NodaTime;
-using Resources.v1.Appointments;
+
+namespace Agenda.API.Resources.Appointments.v1.Update;
 
 /// <summary>
 /// Request to partially modify an <see cref="AppointmentInfo"/>
