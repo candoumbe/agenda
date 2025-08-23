@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\..\tests.props"/>
+  <Import Project="..\..\tests.props" />
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="TngTech.ArchUnitNET.xUnit" Version="0.12.1"/>
+    <PackageReference Include="TngTech.ArchUnitNET.xUnit" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\integration-tests.props" />
   <PropertyGroup>
@@ -6,17 +6,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NodaTime.Serialization.JsonNet" Version="3.2.0" />
-    <PackageReference Include="TestContainers.PostgreSql" Version="4.6.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.20" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.19" />
-    <PackageReference Include="FluentAssertions.Nodatime" Version="2.0.1" />
-    <PackageReference Update="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.19" />
+    <PackageReference Include="NodaTime.Serialization.JsonNet" />
+    <PackageReference Include="TestContainers.PostgreSql" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+    <PackageReference Include="FluentAssertions.Nodatime" />
+    
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Agenda.API\Agenda.API.csproj" />
-    <PackageReference Update="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.19" />
+    
   </ItemGroup>
 
 </Project>

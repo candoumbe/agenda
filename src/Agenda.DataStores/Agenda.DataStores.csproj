@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Candoumbe.DataAccess.EFStore" Version="0.1.0-beta0145" />
-    <PackageReference Include="Fluxera.StronglyTypedId.EntityFrameworkCore" Version="9.2.0" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="Candoumbe.DataAccess.EFStore" />
+    <PackageReference Include="Fluxera.StronglyTypedId.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     
   </ItemGroup>
   <ItemGroup>
