@@ -14,6 +14,7 @@
 
         public static AppointmentId New() => new AppointmentId(Guid.NewGuid());
 
+#if NETSTANDARD2_1
         /// <summary>
         /// Try to parse <paramref name="input"/> in order to produce <paramref name="output"/>
         /// </summary>
@@ -33,6 +34,7 @@
 
             return parsed;
         }
+#endif
     }
 
 }
