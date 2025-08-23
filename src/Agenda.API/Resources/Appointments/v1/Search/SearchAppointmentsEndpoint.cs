@@ -23,7 +23,7 @@ namespace Agenda.API.Resources.Appointments.v1.Search;
 public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<PageOf<Browsable<AppointmentInfo>>>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
-    private readonly IHttpContextAccessor _httpContext;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly LinkGenerator _linkGenerator;
     private readonly CurrentRequestMetadataInfoProvider _currentRequestMetadataInfo;
 
@@ -31,13 +31,13 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
     /// Builds a new <see cref="SearchAppointmentsEndpoint"/> instance
     /// </summary>
     /// <param name="unitOfWorkFactory">Gives access to the underlying datastore</param>
-    /// <param name="httpContext"></param>
+    /// <param name="httpContextAccessor"></param>
     /// <param name="linkGenerator">Helper to generate links between resources.</param>
     /// <param name="currentRequestMetadataInfo"></param>
-    public SearchAppointmentsEndpoint(IUnitOfWorkFactory unitOfWorkFactory, IHttpContextAccessor httpContext, LinkGenerator linkGenerator, CurrentRequestMetadataInfoProvider currentRequestMetadataInfo)
+    public SearchAppointmentsEndpoint(IUnitOfWorkFactory unitOfWorkFactory, IHttpContextAccessor httpContextAccessor, LinkGenerator linkGenerator, CurrentRequestMetadataInfoProvider currentRequestMetadataInfo)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
-        _httpContext = httpContext;
+        _httpContextAccessor = httpContextAccessor;
         _linkGenerator = linkGenerator;
         _currentRequestMetadataInfo = currentRequestMetadataInfo;
     }
@@ -103,7 +103,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                                                           PageIndex.From(search.Page),
                                                           cancellationToken: ct);
 
-        HttpContext http = _httpContext.HttpContext;
+        HttpContext http = _httpContextAccessor.HttpContext;
 
         IReadOnlyList<Appointment> entries = [.. pageOfAppointments.Entries];
         int count = entries.Count;
