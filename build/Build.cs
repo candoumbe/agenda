@@ -32,7 +32,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     CacheKeyFiles = ["global.json", "src/**/*.csproj"],
     ImportSecrets =
     [
-        nameof(NugetApiKey),
+        nameof(IPushNugetPackages.NuGetApiKey),
         nameof(IReportCoverage.CodecovToken)
     ],
     OnPullRequestExcludePaths =
@@ -55,7 +55,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     PublishArtifacts = true,
     ImportSecrets =
     [
-        nameof(NugetApiKey),
+        nameof(IPushNugetPackages.NuGetApiKey),
         nameof(IReportCoverage.CodecovToken)
     ],
     OnPullRequestExcludePaths =
@@ -136,9 +136,9 @@ public class Build : EnhancedNukeBuild,
     ///<inheritdoc/>
     IEnumerable<PushNugetPackageConfiguration> IPushNugetPackages.PublishConfigurations =>
     [
-        new NugetPushConfiguration(apiKey: NugetApiKey,
+        new NugetPushConfiguration(apiKey: this.As<IPushNugetPackages>()?.NuGetApiKey,
             source: new Uri("https://api.nuget.org/v3/index.json"),
-            () => NugetApiKey is not null),
+            () => this.As<IPushNugetPackages>()?.NuGetApiKey is not null),
         new GitHubPushNugetConfiguration(githubToken: this.Get<IHaveGitHubRepository>().GitHubToken,
             source: new Uri($"https://nukpg.github.com/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/index.json"),
             () => this.Get<ICreateGithubRelease>()?.GitHubToken is not null)
