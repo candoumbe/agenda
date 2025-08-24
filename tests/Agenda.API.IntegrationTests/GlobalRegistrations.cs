@@ -1,8 +1,6 @@
 using System.Runtime.InteropServices;
-
-using Xunit.Extensions.AssemblyFixture;
-
 using Xunit;
+using Xunit.Extensions.AssemblyFixture;
 
 // Dans les projets de type SDK comme celui-là, plusieurs attributs d'assembly définis
 // historiquement dans ce fichier sont maintenant automatiquement ajoutés pendant

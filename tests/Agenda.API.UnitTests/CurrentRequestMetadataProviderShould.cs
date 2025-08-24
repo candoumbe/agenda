@@ -1,21 +1,14 @@
-﻿using Bogus;
-
+﻿using System;
+using System.Linq;
+using Bogus;
 using FluentAssertions;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-
 using Moq;
-
 using NodaTime;
-
-using System;
-using System.Linq;
-
 using Xunit;
 using Xunit.Categories;
-
 using static Moq.MockBehavior;
 
 namespace Agenda.API.UnitTests;
@@ -26,7 +19,7 @@ public class CurrentRequestMetadataProviderShould
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<ILogger<CurrentRequestMetadataInfoProvider>> _loggerMock;
     private readonly CurrentRequestMetadataInfoProvider _sut;
-    private readonly static Faker Faker = new();
+    private static readonly Faker s_faker = new();
 
     public CurrentRequestMetadataProviderShould()
     {
@@ -57,7 +50,7 @@ public class CurrentRequestMetadataProviderShould
         // Arrange
         DefaultHttpContext httpContext = new DefaultHttpContext();
 
-        DateTimeZone expected = DateTimeZone.ForOffset(Offset.FromTimeSpan(Faker.PickRandom(TimeZoneInfo.GetSystemTimeZones().ToArray()).BaseUtcOffset));
+        DateTimeZone expected = DateTimeZone.ForOffset(Offset.FromTimeSpan(s_faker.PickRandom(TimeZoneInfo.GetSystemTimeZones().ToArray()).BaseUtcOffset));
         httpContext.Request.Headers.Append(CurrentRequestMetadataInfoProvider.TimeZoneHeaderName, new StringValues(expected.Id));
 
         _httpContextAccessorMock.Setup(mock => mock.HttpContext)

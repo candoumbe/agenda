@@ -10,9 +10,8 @@ using ArchUnitNET.xUnit;
 using FastEndpoints;
 using Xunit;
 using Xunit.Categories;
-using Assembly = System.Reflection.Assembly;
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
-using _ = ArchUnitNET.Fluent;
+using Assembly = System.Reflection.Assembly;
 
 namespace Agenda.API.ArchitecturalTests;
 
@@ -22,7 +21,7 @@ public class VerticalSliceArchitectureTests
     private static readonly Assembly s_apiAssembly = typeof(Program).Assembly;
     private static readonly Architecture s_apiArchitecture = new ArchLoader().LoadAssemblies(s_apiAssembly).Build();
 
-    private static IType IEndpointType = s_apiArchitecture.GetITypeOfType(typeof(IEndpoint));
+    private static readonly IType s_endpointType = s_apiArchitecture.GetITypeOfType(typeof(IEndpoint));
 
     private static readonly IType s_endpointWithRequestAndResponse = s_apiArchitecture.GetITypeOfType(typeof(Endpoint<,>));
     private static readonly IType s_endpointWithRequestOnly = s_apiArchitecture.GetITypeOfType(typeof(Endpoint<>));
@@ -52,8 +51,8 @@ public class VerticalSliceArchitectureTests
             .Should()
             .FollowCustomCondition(endpoint =>
                                    {
-                                       IEnumerable<Class> otherEndpoints = endpoint.Namespace.Classes.Where(c => !Equals(c,endpoint)
-                                                                                                              && c.IsAssignableTo(IEndpointType));
+                                       IEnumerable<Class> otherEndpoints = endpoint.Namespace.Classes.Where(c => !Equals(c, endpoint)
+                                                                                                              && c.IsAssignableTo(s_endpointType));
 
                                        return new ConditionResult(endpoint,
                                                                   !otherEndpoints.Any(),

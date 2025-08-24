@@ -1,12 +1,9 @@
-namespace Agenda.Ids.UnitTests;
-
-using FluentAssertions;
-
 using System;
 using System.Collections.Generic;
-
+using FluentAssertions;
 using Xunit.Categories;
 
+namespace Agenda.Ids.UnitTests;
 [UnitTest]
 public class AttendeeIdTests
 {

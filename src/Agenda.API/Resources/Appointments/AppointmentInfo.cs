@@ -1,7 +1,8 @@
-﻿using Agenda.Ids;
+﻿using Agenda.API.Resources.v1.Appointments;
+using Agenda.Ids;
 using NodaTime;
 
-namespace Agenda.API.Resources.v1.Appointments;
+namespace Agenda.API.Resources.Appointments;
 
 /// <summary>
 /// An appointment beetween two or more people

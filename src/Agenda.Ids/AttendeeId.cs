@@ -1,10 +1,9 @@
-﻿namespace Agenda.Ids
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using Fluxera.StronglyTypedId;
+
+namespace Agenda.Ids
 {
-    using Fluxera.StronglyTypedId;
-
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-
     public class AttendeeId : StronglyTypedId<AttendeeId, Guid>
     {
         ///<inheritdoc/>

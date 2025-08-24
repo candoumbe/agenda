@@ -1,5 +1,8 @@
-﻿namespace Agenda.Objects;
-
+﻿
+/* Modification non fusionnée à partir du projet 'Agenda.Objects(net8.0)'
+Avant :
+namespace Agenda.Objects;
+Après :
 using Agenda.Ids;
 
 using Candoumbe.DataAccess.Abstractions.Entities;
@@ -8,6 +11,16 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
+namespace Agenda.Objects;
+*/
+
+using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using Agenda.Ids;
+using Candoumbe.DataAccess.Abstractions.Entities;
+
+namespace Agenda.Objects;
 /// <summary>
 /// Participant of a <see cref="Appointment"/>
 /// </summary>

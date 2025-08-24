@@ -1,19 +1,14 @@
-﻿namespace Agenda.Objects;
-
-using Agenda.Ids;
-
-using Candoumbe.DataAccess.Abstractions.Entities;
-
-using NodaTime;
-
-using Optional;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Agenda.Ids;
+using Candoumbe.DataAccess.Abstractions.Entities;
+using NodaTime;
+using Optional;
 
+namespace Agenda.Objects;
 /// <summary>
-/// An meeting wih a location and a subject
+/// A meeting with a location and a subject
 /// </summary>
 public class Appointment : AuditableEntity<AppointmentId, Appointment>
 {
