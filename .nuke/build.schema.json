@@ -26,7 +26,6 @@
       "enum": [
         "AddGithubRelease",
         "Benchmarks",
-        "BuildDockerImages",
         "Changelog",
         "Clean",
         "Coldfix",
@@ -37,7 +36,6 @@
         "MutationTests",
         "Pack",
         "Publish",
-        "PushImages",
         "Release",
         "ReportIntegrationTestCoverage",
         "ReportUnitTestCoverage",
