@@ -12,7 +12,9 @@ using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.Codecov;
+using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitHub;
+using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 [GitHubActions(
     "integration",
@@ -158,4 +160,19 @@ public class Build : EnhancedNukeBuild,
 
     /// <inheritdoc/>
     bool IDotnetFormat.VerifyNoChanges => IsServerBuild;
+
+    private IReadOnlyList<Project> ArchitecturalTestsProjects => [.. this.Get<IHaveSolution>().Solution.AllProjects.Where(project => project.Name.Like("*.ArchitecturalTests", ignoreCase: true)) ];
+
+    public Target ArchitecturalTests => _ =>  _.TryTriggeredBy<IUnitTest>()
+                                            .TryBefore<IMutationTest>(target => target.MutationTests)
+                                            .Description("Runs architectural tests")
+                                            .Executes(() =>
+
+                                                          DotNetTest(s => s.SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
+                                                                         .CombineWith(ArchitecturalTestsProjects,
+                                                                                      (setting, project) => setting.SetProjectFile(project)
+                                                                                          .CombineWith(project.GetTargetFrameworks(),
+                                                                                                       (x, framework) => x.SetFramework(framework)))
+                                                                    )
+                                                     );
 }
