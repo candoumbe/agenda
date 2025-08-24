@@ -31,6 +31,7 @@
         "Coldfix",
         "Compile",
         "Feature",
+        "Format",
         "Hotfix",
         "IntegrationTests",
         "MutationTests",
@@ -146,6 +147,22 @@
         "Draft": {
           "type": "boolean",
           "description": "Indicates to open the pull request as 'draft'"
+        },
+        "Filter": {
+          "type": "string",
+          "description": "Filter benchmarks to run by their full name (namespace.typeName.methodName) using glob pattern"
+        },
+        "Formatters": {
+          "type": "array",
+          "description": "Sets of formatters that the tool must apply",
+          "items": {
+            "type": "string",
+            "enum": [
+              "Analyzers",
+              "Style",
+              "Whitespace"
+            ]
+          }
         },
         "GitHubToken": {
           "type": "string",
