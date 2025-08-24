@@ -63,7 +63,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
         List<IFilter> filters = [];
         if (search.From is not null || search.To is not null)
         {
-            filters.Add(( search.From, search.To ) switch
+            filters.Add((search.From, search.To) switch
             {
                 (not null, not null) => new MultiFilter
                 {

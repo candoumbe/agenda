@@ -1,5 +1,4 @@
-﻿namespace Agenda.DataStores;
-
+﻿
 using Agenda.Objects;
 
 using Candoumbe.DataAccess.Abstractions;
@@ -8,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 using NodaTime;
 
+namespace Agenda.DataStores;
 /// <summary>
 /// Interacts with the underlying repostories.
 /// </summary>

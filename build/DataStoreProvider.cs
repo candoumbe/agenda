@@ -13,7 +13,7 @@ public class DataStoreProvider : Enumeration
     /// Postgres database engine
     /// </summary>
     public static readonly DataStoreProvider Postgres = new() { Value = nameof(Postgres) };
-    
+
     /// <summary>
     /// Implicit cast from <see cref="DataStoreProvider"/> to <see />
     /// </summary>

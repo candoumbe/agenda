@@ -1,6 +1,4 @@
-﻿namespace Agenda.API.IntegrationTests.Fixtures;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -8,7 +6,7 @@ using System.Net.Mime;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using DataStores;
+using Agenda.DataStores;
 using Fluxera.StronglyTypedId.SystemTextJson;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -21,6 +19,7 @@ using NodaTime.Serialization.SystemTextJson;
 using Testcontainers.PostgreSql;
 using Xunit;
 
+namespace Agenda.API.IntegrationTests.Fixtures;
 public class AgendaWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _database;

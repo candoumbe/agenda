@@ -34,15 +34,15 @@ public class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, CreatedAtR
 
     /// <inheritdoc />
     public override void Configure()
-{
-    Post("/appointments");
-    AllowAnonymous();
-}
+    {
+        Post("/appointments");
+        AllowAnonymous();
+    }
 
     /// <inheritdoc />
     public override async Task<CreatedAtRoute<Browsable<AppointmentInfo>>> ExecuteAsync(NewAppointmentInfo req, CancellationToken ct)
-{
-    using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
+    {
+        using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
 
         Appointment newAppointment = new(req.Id, req.Subject, req.Location, req.StartDate.ToInstant(), req.EndDate.ToInstant());
         foreach (AttendeeInfo attendee in req.Attendees)
