@@ -1,17 +1,19 @@
-﻿namespace Agenda.API.IntegrationTests.Appointments.v1.Create;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Agenda.API.IntegrationTests.Fixtures;
+using Agenda.API.Resources;
+using Agenda.API.Resources.Appointments;
+using Agenda.API.Resources.Appointments.v1.Create;
+using Agenda.API.Resources.v1.Appointments;
+using Agenda.Ids;
 using Bogus;
 using Candoumbe.Forms;
-using Fixtures;
 using FluentAssertions;
-using Ids;
 using Meziantou.Extensions.Logging.Xunit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -19,22 +21,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NodaTime;
-using Resources;
-using Resources.Appointments.v1.Create;
-using Resources.v1.Appointments;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
-using Xunit.Extensions.AssemblyFixture;
 
+namespace Agenda.API.IntegrationTests.Appointments.v1.Create;
 [IntegrationTest]
 [Feature(nameof(Appointments))]
 public class CreateAppointmentEndpointShould : IClassFixture<AgendaWebApplicationFactory>
 {
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _outputHelper;
-    private readonly AgendaWebApplicationFactory _applicationFactory;
-    private static readonly Faker Faker = new();
+    private static readonly Faker s_faker = new();
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public CreateAppointmentEndpointShould(ITestOutputHelper outputHelper, AgendaWebApplicationFactory applicationFactory)
@@ -46,9 +44,8 @@ public class CreateAppointmentEndpointShould : IClassFixture<AgendaWebApplicatio
             builder.ConfigureLogging(logging => logging.AddProvider(new XUnitLoggerProvider(outputHelper)));
         });
 
-        _applicationFactory = applicationFactory;
-        _client = _applicationFactory.CreateClient();
-        _jsonSerializerOptions = _applicationFactory.Services
+        _client = applicationFactory.CreateClient();
+        _jsonSerializerOptions = applicationFactory.Services
                                                    .GetRequiredService<IOptions<JsonOptions>>()
                                                    .Value.JsonSerializerOptions;
     }
@@ -57,23 +54,23 @@ public class CreateAppointmentEndpointShould : IClassFixture<AgendaWebApplicatio
     public async Task Returns_the_appointment_when_created_successfully()
     {
         // Arrange
-        Instant startDate = Faker.Noda().Instant.Soon();
-        Instant endDate = Faker.Noda().Instant.Future(reference: startDate);
+        Instant startDate = s_faker.Noda().Instant.Soon();
+        Instant endDate = s_faker.Noda().Instant.Future(reference: startDate);
 
         NewAppointmentInfo newAppointmentInfo = new()
         {
             Id = AppointmentId.New(),
             StartDate = startDate.InUtc().ToOffsetDateTime(),
             EndDate = endDate.InUtc().ToOffsetDateTime(),
-            Location = Faker.Address.City(),
-            Attendees = Faker.Make(2, () => new AttendeeInfo
+            Location = s_faker.Address.City(),
+            Attendees = s_faker.Make(2, () => new AttendeeInfo
             {
                 Id = AttendeeId.New(),
-                Name = Faker.Person.FullName,
-                Email = Faker.Person.Email,
-                PhoneNumber = Faker.Person.Phone
+                Name = s_faker.Person.FullName,
+                Email = s_faker.Person.Email,
+                PhoneNumber = s_faker.Person.Phone
             }),
-            Subject = Faker.Lorem.Sentence()
+            Subject = s_faker.Lorem.Sentence()
         };
 
         // Act

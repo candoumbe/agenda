@@ -1,14 +1,10 @@
-using FsCheck.Xunit;
-
-namespace Agenda.Ids.UnitTests;
-
-using FluentAssertions;
-
 using System;
 using System.Collections.Generic;
-
+using FluentAssertions;
+using FsCheck.Xunit;
 using Xunit.Categories;
 
+namespace Agenda.Ids.UnitTests;
 [UnitTest]
 public class AppointmentIdTests
 {
@@ -33,6 +29,7 @@ public class AppointmentIdTests
         first.Should().Be(second);
     }
 
+#if !NET8_0_OR_GREATER
     public static IEnumerable<object[]> TryParseCases
     {
         get
@@ -64,4 +61,5 @@ public class AppointmentIdTests
         actual.Should().Be(expected);
         actualId.Should().Be(expectedId);
     }
+#endif
 }

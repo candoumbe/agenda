@@ -1,5 +1,4 @@
-﻿namespace Agenda.DataStores;
-
+﻿
 using Agenda.Objects;
 
 using Fluxera.StronglyTypedId.EntityFrameworkCore;
@@ -7,6 +6,7 @@ using Fluxera.StronglyTypedId.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
+namespace Agenda.DataStores;
 ///<inheritdoc/>
 public class AttendeeEntityTypeConfiguration : IEntityTypeConfiguration<Attendee>
 {

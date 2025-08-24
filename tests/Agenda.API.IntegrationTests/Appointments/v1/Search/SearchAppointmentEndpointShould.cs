@@ -1,25 +1,4 @@
-﻿namespace Agenda.API.IntegrationTests.Appointments.v1.Search;
-
-using Agenda.API.IntegrationTests.Fixtures;
-using Agenda.API.Resources;
-using Agenda.API.Resources.Appointments.v1.Create;
-using Agenda.API.Resources.v1.Appointments;
-using Agenda.Ids;
-using Agenda.Objects;
-
-using Bogus;
-
-using Candoumbe.DataAccess.Abstractions;
-
-using FluentAssertions;
-using FluentAssertions.Extensions;
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-
-using NodaTime.Extensions;
-
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,18 +7,33 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-
+using Agenda.API.IntegrationTests.Fixtures;
+using Agenda.API.Resources;
+using Agenda.API.Resources.Appointments;
+using Agenda.API.Resources.Appointments.v1.Create;
+using Agenda.API.Resources.v1.Appointments;
+using Agenda.Ids;
+using Agenda.Objects;
+using Bogus;
+using Candoumbe.DataAccess.Abstractions;
+using FluentAssertions;
+using FluentAssertions.Extensions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using NodaTime.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Categories;
 
+namespace Agenda.API.IntegrationTests.Appointments.v1.Search;
 [IntegrationTest]
 public class SearchAppointmentEndpointShould : IClassFixture<AgendaWebApplicationFactory>, IAsyncLifetime
 {
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _outputHelper;
     private readonly AgendaWebApplicationFactory _applicationFactory;
-    private static readonly Faker Faker = new();
+    private static readonly Faker s_faker = new();
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     public SearchAppointmentEndpointShould(ITestOutputHelper outputHelper,
                                            AgendaWebApplicationFactory applicationFactory)
@@ -90,15 +84,15 @@ public class SearchAppointmentEndpointShould : IClassFixture<AgendaWebApplicatio
                         new NewAppointmentInfo
                         {
                             Id = appointmentId,
-                            Subject = Faker.Lorem.Sentence(),
+                            Subject = s_faker.Lorem.Sentence(),
                             StartDate = 12.July(2019).Add(14.Hours()).AsUtc().ToInstant().InUtc().ToOffsetDateTime(),
                             EndDate = 12.July(2019).Add(14.Hours().And(30.Minutes())).AsUtc().ToInstant().InUtc().ToOffsetDateTime(),
-                            Attendees = Faker.Make(2, () => new AttendeeInfo
+                            Attendees = s_faker.Make(2, () => new AttendeeInfo
                             {
                                 Id = AttendeeId.New(),
-                                Name = Faker.Name.FullName(),
-                                Email= Faker.Person.Email,
-                                PhoneNumber = Faker.Person.Phone
+                                Name = s_faker.Name.FullName(),
+                                Email= s_faker.Person.Email,
+                                PhoneNumber = s_faker.Person.Phone
                             })
                         }
                     },
