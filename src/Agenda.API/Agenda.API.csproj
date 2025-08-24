@@ -3,7 +3,7 @@
   <Import Project="..\..\core.props" />
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Agenda.API.xml</DocumentationFile>
     <UserSecretsId>85b415e8-a1a6-407e-afe1-b881cb57bcaa</UserSecretsId>
     <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
