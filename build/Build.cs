@@ -1,25 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Candoumbe.Pipelines.Components;
-using Candoumbe.Pipelines.Components.Docker;
+using Candoumbe.Pipelines.Components.Formatting;
 using Candoumbe.Pipelines.Components.GitHub;
 using Candoumbe.Pipelines.Components.NuGet;
 using Candoumbe.Pipelines.Components.Workflows;
 using Nuke.Common;
-using Nuke.Common.CI;
 using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
-using Nuke.Common.Tools.Docker;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using JetBrains.Annotations;
 using Nuke.Common.Tools.Codecov;
-using Nuke.Common.Tools.Coverlet;
-using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitHub;
-using Nuke.Common.Tools.ReportGenerator;
-using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 [GitHubActions(
     "integration",
@@ -67,35 +60,28 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
     ]
 )]
 public class Build : EnhancedNukeBuild,
-    IHaveGitVersion,
-    IHaveArtifacts,
-    IHaveChangeLog,
-    IHaveSolution,
     IHaveSourceDirectory,
     IHaveTestDirectory,
     IGitFlowWithPullRequest,
     IClean,
+    IDotnetFormat,
     IRestore,
     IMutationTest,
     IBenchmark,
     IReportUnitTestCoverage,
     IReportIntegrationTestCoverage,
-    IPack,
     IPushNugetPackages,
     ICreateGithubRelease
 {
-    [CI] public GitHubActions GitHubActions;
+    [Solution][Required] public readonly Solution Solution;
 
-    [Parameter("API key used to publish artifacts to Nuget.org")] [Secret] public readonly string NugetApiKey;
-
-    [Solution] [Required] public readonly Solution Solution;
-
+    /// <inheritdoc />
     Solution IHaveSolution.Solution => Solution;
-    
-    public static int Main() => Execute<Build>(x => ( (ICompile)x ).Compile);
+
+    public static int Main() => Execute<Build>(x => ((ICompile)x).Compile);
 
     ///<inheritdoc/>
-    IEnumerable<AbsolutePath> IClean.DirectoriesToDelete => 
+    IEnumerable<AbsolutePath> IClean.DirectoriesToDelete =>
     [
         .. this.Get<IHaveSourceDirectory>().SourceDirectory.GlobDirectories("**/bin", "**/obj"),
         .. this.Get<IHaveTestDirectory>().TestDirectory.GlobDirectories("**/bin", "**/obj")
@@ -109,15 +95,15 @@ public class Build : EnhancedNukeBuild,
 
     ///<inheritdoc/>
     IEnumerable<Project> IUnitTest.UnitTestsProjects => Solution.GetAllProjects("*.UnitTests");
-    
+
     ///<inheritdoc/>
     IEnumerable<Project> IIntegrationTest.IntegrationTestsProjects => Solution.GetAllProjects("*.IntegrationTests");
 
-    private static readonly string[] ProjectWithUnitTests = ["Agenda.API", "Agenda.Ids", "Agenda.Objects"];
+    private static readonly string[] s_projectWithUnitTests = ["Agenda.API", "Agenda.Ids", "Agenda.Objects"];
 
     ///<inheritdoc/>
     IEnumerable<MutationProjectConfiguration> IMutationTest.MutationTestsProjects
-        => ProjectWithUnitTests
+        => s_projectWithUnitTests
             .Select(projectName => new MutationProjectConfiguration(sourceProject: Solution.AllProjects.Single(csproj => string.Equals(csproj.Name, projectName, StringComparison.InvariantCultureIgnoreCase)),
                 testProjects: Solution.AllProjects.Where(csproj => string.Equals(csproj.Name, $"{projectName}.UnitTests", StringComparison.InvariantCultureIgnoreCase)),
                 configurationFile: this.Get<IHaveTestDirectory>().TestDirectory / $"{projectName}.UnitTests" / "stryker-config.json"))
@@ -152,16 +138,16 @@ public class Build : EnhancedNukeBuild,
 
     /// <inheritdoc />
     string IReportIntegrationTestCoverage.CodeCoverageReportArtifactName => "integration-test-coverage-report";
-    
+
     /// <inheritdoc />
     string IReportIntegrationTestCoverage.CodeCoverageHistoryReportArtifactName => "integration-test-coverage-history-report";
 
     /// <inheritdoc />
     string IReportUnitTestCoverage.CodeCoverageReportArtifactName => "unit-test-coverage-report";
-    
+
     /// <inheritdoc />
     string IReportUnitTestCoverage.CodeCoverageHistoryReportArtifactName => "unit-test-coverage-history-report";
-    
+
     protected override void OnBuildCreated()
     {
         if (IsServerBuild)
@@ -169,4 +155,7 @@ public class Build : EnhancedNukeBuild,
             EnvironmentInfo.SetVariable("DOTNET_ROLL_FORWARD", "LatestMajor");
         }
     }
+
+    /// <inheritdoc/>
+    bool IDotnetFormat.VerifyNoChanges => IsServerBuild;
 }
