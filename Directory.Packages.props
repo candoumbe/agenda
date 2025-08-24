@@ -63,7 +63,7 @@
   <Choose>
     <When Condition="'$(TargetFramework)'=='netstandard2.1'">
       <ItemGroup>
-        <PackageVersion Include="Fluxera.StronglyTypedId" Version="7.0.1" />
+        <PackageVersion Include="Fluxera.StronglyTypedId" Version="9.2.0" />
         <PackageVersion Include="Fluxera.StronglyTypedId.EntityFrameworkCore" Version="7.1.7" />
         <PackageVersion Include="Fluxera.StronglyTypedId.SystemTextJson" Version="7.0.1" />
       </ItemGroup>
