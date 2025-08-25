@@ -5,20 +5,20 @@ namespace Agenda.API.Resources.v1.Appointments;
 /// <summary>
 /// A person who participate to an appointment
 /// </summary>
-public class AttendeeInfo : Resource<AttendeeId>
+public record AttendeeInfo : Resource<AttendeeId>
 {
     /// <summary>
     /// Name of the participant
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; init; }
 
     /// <summary>
     /// Phone number
     /// </summary>
-    public string PhoneNumber { get; set; }
+    public string PhoneNumber { get; init; }
 
     /// <summary>
     /// Email
     /// </summary>
-    public string Email { get; set; }
+    public string Email { get; init; }
 }
