@@ -11,6 +11,7 @@ using Fluxera.StronglyTypedId.SystemTextJson;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -57,6 +58,16 @@ public class AgendaWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
     public async Task InitializeAsync()
     {
         await _database.StartAsync().ConfigureAwait(false);
+        // Apply EF Core migrations explicitly now that API no longer auto-migrates
+        DbContextOptionsBuilder<AgendaDataStore> optionsBuilder = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<Agenda.DataStores.AgendaDataStore>();
+        optionsBuilder.UseNpgsql(_database.GetConnectionString(), npgsql =>
+        {
+            npgsql.EnableRetryOnFailure(5);
+            npgsql.UseNodaTime();
+            npgsql.MigrationsAssembly("Agenda.DataStores.Postgres");
+        });
+        using AgendaDataStore context = new Agenda.DataStores.AgendaDataStore(optionsBuilder.Options, NodaTime.SystemClock.Instance);
+        await context.Database.MigrateAsync().ConfigureAwait(false);
     }
 
     ///<inheritdoc/>

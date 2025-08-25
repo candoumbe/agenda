@@ -1,8 +1,6 @@
 ﻿using System.Linq.Expressions;
-using System.Reflection;
 using Agenda.API.Resources.Appointments.v1.Delete;
 using Agenda.API.Resources.Appointments.v1.GetById;
-using Agenda.API.Resources.v1.Appointments;
 using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.Repositories;
@@ -11,8 +9,6 @@ using DataFilters;
 using DataFilters.Expressions;
 using FastEndpoints;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Http.Metadata;
-using Microsoft.AspNetCore.Mvc;
 using NodaTime;
 
 namespace Agenda.API.Resources.Appointments.v1.Search;
@@ -34,7 +30,10 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
     /// <param name="httpContextAccessor"></param>
     /// <param name="linkGenerator">Helper to generate links between resources.</param>
     /// <param name="currentRequestMetadataInfo"></param>
-    public SearchAppointmentsEndpoint(IUnitOfWorkFactory unitOfWorkFactory, IHttpContextAccessor httpContextAccessor, LinkGenerator linkGenerator, CurrentRequestMetadataInfoProvider currentRequestMetadataInfo)
+    public SearchAppointmentsEndpoint(IUnitOfWorkFactory unitOfWorkFactory,
+                                      IHttpContextAccessor httpContextAccessor,
+                                      LinkGenerator linkGenerator,
+                                      CurrentRequestMetadataInfoProvider currentRequestMetadataInfo)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _httpContextAccessor = httpContextAccessor;
@@ -58,6 +57,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
     /// <inheritdoc />
     public override async Task<Ok<PageOf<Browsable<AppointmentInfo>>>> ExecuteAsync(SearchAppointmentRequest search, CancellationToken ct)
     {
+        Logger.LogInformation("Searching appointments");
         DateTimeZone zone = _currentRequestMetadataInfo.GetCurrentDateTimeZone();
 
         List<IFilter> filters = [];

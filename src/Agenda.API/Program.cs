@@ -2,58 +2,50 @@
 using Agenda.DataStores;
 using Agenda.Ids;
 using FastEndpoints;
+using FastEndpoints.Swagger;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddAsyncInitializer<DataStoreMigrateInitializerAsync<AgendaDataStore>>();
-builder.Services.AddCustomOptions(builder.Configuration);
-builder.Services.AddDataStores(builder.Configuration);
-builder.Services.AddCustomizedDependencyInjection();
-builder.Services.AddCustomizedMvc(builder.Configuration);
-builder.Services.AddCustomizedSwagger(builder.Configuration);
-builder.Services.AddFastEndpoints();
 
-builder.Host.UseSerilog((hosting, loggerConfig) => loggerConfig.MinimumLevel.Verbose()
-            .Enrich.WithProperty("ApplicationContext", hosting.HostingEnvironment.ApplicationName)
-            .Enrich.FromLogContext()
-            .Enrich.WithCorrelationIdHeader()
-            .ReadFrom.Configuration(hosting.Configuration));
+builder.AddServiceDefaults();
+builder.Services.AddCustomizedDependencyInjection();
+builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
+                                            configureDbContextOptions: optionsBuilder =>
+                                                                       {
+                                                                           optionsBuilder.UseNpgsql(o => o.UseNodaTime()
+                                                                                                        .MigrationsAssembly("Agenda.DataStores.Postgres"));
+                                                                       });
+builder.Services.AddDataStores(builder.Configuration);
+builder.Services.AddSerilog();
+builder.Services
+    .SwaggerDocument(options =>
+                     {
+                         options.MaxEndpointVersion = 1;
+                         options.ShortSchemaNames = true;
+                     })
+    .AddFastEndpoints(options =>
+                      {
+                          options.IncludeAbstractValidators = true;
+                      });
 
 WebApplication app = builder.Build();
 
-app.UseSerilogRequestLogging();
-app.UseRouting();
 
-app.UseSwagger();
-app.UseSwaggerUI();
-
+// app.UseSerilogRequestLogging(opts => opts.EnrichDiagnosticContext = (diagnosticContext, httpContext) => diagnosticContext.Set("CorrelationId", httpContext.TraceIdentifier));
 app.UseFastEndpoints(config =>
                      {
                          config.Binding.ValueParserFor<AppointmentId>(values => new ParseResult(AppointmentId.TryParse(values.ToString(), out AppointmentId id), id));
-                     });
+                     })
+    .UseSwaggerGen();
 
-using IServiceScope scope = app.Services.CreateScope();
-IServiceProvider services = scope.ServiceProvider;
-ILogger<Program> logger = services.GetRequiredService<ILogger<Program>>();
-IHostEnvironment env = services.GetRequiredService<IHostEnvironment>();
+await app.RunAsync().ConfigureAwait(false);
 
-try
-{
-    logger?.LogInformation("Starting {ApplicationContext}", env.ApplicationName);
-    await app.InitAsync().ConfigureAwait(false);
-    await app.RunAsync().ConfigureAwait(false);
+return;
 
-    logger?.LogInformation("{ApplicationContext} started", env.ApplicationName);
-}
-catch (Exception ex)
-{
-    logger?.LogError(ex, "An error occurred on startup.");
-}
 
 /// <summary>
 /// Application entry point
 /// </summary>
-public partial class Program
-{
-}
+public partial class Program;

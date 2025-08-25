@@ -4,14 +4,21 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Agenda.API.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <UserSecretsId>85b415e8-a1a6-407e-afe1-b881cb57bcaa</UserSecretsId>
-    <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="CorrelationId" />
+    <PackageReference Include="Candoumbe.Forms" />
+    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" />
+    <PackageReference Include="FastEndpoints" />
+    <PackageReference Include="FastEndpoints.Swagger" />
+    <PackageReference Include="FluentValidation.AspNetCore" />
+    <PackageReference Include="Fluxera.StronglyTypedId.SystemTextJson" />
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" />
     <PackageReference Include="Polly" />
     <PackageReference Include="Serilog.AspNetCore" />
@@ -20,26 +27,18 @@
     <PackageReference Include="Serilog.Enrichers.CorrelationId" />
     <PackageReference Include="Serilog.Settings.Configuration" />
     <PackageReference Include="Destructurama.ByIgnoring" />
-    <PackageReference Include="FluentValidation.AspNetCore" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="NodaTime.Serialization.SystemTextJson" />
-    <PackageReference Include="CorrelationId" />
-    <PackageReference Include="Candoumbe.Forms" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
-    <PackageReference Include="Extensions.Hosting.AsyncInitialization" />
     <PackageReference Include="DataFilters.AspNetCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
-    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" />
-    <PackageReference Include="Fluxera.StronglyTypedId.SystemTextJson" />
     <PackageReference Include="JsonPatch.Net" />
-    <PackageReference Include="Swashbuckle.AspNetCore" />
-    <PackageReference Include="FastEndpoints" />
-    <PackageReference Include="FastEndpoints.Swagger" />
 
     <!--Mass Transit-->
     <PackageReference Include="MassTransit.AspNetCore" />
@@ -49,6 +48,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Agenda.DataStores.Postgres\Agenda.DataStores.Postgres.csproj" />
     <ProjectReference Include="..\Agenda.DataStores.Sqlite\Agenda.DataStores.Sqlite.csproj" />
-    <ProjectReference Include="..\Agenda.DataStores\Agenda.DataStores.csproj" />
+    <ProjectReference Include="..\Agenda.ServiceDefaults\Agenda.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>
