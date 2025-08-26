@@ -12,7 +12,7 @@ public class AppointmentIdTests
     public void Given_value_is_not_empty_Then_Value_should_be_equal_to_value(Guid expected)
     {
         // Act
-        AppointmentId appointmentId = new AppointmentId(expected);
+        AppointmentId appointmentId = AppointmentId.From(expected);
 
         // Assert
         appointmentId.Value.Should().Be(expected);
@@ -22,8 +22,8 @@ public class AppointmentIdTests
     public void Two_ids_built_of_the_same_value_should_be_equal(Guid value)
     {
         // Act
-        AppointmentId first = new AppointmentId(value);
-        AppointmentId second = new AppointmentId(value);
+        AppointmentId first = AppointmentId.From(value);
+        AppointmentId second = AppointmentId.From(value);
 
         // Assert
         first.Should().Be(second);
@@ -36,7 +36,7 @@ public class AppointmentIdTests
         {
             {
                 Guid value = Guid.NewGuid();
-                yield return new object[] { value.ToString(), true, new AppointmentId(value) };
+                yield return new object[] { value.ToString(), true, AppointmentId.From(value) };
             }
             {
                 string value = string.Empty;

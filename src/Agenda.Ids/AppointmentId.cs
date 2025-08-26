@@ -11,7 +11,22 @@ namespace Agenda.Ids
         {
         }
 
+        /// <summary>
+        /// Creates a new <see cref="AppointmentId"/> from the given <paramref name="value"/>.
+        /// </summary>
+        /// <param name="value">The value of the appointment</param>
+        /// <returns></returns>
+        public static AppointmentId From(Guid value) => new AppointmentId(value);
+
+        /// <summary>
+        /// Creates a new <see cref="AppointmentId"/>.
+        /// </summary>
+        /// <returns></returns>
+#if NET
+        public static AppointmentId New() => new AppointmentId(Guid.CreateVersion7());
+#else
         public static AppointmentId New() => new AppointmentId(Guid.NewGuid());
+#endif
 
 #if NETSTANDARD2_1
         /// <summary>

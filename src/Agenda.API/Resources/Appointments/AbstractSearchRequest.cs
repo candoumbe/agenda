@@ -1,4 +1,6 @@
-﻿namespace Agenda.API.Resources.Appointments;
+﻿using Candoumbe.Types.Numerics;
+
+namespace Agenda.API.Resources.Appointments;
 
 /// <summary>
 /// Base class for search requests
@@ -8,15 +10,15 @@ public abstract record AbstractSearchRequest<T>
     /// <summary>
     /// Index of the page
     /// </summary>
-    public int Page { get; init; }
+    public NonNegativeInteger Page { get; init; }
 
     /// <summary>
-    /// Defines the number of items result set will contain at most.
+    /// Defines the number of items the result set will contain at most.
     /// </summary>
     /// <remarks>
-    /// This value is just a hint that the server may not fullfill.
+    /// This value is just a hint that the server may not fulfill. The server may return fewer items depending on its configuration.
     /// </remarks>
-    public int PageSize { get; init; }
+    public PositiveInteger PageSize { get; init; }
 
     /// <summary>
     /// Directive on how to sort results

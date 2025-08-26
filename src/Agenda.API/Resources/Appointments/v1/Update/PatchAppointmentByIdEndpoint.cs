@@ -1,12 +1,13 @@
 ﻿using FastEndpoints;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace Agenda.API.Resources.Appointments.v1.Update;
 
 /// <summary>
 /// Updates an appointment based on a PATCH document
 /// </summary>
-public class PatchAppointmentByIdEndpoint : Endpoint<JsonPatchDocument<PatchAppointmentRequest>>
+public class PatchAppointmentByIdEndpoint : Endpoint<List<Operation<PatchAppointmentRequest>>>
 {
     /// <inheritdoc />
     public override void Configure()
@@ -16,6 +17,6 @@ public class PatchAppointmentByIdEndpoint : Endpoint<JsonPatchDocument<PatchAppo
     }
 
     /// <inheritdoc />
-    public override async Task HandleAsync(JsonPatchDocument<PatchAppointmentRequest> req, CancellationToken ct)
+    public override async Task HandleAsync(List<Operation<PatchAppointmentRequest>> req, CancellationToken ct)
         => TypedResults.NotFound();
 }

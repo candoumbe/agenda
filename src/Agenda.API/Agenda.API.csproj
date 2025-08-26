@@ -7,6 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <UserSecretsId>85b415e8-a1a6-407e-afe1-b881cb57bcaa</UserSecretsId>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
 
@@ -14,10 +15,10 @@
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="CorrelationId" />
     <PackageReference Include="Candoumbe.Forms" />
+    <PackageReference Include="Candoumbe.Types.Numerics" />
     <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" />
     <PackageReference Include="FastEndpoints" />
     <PackageReference Include="FastEndpoints.Swagger" />
-    <PackageReference Include="FluentValidation.AspNetCore" />
     <PackageReference Include="Fluxera.StronglyTypedId.SystemTextJson" />
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" />
     <PackageReference Include="Polly" />

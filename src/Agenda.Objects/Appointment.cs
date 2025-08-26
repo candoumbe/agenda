@@ -52,7 +52,7 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// <remarks>
     /// The instanciated appointment has no 
     /// </remarks>
-    public Appointment(AppointmentId id, string subject, string location, Instant startDate, Instant endDate) : base(id)
+    public Appointment(AppointmentId id, string subject, string location, Instant startDate, Instant endDate) : base(id ?? AppointmentId.New())
     {
         Subject = subject;
         Location = location ?? string.Empty;

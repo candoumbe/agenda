@@ -22,12 +22,7 @@ public class PageOf<TResource> where TResource : class
     public long Count { get; init; }
 
     /// <summary>
-    /// Max
-    /// </summary>
-    public int PageSize { get; init; }
-
-    /// <summary>
-    /// Resources holds in the current page
+    /// Resources hold in the current page
     /// </summary>
     public IEnumerable<TResource> Items
     {
@@ -43,7 +38,7 @@ public class PageOf<TResource> where TResource : class
     public PageLinks Links { get; init; }
 
     /// <summary>
-    /// Builds a empty page
+    /// Builds an empty page
     /// </summary>
     public PageOf()
     {

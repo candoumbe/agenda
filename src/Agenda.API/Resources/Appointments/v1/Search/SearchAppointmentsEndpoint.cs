@@ -111,7 +111,6 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
         PageOf<Browsable<AppointmentInfo>> content = new()
         {
             Page = search.Page,
-            PageSize = search.PageSize,
             Total = pageOfAppointments.Total,
             Count = count,
             Items =

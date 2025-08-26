@@ -56,10 +56,13 @@ public class Attendee : AuditableEntity<AttendeeId, Attendee>
     /// <summary>
     /// Builds a new <see cref="Attendee"/> instance
     /// </summary>
+    /// <param name="id">identifier of the attendee</param>
     /// <param name="name">Name of the participant</param>
+    /// <param name="email"></param>
+    /// <param name="phoneNumber">Phone number that can be used to contact the participant</param>
     /// <exception cref="ArgumentNullException"><paramref name="name"/> is <c>null</c></exception>
     /// <exception cref="ArgumentException"><paramref name="id"/> is <c>Guid.Empty</c></exception>
-    public Attendee(AttendeeId id, string name, string email = null, string phoneNumber = null) : base(id)
+    public Attendee(AttendeeId id, string name, string email = null, string phoneNumber = null) : base(id ?? AttendeeId.New())
     {
         Name = name;
         Email = email;
