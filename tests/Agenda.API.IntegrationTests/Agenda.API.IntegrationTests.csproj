@@ -1,22 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\..\integration-tests.props" />
+  <Import Project="..\..\tests.props" />
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NodaTime.Serialization.JsonNet" />
-    <PackageReference Include="TestContainers.PostgreSql" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+    <PackageReference Include="Aspire.Hosting.Testing" />
     <PackageReference Include="FluentAssertions.Nodatime" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="MartinCostello.Logging.XUnit"/>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing"/>
+    <PackageReference Include="Xunit.Extensions.AssemblyFixture" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Agenda.API\Agenda.API.csproj" />
+    <ProjectReference Include="..\..\src\Agenda.AppHost\Agenda.AppHost.csproj" />
     
   </ItemGroup>
 

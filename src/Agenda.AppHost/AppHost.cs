@@ -21,3 +21,6 @@ var api = builder.AddProject<Agenda_API>("api")
     .PublishAsDockerFile();
 
 builder.Build().Run();
+
+
+public partial class Program;

@@ -6,6 +6,7 @@
   <ItemGroup>
     <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.3.1" />
     <PackageVersion Include="Aspire.Hosting.MongoDB" Version="9.3.1" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="9.3.1" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.3.1" />
     <PackageVersion Include="Aspire.Npgsql" Version="9.3.1" />
     <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.3.1" />
@@ -16,6 +17,7 @@
     <PackageVersion Include="Candoumbe.DataAccess.EFStore" Version="0.1.0-beta0145" />
     <PackageVersion Include="Candoumbe.Forms" Version="0.3.0" />
     <PackageVersion Include="Candoumbe.Pipelines" Version="1.0.0-rc.25" />
+    <PackageVersion Include="Candoumbe.Types.Numerics" Version="0.4.2-fix.1" />
     <PackageVersion Include="CodecovUploader" Version="0.8.0" />
     <PackageVersion Include="CorrelationId" Version="3.0.1" />
     <PackageVersion Include="coverlet.msbuild" Version="6.0.4" />
@@ -27,13 +29,12 @@
     <PackageVersion Include="FastEndpoints.Swagger" Version="7.0.1" />
     <PackageVersion Include="FluentAssertions" Version="8.6.0" />
     <PackageVersion Include="FluentAssertions.Nodatime" Version="2.0.1" />
-    <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.1" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.1" />
     <PackageVersion Include="JetBrains.Annotations" Version="2025.2.0" />
     <PackageVersion Include="JsonPatch.Net" Version="3.3.0" />
     <PackageVersion Include="MassTransit.AspNetCore" Version="7.3.1" />
     <PackageVersion Include="MassTransit.RabbitMQ" Version="8.5.2" />
-    <PackageVersion Include="Meziantou.Extensions.Logging.Xunit" Version="1.0.16" />
+    <PackageVersion Include="Xunit.DependencyInjection.Logging" Version="9.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.8" />
     <PackageVersion Include="Microsoft.AspNetCore.JsonPatch" Version="9.0.8" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.8" />
@@ -41,12 +42,14 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="9.2.0" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.4.0" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.3.1" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.8" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+    <PackageVersion Include="MartinCostello.Logging.XUnit" Version="0.5.1" />
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="NodaTime.Bogus" Version="3.0.2" />
     <PackageVersion Include="NodaTime.Serialization.JsonNet" Version="3.2.0" />

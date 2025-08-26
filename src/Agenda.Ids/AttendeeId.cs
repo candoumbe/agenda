@@ -12,10 +12,14 @@ namespace Agenda.Ids
         }
 
         /// <summary>
-        /// Create a new <see cref="AttendeeId"/>.
+        /// Creates a new <see cref="AttendeeId"/>.
         /// </summary>
         /// <returns></returns>
+#if NET
+        public static AttendeeId New() => new AttendeeId(Guid.CreateVersion7());
+#else
         public static AttendeeId New() => new AttendeeId(Guid.NewGuid());
+#endif
 
 #if NETSTANDARD2_1
         public static bool TryParse(string input, [NotNullWhen(true)] out AttendeeId output)

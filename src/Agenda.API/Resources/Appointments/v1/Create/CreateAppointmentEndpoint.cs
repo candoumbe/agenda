@@ -1,6 +1,7 @@
 ﻿using Agenda.API.Resources.Appointments.v1.Delete;
 using Agenda.API.Resources.Appointments.v1.GetById;
 using Agenda.API.Resources.v1.Appointments;
+using Agenda.Ids;
 using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.Forms;
@@ -18,6 +19,7 @@ public class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, CreatedAtR
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly LinkGenerator _linkGenerator;
     private readonly CurrentRequestMetadataInfoProvider _currentRequestMetadataInfoProvider;
+
 
     /// <summary>
     /// Builds a new <see cref="CreateAppointmentEndpoint"/>
@@ -37,7 +39,10 @@ public class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, CreatedAtR
     {
         Post("/appointments");
         AllowAnonymous();
+        SerializerContext<CreateAppointmentSerializerContext>();
     }
+
+
 
     /// <inheritdoc />
     public override async Task<CreatedAtRoute<Browsable<AppointmentInfo>>> ExecuteAsync(NewAppointmentInfo req, CancellationToken ct)
