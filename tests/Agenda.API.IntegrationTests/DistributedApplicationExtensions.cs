@@ -174,6 +174,8 @@ public static class DistributedApplicationExtensions
     /// <summary>
     /// Waits for the specified resource to reach the specified state.
     /// </summary>
+    /// <param name="resourceName">The name of the resource to wait for.</param>
+    /// <param name="targetState">The state to wait for. If null, the default state is <see cref="KnownResourceStates.Running"/>.</param>
     public static Task WaitForResource(this DistributedApplication app, string resourceName, string targetState = null, CancellationToken cancellationToken = default)
     {
         targetState ??= KnownResourceStates.Running;

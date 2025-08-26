@@ -1,5 +1,3 @@
-using System.Numerics;
-using Candoumbe.Types.Numerics;
 using Fluxera.StronglyTypedId;
 using NJsonSchema;
 using NJsonSchema.Generation.TypeMappers;
@@ -26,40 +24,6 @@ namespace Agenda.API.TypeMappers
         }
 
         Type ITypeMapper.MappedType => typeof(TStronglyTypedId);
-
-        /// <inheritdoc />
-        bool ITypeMapper.UseReference => false;
-    }
-
-
-    /// <summary>
-    /// Mappers for <see cref="Number{TNumber}"/>s.
-    /// </summary>
-    /// <typeparam name="TValue">Type of the underlying number</typeparam>
-    /// <typeparam name="TNumber"></typeparam>
-    public class NumberTypeMapper<TNumber, TValue> : ITypeMapper
-        where TNumber : Number<TValue>, IMinMaxValue<TNumber>
-        where TValue : IComparable<TValue>, IMinMaxValue<TValue>
-    {
-        /// <inheritdoc />
-        void ITypeMapper.GenerateSchema(JsonSchema schema, TypeMapperContext context)
-        {
-            switch (typeof(TNumber))
-            {
-                case var type when type == typeof(long):
-                    (schema.Type, schema.Format, schema.Minimum, schema.Maximum) = (JsonObjectType.Number, JsonFormatStrings.Long, Convert.ToDecimal(TNumber.MinValue), Convert.ToDecimal(TNumber.MaxValue));
-                    break;
-                case var type when type == typeof(int):
-                    (schema.Type, schema.Format, schema.Minimum, schema.Maximum) = (JsonObjectType.Integer, JsonFormatStrings.Integer, Convert.ToDecimal(TNumber.MinValue), Convert.ToDecimal(TNumber.MaxValue));
-                    break;
-                default:
-                    (schema.Type, schema.Format) = (JsonObjectType.Number, JsonFormatStrings.Integer);
-                    break;
-            }
-        }
-
-        /// <inheritdoc />
-        Type ITypeMapper.MappedType => typeof(TNumber);
 
         /// <inheritdoc />
         bool ITypeMapper.UseReference => false;
