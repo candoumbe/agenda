@@ -1,8 +1,7 @@
 using Agenda.DataStores;
 using Agenda.Migrator;
-using NodaTime;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 
