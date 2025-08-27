@@ -163,8 +163,9 @@ public class Build : EnhancedNukeBuild,
 
     private IReadOnlyList<Project> ArchitecturalTestsProjects => [.. this.Get<IHaveSolution>().Solution.AllProjects.Where(project => project.Name.Like("*.ArchitecturalTests", ignoreCase: true)) ];
 
-    public Target ArchitecturalTests => _ =>  _.TryTriggeredBy<IUnitTest>()
+    public Target ArchitecturalTests => _ =>  _.TryBefore<IUnitTest>()
                                             .TryBefore<IMutationTest>(target => target.MutationTests)
+                                            .TryDependsOn<ICompile>()
                                             .Description("Runs architectural tests")
                                             .Executes(() =>
 
@@ -175,4 +176,7 @@ public class Build : EnhancedNukeBuild,
                                                                                                        (x, framework) => x.SetFramework(framework)))
                                                                     )
                                                      );
+
+    public Target Tests => _ => _.Triggers(this.Get<IUnitTest>().UnitTests, this.Get<IIntegrationTest>().IntegrationTests)
+                               .Description("Runs all tests");
 }

@@ -42,6 +42,7 @@
         "ReportIntegrationTestCoverage",
         "ReportUnitTestCoverage",
         "Restore",
+        "Tests",
         "UnitTests"
       ]
     },
