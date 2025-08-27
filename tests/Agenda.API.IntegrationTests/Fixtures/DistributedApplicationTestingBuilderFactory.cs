@@ -23,15 +23,9 @@ namespace Agenda.API.IntegrationTests.Fixtures;
 /// </para>
 /// For more informations, <see href="https://github.com/dotnet/aspire-samples/blob/main/tests/SamplesIntegrationTests/Infrastructure/DistributedApplicationTestFactory.cs">the GitHub sample</see>.
 /// </remarks>
-public class DistributedApplicationTestingBuilderFactory
+public static class DistributedApplicationTestingBuilderFactory
 {
-    private static readonly TimeSpan s_defaultTimeOut = TimeSpan.FromSeconds(30);
-
-    /// <summary>
-    /// HTTP client for the API.
-    /// </summary>
-    public HttpClient ApiClient { get; private set; }
-    public const string ApiResourceName = "api";
+    private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DistributedApplicationTestingBuilderFactory"/> class.
@@ -40,7 +34,7 @@ public class DistributedApplicationTestingBuilderFactory
     /// <returns></returns>
     public static async Task<AgendaApplicationTestingBuilder> CreateBuilderAsync(ITestOutputHelper outputHelper = null)
     {
-        CancellationToken cancellationToken = new CancellationTokenSource(s_defaultTimeOut).Token;
+        CancellationToken cancellationToken = new CancellationTokenSource(s_defaultTimeout).Token;
         IDistributedApplicationTestingBuilder builder = await DistributedApplicationTestingBuilder.CreateAsync<Agenda_AppHost>(cancellationToken);
 
         builder.WithRandomParameterValues();

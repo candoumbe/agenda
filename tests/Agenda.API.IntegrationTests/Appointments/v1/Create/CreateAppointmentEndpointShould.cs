@@ -55,33 +55,25 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
         s_jsonSerializerOptions.Converters.Add(new EnumStringConverter<OperationType>());
     }
 
-    private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(60);
-    private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromSeconds(120);
-
 
     ///<inheritdoc/>
     public async Task InitializeAsync()
     {
         _appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper);
 
-        _sut = await _appHost.StartAsync(s_startStopTimeout, s_buildStopTimeout);
-
-        await _sut.StartAsync().WaitAsync(s_startStopTimeout);
-        await _sut.WaitForResourcesAsync().WaitAsync(s_startStopTimeout);
+        _sut = await _appHost.StartAsync();
+        _client = _appHost.ApiClient;
     }
 
     ///<inheritdoc/>
-    public async Task DisposeAsync()
-    {
-        await _sut.StopAsync().WaitAsync(s_buildStopTimeout);
-    }
+    public async Task DisposeAsync() => await _appHost.DisposeAsync();
 
 
     [Fact]
     public async Task Returns_the_appointment_when_created_successfully()
     {
         // Arrange
-        _client = _sut.CreateHttpClient("api");
+        //_client = _sut.CreateHttpClient("api");
         outputHelper.WriteLine("Client: " + _client.BaseAddress);
         Instant startDate = s_faker.Noda().Instant.Soon();
         Instant endDate = s_faker.Noda().Instant.Future(reference: startDate);
