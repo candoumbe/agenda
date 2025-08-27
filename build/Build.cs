@@ -125,11 +125,11 @@ public class Build : EnhancedNukeBuild,
     IEnumerable<PushNugetPackageConfiguration> IPushNugetPackages.PublishConfigurations =>
     [
         new NugetPushConfiguration(apiKey: this.As<IPushNugetPackages>()?.NuGetApiKey,
-            source: new Uri("https://api.nuget.org/v3/index.json"),
-            () => this.As<IPushNugetPackages>()?.NuGetApiKey is not null),
+                                   source: new Uri("https://api.nuget.org/v3/index.json"),
+                                   () => this.As<IPushNugetPackages>()?.NuGetApiKey is not null),
         new GitHubPushNugetConfiguration(githubToken: this.Get<IHaveGitHubRepository>().GitHubToken,
-            source: new Uri($"https://nukpg.github.com/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/index.json"),
-            () => this.Get<ICreateGithubRelease>()?.GitHubToken is not null)
+                                         source: new Uri($"https://nukpg.github.com/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/index.json"),
+                                         () => this.Get<ICreateGithubRelease>()?.GitHubToken is not null)
     ];
 
     /// <inheritdoc />
@@ -163,13 +163,18 @@ public class Build : EnhancedNukeBuild,
 
     private IReadOnlyList<Project> ArchitecturalTestsProjects => [.. this.Get<IHaveSolution>().Solution.AllProjects.Where(project => project.Name.Like("*.ArchitecturalTests", ignoreCase: true)) ];
 
-    public Target ArchitecturalTests => _ =>  _.TryBefore<IUnitTest>()
-                                            .TryBefore<IMutationTest>(target => target.MutationTests)
+    /// <summary>
+    /// Target to run architectural tests.
+    /// </summary>
+    public Target ArchitecturalTests => _ =>  _.TryTriggeredBy<IUnitTest>() // <- This will make architectural tests run whenever unit tests run
+                                            .TryBefore<IMutationTest>()
                                             .TryDependsOn<ICompile>()
                                             .Description("Runs architectural tests")
                                             .Executes(() =>
 
                                                           DotNetTest(s => s.SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
+                                                                         .SetNoBuild(SucceededTargets.Contains(this.Get<ICompile>().Compile))
+                                                                         .SetNoRestore(SucceededTargets.Contains(this.Get<IRestore>().Restore))
                                                                          .CombineWith(ArchitecturalTestsProjects,
                                                                                       (setting, project) => setting.SetProjectFile(project)
                                                                                           .CombineWith(project.GetTargetFrameworks(),
@@ -177,6 +182,8 @@ public class Build : EnhancedNukeBuild,
                                                                     )
                                                      );
 
-    public Target Tests => _ => _.Triggers(this.Get<IUnitTest>().UnitTests, this.Get<IIntegrationTest>().IntegrationTests)
+    public Target Tests => _ => _.Triggers(ArchitecturalTests,
+                                           this.Get<IUnitTest>().UnitTests,
+                                           this.Get<IIntegrationTest>().IntegrationTests)
                                .Description("Runs all tests");
 }
