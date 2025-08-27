@@ -25,7 +25,7 @@ namespace Agenda.API.IntegrationTests.Fixtures;
 /// </remarks>
 public class DistributedApplicationTestingBuilderFactory
 {
-    private static readonly TimeSpan DefaultTimeOut = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_defaultTimeOut = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// HTTP client for the API.
@@ -40,7 +40,7 @@ public class DistributedApplicationTestingBuilderFactory
     /// <returns></returns>
     public static async Task<AgendaApplicationTestingBuilder> CreateBuilderAsync(ITestOutputHelper outputHelper = null)
     {
-        CancellationToken cancellationToken = new CancellationTokenSource(DefaultTimeOut).Token;
+        CancellationToken cancellationToken = new CancellationTokenSource(s_defaultTimeOut).Token;
         IDistributedApplicationTestingBuilder builder = await DistributedApplicationTestingBuilder.CreateAsync<Agenda_AppHost>(cancellationToken);
 
         builder.WithRandomParameterValues();

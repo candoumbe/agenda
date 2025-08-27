@@ -192,8 +192,8 @@ public static class DistributedApplicationExtensions
         var environment = app.Services.GetRequiredService<IHostEnvironment>();
         var logCollector = app.Services.GetFakeLogCollector();
         var logs = logCollector.GetSnapshot();
-        var appHostLogs = logs.Where(l => l.Category?.StartsWith($"{environment.ApplicationName}.Resources") == false).ToList();
-        var resourceLogs = logs.Where(l => l.Category?.StartsWith($"{environment.ApplicationName}.Resources") == true).ToList();
+        List<FakeLogRecord> appHostLogs = logs.Where(l => l.Category?.StartsWith($"{environment.ApplicationName}.Resources") == false).ToList();
+        List<FakeLogRecord> resourceLogs = logs.Where(l => l.Category?.StartsWith($"{environment.ApplicationName}.Resources") == true).ToList();
 
         return (appHostLogs, resourceLogs);
     }
@@ -209,7 +209,7 @@ public static class DistributedApplicationExtensions
     {
         var environment = app.Services.GetRequiredService<IHostEnvironment>();
         var applicationModel = app.Services.GetRequiredService<DistributedApplicationModel>();
-        var assertableResourceLogNames = applicationModel.Resources.Where(ShouldAssertErrorsForResource).Select(r => $"{environment.ApplicationName}.Resources.{r.Name}").ToList();
+        List<string> assertableResourceLogNames = applicationModel.Resources.Where(ShouldAssertErrorsForResource).Select(r => $"{environment.ApplicationName}.Resources.{r.Name}").ToList();
 
         var (appHostlogs, resourceLogs) = app.GetLogs();
 
