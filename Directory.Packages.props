@@ -4,12 +4,12 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.3.1" />
-    <PackageVersion Include="Aspire.Hosting.MongoDB" Version="9.3.1" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="9.3.1" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.3.1" />
-    <PackageVersion Include="Aspire.Npgsql" Version="9.3.1" />
-    <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.3.1" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Hosting.MongoDB" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Npgsql" Version="9.4.1" />
+    <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.4.1" />
     <PackageVersion Include="AutoFixture.AutoFakeItEasy" Version="4.18.1" />
     <PackageVersion Include="Bogus" Version="35.6.3" />
     <PackageVersion Include="Candoumbe.DataAccess" Version="0.1.0-beta0145" />
@@ -45,7 +45,7 @@
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.4.0" />
-    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.3.1" />
+    <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.4.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageVersion Include="MartinCostello.Logging.XUnit" Version="0.5.1" />
