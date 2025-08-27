@@ -1,5 +1,4 @@
-﻿using Agenda.API.Resources.v1.Appointments;
-using NodaTime;
+﻿using NodaTime;
 
 namespace Agenda.API.Resources.Appointments.v1.Update;
 

@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agenda.API;
-using Agenda.API.Resources.Appointments.v1.Update;
 using Agenda.API.TypeMappers;
 using Agenda.DataStores;
 using Agenda.Ids;
@@ -13,7 +12,6 @@ using Fluxera.StronglyTypedId.SystemTextJson;
 using Json.More;
 using Json.Patch;
 using Microsoft.AspNetCore.Http.Json;
-using Microsoft.AspNetCore.JsonPatch.Converters;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;

@@ -5,7 +5,6 @@ using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;
 using Fluxera.StronglyTypedId.SystemTextJson;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 
@@ -17,33 +16,18 @@ namespace Agenda.API;
 public static class ServiceCollectionExtensions
 {
     private static Action<JsonSerializerOptions> ConfigureJsonOptions => jsonSerializerOptions =>
-    {
-        jsonSerializerOptions.UseStronglyTypedId();
-        jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
+                                                                         {
+                                                                             jsonSerializerOptions.UseStronglyTypedId();
+                                                                             jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 
-        jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        jsonSerializerOptions.IgnoreReadOnlyFields = true;
-        jsonSerializerOptions.IgnoreReadOnlyProperties = true;
-        jsonSerializerOptions.AllowTrailingCommas = true;
-        jsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-        jsonSerializerOptions.PropertyNameCaseInsensitive = true;
-        jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    };
-
-    /// <summary>
-    /// Adds require dependencies for endpoints
-    /// </summary>
-    /// <param name="services"></param>
-    /// <param name="configuration"></param>
-    /// 
-    public static IServiceCollection AddCustomizedMvc(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.ConfigureHttpJsonOptions(options => ConfigureJsonOptions(options.SerializerOptions));
-        services.AddControllers()
-            .AddJsonOptions(options => ConfigureJsonOptions(options.JsonSerializerOptions));
-
-        return services;
-    }
+                                                                             jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                                                                             jsonSerializerOptions.IgnoreReadOnlyFields = true;
+                                                                             jsonSerializerOptions.IgnoreReadOnlyProperties = true;
+                                                                             jsonSerializerOptions.AllowTrailingCommas = true;
+                                                                             jsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                                                                             jsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                                                                             jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                                                                         };
 
     /// <summary>
     /// Adds required dependencies to access API datastores

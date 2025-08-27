@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Projects;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Agenda.API.IntegrationTests.Fixtures;
