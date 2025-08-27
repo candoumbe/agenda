@@ -1,7 +1,6 @@
 ﻿using Agenda.API.Resources.Appointments.v1.Delete;
 using Agenda.API.Resources.Appointments.v1.GetById;
 using Agenda.API.Resources.v1.Appointments;
-using Agenda.Ids;
 using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.Forms;
@@ -47,6 +46,7 @@ public class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, CreatedAtR
     /// <inheritdoc />
     public override async Task<CreatedAtRoute<Browsable<AppointmentInfo>>> ExecuteAsync(NewAppointmentInfo req, CancellationToken ct)
     {
+
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
 
         Appointment newAppointment = new(req.Id, req.Subject, req.Location, req.StartDate.ToInstant(), req.EndDate.ToInstant());
@@ -88,6 +88,8 @@ public class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, CreatedAtR
                 }
             ]
         };
+
+        Logger.LogInformation("Appointment created: {Appointment}", browsable);
 
         return TypedResults.CreatedAtRoute(browsable, GetAppointmentByIdEndpoint.RouteName, new { newAppointment.Id });
     }
