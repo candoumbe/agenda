@@ -30,7 +30,7 @@ namespace Agenda.API.ArchitecturalTests
         private static GivenClassesConjunction EndpointsWithRequest => Endpoints
             .And().AreAssignableTo(s_endpointWithRequestAndResponse);
 
-        private static IObjectProvider<Class> EndpointsWithRequestAndResponse => Endpoints
+        private static GivenClassesConjunction EndpointsWithRequestAndResponse => Endpoints
             .And().AreAssignableTo(s_endpointWithRequestAndResponse)
             .And().AreNotAssignableTo(s_endpointWithRequestOnly);
 
