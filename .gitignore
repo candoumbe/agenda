@@ -476,5 +476,9 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-/build/Agenda.Pipelines/Properties/launchSettings.json
+
+# Nuke temporary directory
 /.nuke/temp
+
+# Stryker output
+StrykerOutput/
