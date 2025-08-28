@@ -69,7 +69,7 @@
     <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
-    <PackageVersion Include="TestContainers.PostgreSql" Version="4.6.0" />
+    <PackageVersion Include="TestContainers.PostgreSql" Version="4.7.0" />
     <PackageVersion Include="TngTech.ArchUnitNET.xUnit" Version="0.12.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.categories" Version="3.0.1" />
