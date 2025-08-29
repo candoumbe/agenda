@@ -38,6 +38,7 @@
         "MutationTests",
         "Pack",
         "Publish",
+        "PublishApi",
         "Release",
         "ReportIntegrationTestCoverage",
         "ReportUnitTestCoverage",
