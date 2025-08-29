@@ -85,6 +85,12 @@ public class Build : EnhancedNukeBuild,
     IPushNugetPackages,
     ICreateGithubRelease
 {
+
+    [Solution] [Required] public readonly Solution Solution;
+
+    /// <inheritdoc />
+    Solution IHaveSolution.Solution => Solution;
+
     public static int Main() => Execute<Build>(x => ((ICompile)x).Compile);
 
     ///<inheritdoc/>
@@ -195,7 +201,8 @@ public class Build : EnhancedNukeBuild,
     public Target PublishApi => _ => _.Inherit<IPack>()
                                     .Description("Publish image of the API")
                                     .After(Tests)
-                                    .Produces(this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "agenda.api-*.tar.gz")
+                                    .Consumes(this.Get<ICompile>().Compile)
+                                    .Produces(this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "*.tar.gz")
                                     .Executes(() =>
                                               {
                                                   GitVersion gitVersion = this.Get<IHaveGitVersion>().GitVersion;
@@ -226,7 +233,9 @@ public class Build : EnhancedNukeBuild,
                                                                         //["PublishRepositoryUrl"] = true,
                                                                         ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
                                                                     })
-                                                                    .SetProcessAdditionalArguments("/t:PublishContainer"));
+                                                                    .SetProcessAdditionalArguments([
+                                                                        "/t:PublishContainer",
+                                                                        "--tl"]));
                                               });
 
 
