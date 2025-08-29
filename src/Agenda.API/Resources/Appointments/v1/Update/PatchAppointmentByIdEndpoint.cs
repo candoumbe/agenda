@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace Agenda.API.Resources.Appointments.v1.Update;
@@ -6,7 +7,7 @@ namespace Agenda.API.Resources.Appointments.v1.Update;
 /// <summary>
 /// Updates an appointment based on a PATCH document
 /// </summary>
-public class PatchAppointmentByIdEndpoint : Endpoint<List<Operation<PatchAppointmentRequest>>>
+public class PatchAppointmentByIdEndpoint : Endpoint<List<Operation<PatchAppointmentRequest>>, NoContent>
 {
     /// <inheritdoc />
     public override void Configure()
@@ -16,6 +17,6 @@ public class PatchAppointmentByIdEndpoint : Endpoint<List<Operation<PatchAppoint
     }
 
     /// <inheritdoc />
-    public override Task HandleAsync(List<Operation<PatchAppointmentRequest>> req, CancellationToken ct)
-        => Task.FromResult(TypedResults.StatusCode(StatusCodes.Status501NotImplemented));
+    public override Task<NoContent> ExecuteAsync(List<Operation<PatchAppointmentRequest>> req, CancellationToken ct)
+        => Task.FromResult(TypedResults.NoContent());
 }
