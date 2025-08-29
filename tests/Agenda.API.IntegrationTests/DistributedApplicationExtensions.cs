@@ -103,9 +103,9 @@ public static class DistributedApplicationExtensions
 
         return;
 
-        async Task<(string Name, string State)> GetResourceWaitTask(string resourceName, IEnumerable<string> targetStates, CancellationToken cancellationToken)
+        async Task<(string Name, string State)> GetResourceWaitTask(string resourceName, IEnumerable<string> targetStates, CancellationToken ct)
         {
-            string state = await app.ResourceNotifications.WaitForResourceAsync(resourceName, targetStates, cancellationToken);
+            string state = await app.ResourceNotifications.WaitForResourceAsync(resourceName, targetStates, ct);
             return (resourceName, state);
         }
     }
@@ -174,8 +174,10 @@ public static class DistributedApplicationExtensions
     /// <summary>
     /// Waits for the specified resource to reach the specified state.
     /// </summary>
+    /// <param name="app"></param>
     /// <param name="resourceName">The name of the resource to wait for.</param>
     /// <param name="targetState">The state to wait for. If null, the default state is <see cref="KnownResourceStates.Running"/>.</param>
+    /// <param name="cancellationToken"></param>
     public static Task WaitForResource(this DistributedApplication app, string resourceName, string targetState = null, CancellationToken cancellationToken = default)
     {
         targetState ??= KnownResourceStates.Running;
@@ -232,7 +234,7 @@ public static class DistributedApplicationExtensions
     /// <summary>
     /// Creates an <see cref="HttpClient"/> configured to communicate with the specified resource with custom configuration.
     /// </summary>
-    public static HttpClient CreateHttpClient(this DistributedApplication app, string resourceName, string? endpointName, Action<IHttpClientBuilder> configure = null)
+    public static HttpClient CreateHttpClient(this DistributedApplication app, string resourceName, string endpointName = null, Action<IHttpClientBuilder> configure = null)
     {
 
 

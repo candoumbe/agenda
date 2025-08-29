@@ -11,11 +11,11 @@ public class PatchAppointmentByIdEndpoint : Endpoint<List<Operation<PatchAppoint
     /// <inheritdoc />
     public override void Configure()
     {
-        Patch("/appointments/id");
+        Patch("/appointments/{id}");
         AllowAnonymous();
     }
 
     /// <inheritdoc />
-    public override async Task HandleAsync(List<Operation<PatchAppointmentRequest>> req, CancellationToken ct)
-        => TypedResults.NotFound();
+    public override Task HandleAsync(List<Operation<PatchAppointmentRequest>> req, CancellationToken ct)
+        => Task.FromResult(TypedResults.StatusCode(StatusCodes.Status501NotImplemented));
 }
