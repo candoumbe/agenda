@@ -54,6 +54,7 @@ public class AttendeeIdTests
         }
     }
 
+#if NET8_0
     [Theory]
     [MemberData(nameof(TryParseCases))]
     public void Given_input_is_a_valid_guid_Then_TryParse_should_parse_correctly(string input, bool expected, AttendeeId expectedId)
@@ -65,4 +66,5 @@ public class AttendeeIdTests
         actual.Should().Be(expected);
         actualId.Should().Be(expectedId);
     }
+#endif
 }

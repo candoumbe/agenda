@@ -22,7 +22,7 @@ namespace Agenda.Ids
         /// Creates a new <see cref="AppointmentId"/>.
         /// </summary>
         /// <returns></returns>
-#if NET
+#if NET9_0_OR_GREATER
         public static AppointmentId New() => new AppointmentId(Guid.CreateVersion7());
 #else
         public static AppointmentId New() => new AppointmentId(Guid.NewGuid());
