@@ -15,7 +15,7 @@ namespace Agenda.Ids
         /// Creates a new <see cref="AttendeeId"/>.
         /// </summary>
         /// <returns></returns>
-#if NET
+#if NET9_0_OR_GREATER
         public static AttendeeId New() => new AttendeeId(Guid.CreateVersion7());
 #else
         public static AttendeeId New() => new AttendeeId(Guid.NewGuid());
