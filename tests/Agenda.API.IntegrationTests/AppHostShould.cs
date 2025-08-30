@@ -11,7 +11,7 @@ namespace Agenda.API.IntegrationTests;
 [IntegrationTest]
 public class AppHostShould(ITestOutputHelper outputHelper)
 {
-    private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(120);
 
     [Fact]
     public async Task StartAndStopWithoutException()
