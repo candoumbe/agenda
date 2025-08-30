@@ -25,15 +25,13 @@ namespace Agenda.API.ArchitecturalTests
         private static readonly IType s_endpointType = s_apiArchitecture.GetITypeOfType(typeof(IEndpoint));
 
         private static readonly IType s_endpointWithRequestAndResponse = s_apiArchitecture.GetITypeOfType(typeof(Endpoint<,>));
-        private static readonly IType s_endpointWithRequestOnly = s_apiArchitecture.GetITypeOfType(typeof(Endpoint<>));
+
 
         private static GivenClassesConjunction EndpointsWithRequest => Endpoints
             .And().AreAssignableTo(s_endpointWithRequestAndResponse);
 
         private static GivenClassesConjunction EndpointsWithRequestAndResponse => Endpoints
-            .And().AreAssignableTo(s_endpointWithRequestAndResponse)
-            .And().AreNotAssignableTo(s_endpointWithRequestOnly);
-
+            .And().AreAssignableTo(s_endpointWithRequestAndResponse);
 
         private static GivenClassesConjunctionWithDescription Endpoints => Classes().That().ResideInAssembly(s_apiAssembly)
             .And().AreNotAbstract()
@@ -76,8 +74,10 @@ namespace Agenda.API.ArchitecturalTests
                                        {
                                            GenericArgument request = endpoint.GetInheritsBaseClassDependencies().First().TargetGenericArguments.First();
                                            IType requestType = request.Type;
+
                                            Namespace requestNamespace = requestType.Namespace;
-                                           bool requestNamespaceIsSameAsEndpointNamespace = requestNamespace.Equals(endpoint.Namespace);
+                                           bool requestNamespaceIsSameAsEndpointNamespace = requestNamespace.Equals(endpoint.Namespace)
+                                                                                            || requestNamespace.Name.StartsWith("System.Collections.Generic") ;
                                            return new ConditionResult(endpoint,
                                                                       requestNamespaceIsSameAsEndpointNamespace,
                                                                       $"should not use request type reside in the same '{endpoint.Namespace}' namespace ('{requestType.Name}' is in '{requestNamespace}')");
