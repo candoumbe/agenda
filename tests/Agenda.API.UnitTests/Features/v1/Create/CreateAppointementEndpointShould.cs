@@ -94,6 +94,23 @@ public class CreateAppointementEndpointShould
                                                                && resource.StartDate == req.StartDate
                                                                && resource.EndDate == req.EndDate);
             }
+
+            // Request with no location
+            {
+                NewAppointmentInfo req = new()
+                {
+                    Subject = s_faker.Lorem.Sentence(),
+                    StartDate = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime(),
+                    EndDate = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime(),
+                    Attendees = s_attendeeFaker.Generate(2),
+                };
+
+                cases.Add(req, resource => resource.Id != null && resource.Id.Value != Guid.Empty
+                                                               && resource.Subject == req.Subject
+                                                               && resource.Location == string.Empty
+                                                               && resource.StartDate == req.StartDate
+                                                               && resource.EndDate == req.EndDate);
+            }
             return cases;
         }
     }
@@ -115,6 +132,7 @@ public class CreateAppointementEndpointShould
                                                       A<LinkOptions>.Ignored))
             .WithAnyArguments()
             .Returns(s_faker.Internet.Url());
+
 
         // Act
         CreatedAtRoute<Browsable<AppointmentInfo>> response = await _sut.ExecuteAsync(req, CancellationToken.None);
