@@ -49,9 +49,6 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// <param name="location"></param>
     /// <param name="startDate">defines when the appointment starts</param>
     /// <param name="endDate">defines when the appointment ends</param>
-    /// <remarks>
-    /// The instanciated appointment has no 
-    /// </remarks>
     public Appointment(AppointmentId id, string subject, string location, Instant startDate, Instant endDate) : base(id ?? AppointmentId.New())
     {
         Subject = subject;
@@ -68,6 +65,11 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// <exception cref="ArgumentNullException">if <paramref name="attendee"/> is <c>null</c></exception>
     public void AddAttendee(Attendee attendee)
     {
+        if (attendee is null)
+        {
+            throw new ArgumentNullException(nameof(attendee));
+        }
+
         if (_attendees.All(att => att.Id != attendee.Id))
         {
             _attendees.Add(attendee);
@@ -75,15 +77,15 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     }
 
     /// <summary>
-    /// Removes the <see cref="Attendee"/> with the specified <see cref="Attendee.UUID"/>
+    /// Removes the <see cref="Attendee"/> with the specified <see cref="Entity{TKey,TEntry}.Id"/>
     /// </summary>
     /// <param name="attendeeId">ID of the attendee to remove</param>
     public void RemoveAttendee(AttendeeId attendeeId)
     {
-        Option<Attendee> optionalAttendeee = _attendees.SingleOrDefault(x => x.Id == attendeeId)
+        Option<Attendee> optionalAttendee = _attendees.SingleOrDefault(x => x.Id == attendeeId)
             .SomeNotNull();
 
-        optionalAttendeee.MatchSome((attendee) => _attendees.Remove(attendee));
+        optionalAttendee.MatchSome((attendee) => _attendees.Remove(attendee));
     }
 
     /// <summary>
@@ -94,10 +96,10 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     public void ChangeSubjectTo(string newSubject) => Subject = newSubject ?? throw new ArgumentNullException(nameof(newSubject));
 
     /// <summary>
-    /// Changes the <see cref="StartDate"/> and <see cref="EndDate"/> of the <see cref="Appointment"/>
+    /// Changes the <see cref="StartDate"/> and <see cref="EndDate"/> of the <see cref="Appointment"/>.
     /// </summary>
-    /// <param name="newStartDate"></param>
-    /// <param name="newEndDate"></param>
+    /// <param name="newStartDate">The new start date</param>
+    /// <param name="newEndDate">The new end date</param>
     public void Reschedule(ZonedDateTime newStartDate, ZonedDateTime newEndDate)
     {
         StartDate = newStartDate.ToInstant();
@@ -108,7 +110,7 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// Gets the status of the <see cref="Appointment"/> at the specified <paramref name="now"/> instant.
     /// </summary>
     /// <param name="now">Represents the instant at which the status should be computed</param>
-    /// <returns>The appointment' <see cref="AppointmentStatus">status</see></returns>
+    /// <returns>The appointment'<see cref="AppointmentStatus">status</see></returns>
     public AppointmentStatus GetStatus(Instant now)
         => (now.CompareTo(StartDate), now.CompareTo(EndDate)) switch
         {
