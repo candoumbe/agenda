@@ -62,12 +62,16 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     }
 
     /// <summary>
-    /// Adds an attendee to the current instance
+    /// Adds the specified participant to the current instance
     /// </summary>
     /// <param name="attendee">The participant to add</param>
+    /// <exception cref="ArgumentNullException">if <paramref name="attendee"/> is <c>null</c></exception>
     public void AddAttendee(Attendee attendee)
     {
-        _attendees.Add(attendee);
+        if (_attendees.All(att => att.Id != attendee.Id))
+        {
+            _attendees.Add(attendee);
+        }
     }
 
     /// <summary>
@@ -99,4 +103,17 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
         StartDate = newStartDate.ToInstant();
         EndDate = newEndDate.ToInstant();
     }
+
+    /// <summary>
+    /// Gets the status of the <see cref="Appointment"/> at the specified <paramref name="now"/> instant.
+    /// </summary>
+    /// <param name="now">Represents the instant at which the status should be computed</param>
+    /// <returns>The appointment' <see cref="AppointmentStatus">status</see></returns>
+    public AppointmentStatus GetStatus(Instant now)
+        => (now.CompareTo(StartDate), now.CompareTo(EndDate)) switch
+        {
+            (< 0, _) => AppointmentStatus.NotStarted,
+            (_, > 0) => AppointmentStatus.Ended,
+            _        => AppointmentStatus.OnGoing
+        };
 }
