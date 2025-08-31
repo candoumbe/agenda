@@ -6,6 +6,7 @@ using Agenda.Ids;
 using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
+using FsCheck.Xunit;
 using NodaTime;
 using NodaTime.Extensions;
 using Xunit;
@@ -17,8 +18,46 @@ namespace Agenda.Objects.UnitTests;
 [UnitTest]
 public class AppointmentTests(ITestOutputHelper outputHelper)
 {
+    private static readonly Faker s_faker = new();
+
+    [Property]
+    public void Given_start_date_is_after_end_date_Then_an_ArgumentException_is_thrown(Guid id, string subject, string location)
+    {
+        // Arrange
+        DateTimeOffset startDate = 12.July(2018).At(12.Hours().And(30.Minutes())).AsUtc();
+        DateTimeOffset endDate = 12.July(2018).At(12.Hours()).AsUtc();
+                                                                 AppointmentId appointmentId = AppointmentId.From(id);
+
+        // Act
+        Action buildingAnInstanceWithStartDateAfterEndDate = () => _ = new Appointment(appointmentId, subject, location, startDate.ToInstant(), endDate.ToInstant());
+
+        // Assert
+        buildingAnInstanceWithStartDateAfterEndDate.Should()
+            .Throw<ArgumentException>("Start date cannot be after end date");
+    }
+
+    [Property]
+    public void Given_an_appointment_When_rescheduling_with_a_start_date_after_the_end_date_Then_an_ArgumentException_is_thrown(Guid id, string subject, string location)
+    {
+        // Arrange
+        AppointmentId appointmentId = AppointmentId.From(id);
+        Instant startDate = 12.July(2018).At(12.Hours()).AsUtc().ToInstant();
+        Instant endDate = 12.July(2018).At(12.Hours().And(30.Minutes())).AsUtc().ToInstant();
+        Appointment appointment = new(appointmentId, subject, location, startDate, endDate);
+
+        ZonedDateTime newStartDate = endDate.InUtc();
+        ZonedDateTime newEndDate = startDate.InUtc();
+
+        // Act
+        Action reschedulingWithNullStartDate = () => appointment.Reschedule(newStartDate, newEndDate);
+
+        // Assert
+        reschedulingWithNullStartDate.Should()
+            .Throw<ArgumentException>("Start date cannot be after end date");
+    }
+
     [Fact]
-    public void ChangingAppointment_Subject_ToNull_Throws_ArgumentNullException()
+    public void Given_an_appointment_When_changing_its_subject_to_null_Then_an_ArgumentNullException_is_thrown()
     {
         // Arrange
         Appointment attendee = new(id: AppointmentId.New(),

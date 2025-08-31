@@ -49,8 +49,14 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// <param name="location"></param>
     /// <param name="startDate">defines when the appointment starts</param>
     /// <param name="endDate">defines when the appointment ends</param>
+    /// <exception cref="ArgumentException">if <paramref name="startDate"/> is after <paramref name="endDate"/></exception>
     public Appointment(AppointmentId id, string subject, string location, Instant startDate, Instant endDate) : base(id ?? AppointmentId.New())
     {
+        if (startDate > endDate)
+        {
+            throw new ArgumentException("Start date must be before end date", nameof(startDate));
+        }
+
         Subject = subject;
         Location = location ?? string.Empty;
         StartDate = startDate;
@@ -100,8 +106,17 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// </summary>
     /// <param name="newStartDate">The new start date</param>
     /// <param name="newEndDate">The new end date</param>
+    /// <exception cref="ArgumentException">if <paramref name="newStartDate"/> is after <paramref name="newEndDate"/></exception>
     public void Reschedule(ZonedDateTime newStartDate, ZonedDateTime newEndDate)
     {
+        Instant start = newStartDate.ToInstant();
+        Instant end = newEndDate.ToInstant();
+
+        if (start > end)
+        {
+            throw new ArgumentException("Start date must be before end date", nameof(newStartDate));
+        }
+
         StartDate = newStartDate.ToInstant();
         EndDate = newEndDate.ToInstant();
     }
