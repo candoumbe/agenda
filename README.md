@@ -3,7 +3,9 @@
 [![Build Status](https://github.com/candoumbe/agenda/actions/workflows/integration.yml/badge.svg)](https://github.com/candoumbe/agenda/actions/workflows/integration.yml)
 [![Delivery Status](https://github.com/candoumbe/agenda/actions/workflows/delivery.yml/badge.svg)](https://github.com/candoumbe/agenda/actions/workflows/delivery.yml)
 [![codecov](https://codecov.io/gh/candoumbe/agenda/graph/badge.svg?token=RVArShIZY1)](https://codecov.io/gh/candoumbe/agenda)
-[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fcandoumbe%2Fagenda%2Fdevelop)](https://dashboard.stryker-mutator.io/reports/github.com/candoumbe/agenda/develop)
+[![API mutation testing badge](https://img.shields.io/endpoint?label=Agenda.API&style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fcandoumbe%2Fagenda%2Fdevelop%3Fmodule=Agenda.API)](https://dashboard.stryker-mutator.io/reports/github.com/candoumbe/agenda/develop?module=Agenda.API)
+[![Agenda.Ids Mutation testing badge](https://img.shields.io/endpoint?label=Agenda.Ids&style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fcandoumbe%2Fagenda%2Fdevelop%3Fmodule=Agenda.Ids)](https://dashboard.stryker-mutator.io/reports/github.com/candoumbe/agenda/develop?module=Agenda.Ids)
+[![Agenda.Objects Mutation testing badge](https://img.shields.io/endpoint?label=Agenda.Objects&style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fcandoumbe%2Fagenda%2Fdevelop%3Fmodule=Agenda.Objects)](https://dashboard.stryker-mutator.io/reports/github.com/candoumbe/agenda/develop?module=Agenda.Objects)
 
 A REST API designed to handle appointments
 
