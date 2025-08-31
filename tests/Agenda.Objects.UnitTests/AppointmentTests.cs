@@ -26,7 +26,7 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
         // Arrange
         DateTimeOffset startDate = 12.July(2018).At(12.Hours().And(30.Minutes())).AsUtc();
         DateTimeOffset endDate = 12.July(2018).At(12.Hours()).AsUtc();
-                                                                 AppointmentId appointmentId = AppointmentId.From(id);
+        AppointmentId appointmentId = AppointmentId.From(id);
 
         // Act
         Action buildingAnInstanceWithStartDateAfterEndDate = () => _ = new Appointment(appointmentId, subject, location, startDate.ToInstant(), endDate.ToInstant());
@@ -193,6 +193,81 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
 
         // Assert
         addingAnAttendeeThatIsNull.Should()
+            .Throw<ArgumentNullException>();
+    }
+
+    public static TheoryData<Appointment, AttendeeId, Expression<Func<Appointment, bool>>> RemoveAttendeeFromAppointmentCases
+    {
+        get
+        {
+            TheoryData<Appointment, AttendeeId, Expression<Func<Appointment, bool>>> cases = new();
+
+            {
+                Appointment appointment = new Appointment(AppointmentId.New(),
+                                                          s_faker.Lorem.Sentence(),
+                                                          s_faker.Address.FullAddress(),
+                                                          s_faker.Noda().Instant.Past(),
+                                                          s_faker.Noda().Instant.Future());
+
+                AttendeeId attendeeId = AttendeeId.New();
+                Attendee attendee = new Attendee(attendeeId, s_faker.Name.FullName(), s_faker.Internet.Email(), s_faker.Phone.PhoneNumber());
+
+                appointment.AddAttendee(attendee);
+
+                cases.Add(appointment,
+                          attendeeId,
+                          app => app.Attendees.Count == 0);
+            }
+
+            {
+                Appointment appointment = new Appointment(AppointmentId.New(),
+                                                          s_faker.Lorem.Sentence(),
+                                                          s_faker.Address.FullAddress(),
+                                                          s_faker.Noda().Instant.Past(),
+                                                          s_faker.Noda().Instant.Future());
+
+                AttendeeId attendeeId = AttendeeId.New();
+                Attendee attendee = new Attendee(attendeeId, s_faker.Name.FullName(), s_faker.Internet.Email(), s_faker.Phone.PhoneNumber());
+                appointment.AddAttendee(attendee);
+
+                cases.Add(appointment,
+                          AttendeeId.New(),
+                          app => app.Attendees.Count == 1
+                                 && app.Attendees[0].Id == attendeeId);
+            }
+
+            return cases;
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(RemoveAttendeeFromAppointmentCases))]
+    public void Given_an_appointment_with_attendees_When_removing_an_attendee_Then_the_appointment_has_expected_attendees(Appointment appointment,
+                                                                                                                          AttendeeId attendeeId,
+                                                                                                                          Expression<Func<Appointment, bool>> appointmentExpectation)
+    {
+        // Act
+        appointment.RemoveAttendee(attendeeId);
+
+        // Assert
+        appointment.Should().Match(appointmentExpectation);
+    }
+
+    [Fact]
+    public void Given_an_appointment_When_calling_RemoveAttendee_with_a_null_id_Then_an_ArgumentNullException_is_thrown()
+    {
+        // Arrange
+        Appointment appointment = new(AppointmentId.New(),
+                                      s_faker.Lorem.Sentence(),
+                                      s_faker.Address.FullAddress(),
+                                      s_faker.Noda().Instant.Past(),
+                                      s_faker.Noda().Instant.Future());
+
+        // Act
+        Action removingAnAttendeeWithNullId = () => appointment.RemoveAttendee(null);
+
+        // Assert
+        removingAnAttendeeWithNullId.Should()
             .Throw<ArgumentNullException>();
     }
 }
