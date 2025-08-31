@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
+
 /// <summary>
 /// Registry configuration
 /// </summary>
-/// <param name="Registry"></param>
+/// <param name="Uri"></param>
 /// <param name="Username"></param>
 /// <param name="Password"></param>
-public record RegistryConfiguration(string Registry, string Username, string Password);
+public record RegistryConfiguration(string Name, [StringSyntax(StringSyntaxAttribute.Uri)]string Uri, string Username, string Password);

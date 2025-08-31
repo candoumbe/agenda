@@ -193,7 +193,8 @@ public class Build : EnhancedNukeBuild,
 
     internal IReadOnlyList<RegistryConfiguration> Registries =>
     [
-        new RegistryConfiguration("ghcr.io",
+        new RegistryConfiguration("GitHub Container Registry",
+                                  "ghcr.io",
                                   this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner(),
                                   this.Get<IHaveGitHubRepository>().GitHubToken)
     ];
@@ -207,7 +208,7 @@ public class Build : EnhancedNukeBuild,
                                               {
                                                   GitVersion gitVersion = this.Get<IHaveGitVersion>().GitVersion;
                                                   string version = gitVersion.FullSemVer;
-                                                  string imageName = "agenda.api";
+                                                  const string imageName = "agenda.api";
                                                   string filename = $"{imageName}-{version}.tar.gz";
                                                   Project project = this.Get<IHaveSolution>().Solution.AllProjects.Single(project => project.Name == "Agenda.API");
                                                   AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / filename;
