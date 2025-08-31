@@ -27,7 +27,7 @@ public class AttendeeTests
     public void CreatingAttendee_With_Null_Name_Throws_ArgumentNullException()
     {
         // Act
-        Action action = () => new Attendee(AttendeeId.New(), null);
+        Action action = () => _ = new Attendee(AttendeeId.New(), null);
 
         // Assert
         action.Should()

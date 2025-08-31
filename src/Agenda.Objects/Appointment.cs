@@ -86,8 +86,14 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// Removes the <see cref="Attendee"/> with the specified <see cref="Entity{TKey,TEntry}.Id"/>
     /// </summary>
     /// <param name="attendeeId">ID of the attendee to remove</param>
+    /// <exception cref="ArgumentNullException">if <paramref name="attendeeId"/> is <c>null</c></exception>
     public void RemoveAttendee(AttendeeId attendeeId)
     {
+        if (attendeeId is null)
+        {
+            throw new ArgumentNullException(nameof(attendeeId));
+        }
+
         Option<Attendee> optionalAttendee = _attendees.SingleOrDefault(x => x.Id == attendeeId)
             .SomeNotNull();
 
