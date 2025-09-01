@@ -2,7 +2,6 @@ using System;
 using Agenda.API.TypeMappers;
 using Agenda.Ids;
 using FluentAssertions;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using NJsonSchema;
 using NJsonSchema.Generation;
 using NJsonSchema.Generation.TypeMappers;
