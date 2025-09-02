@@ -18,13 +18,13 @@ namespace Agenda.API.TypeMappers
         /// <inheritdoc />
         void ITypeMapper.GenerateSchema(JsonSchema schema, TypeMapperContext context)
         {
-            switch (typeof(TNumber))
+            switch (typeof(TValue))
             {
                 case var type when type == typeof(long):
-                    (schema.Type, schema.Format, schema.Minimum, schema.Maximum) = (JsonObjectType.Number, JsonFormatStrings.Long, Convert.ToDecimal(TNumber.MinValue), Convert.ToDecimal(TNumber.MaxValue));
+                    (schema.Type, schema.Format, schema.Minimum, schema.Maximum) = (JsonObjectType.Number, JsonFormatStrings.Long, Convert.ToDecimal(TNumber.MinValue.Value), Convert.ToDecimal(TNumber.MaxValue.Value));
                     break;
                 case var type when type == typeof(int):
-                    (schema.Type, schema.Format, schema.Minimum, schema.Maximum) = (JsonObjectType.Integer, JsonFormatStrings.Integer, Convert.ToDecimal(TNumber.MinValue), Convert.ToDecimal(TNumber.MaxValue));
+                    (schema.Type, schema.Format, schema.Minimum, schema.Maximum) = (JsonObjectType.Integer, JsonFormatStrings.Integer, Convert.ToDecimal(TNumber.MinValue.Value), Convert.ToDecimal(TNumber.MaxValue.Value));
                     break;
                 default:
                     (schema.Type, schema.Format) = (JsonObjectType.Number, JsonFormatStrings.Integer);
