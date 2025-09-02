@@ -43,7 +43,7 @@ namespace Agenda.API.ArchitecturalTests
         public void Endpoints_should_be_in_vertical_slice_architecture()
         {
             IArchRule endpointsResideInResourceNamespace = Endpoints
-                .Should().ResideInNamespaceMatching(@"Agenda.API.Resources.*")
+                .Should().ResideInNamespaceMatching(@"Agenda.API.Features.*")
                 .Because("Endpoints should be organized by feature (vertical slice) instead of technical details");
 
             IArchRule endpointsResideInItsOwnNamespace = Endpoints
