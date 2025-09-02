@@ -48,9 +48,9 @@ public class CurrentRequestMetadataProviderShould
     public void Returns_the_timezone_found_in_the_request_When_the_request_contains_a_DateTimeZone_information()
     {
         // Arrange
-        DefaultHttpContext httpContext = new DefaultHttpContext();
+        DefaultHttpContext httpContext = new();
 
-        DateTimeZone expected = DateTimeZone.ForOffset(Offset.FromTimeSpan(s_faker.PickRandom(TimeZoneInfo.GetSystemTimeZones().ToArray()).BaseUtcOffset));
+        DateTimeZone expected = s_faker.Noda().DateTimeZone();
         httpContext.Request.Headers.Append(CurrentRequestMetadataInfoProvider.TimeZoneHeaderName, new StringValues(expected.Id));
 
         _httpContextAccessorMock.Setup(mock => mock.HttpContext)
