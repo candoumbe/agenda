@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System;
+using FluentValidation;
 using NodaTime;
 
 namespace Agenda.API.Resources.Appointments.v1.Create;

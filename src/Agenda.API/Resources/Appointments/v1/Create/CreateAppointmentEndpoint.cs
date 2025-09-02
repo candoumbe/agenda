@@ -1,11 +1,16 @@
-﻿using Agenda.API.Resources.Appointments.v1.Delete;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Agenda.API.Resources.Appointments.v1.Delete;
 using Agenda.API.Resources.Appointments.v1.GetById;
 using Agenda.API.Resources.v1.Appointments;
 using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.Forms;
 using FastEndpoints;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 
 namespace Agenda.API.Resources.Appointments.v1.Create;

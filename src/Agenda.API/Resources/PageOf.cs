@@ -1,4 +1,7 @@
-﻿namespace Agenda.API.Resources;
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace Agenda.API.Resources;
 
 /// <summary>
 /// Wraps a page
