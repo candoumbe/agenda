@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agenda.API;
 using Agenda.API.TypeMappers;
@@ -9,13 +10,15 @@ using DataFilters.Converters;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Fluxera.StronglyTypedId.SystemTextJson;
-using Json.More;
-using Json.Patch;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Serilog;
+using SystemTextJsonPatch.Operations;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
 Action<JsonSerializerOptions> optionsSerializerSettings = s =>
@@ -27,9 +30,8 @@ Action<JsonSerializerOptions> optionsSerializerSettings = s =>
                                                               s.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
                                                               s.Converters.Add(new MultiFilterConverter());
                                                               s.Converters.Add(new FilterConverter());
-                                                              s.Converters.Add(new PatchJsonConverter());
+                                                              s.Converters.Add(new FilterConverter());
                                                               s.Converters.Add(new JsonStringEnumConverter<OperationType>());
-                                                              s.Converters.Add(new EnumStringConverter<OperationType>());
                                                           };
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -43,7 +45,7 @@ builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
                                                                            optionsBuilder.UseNpgsql(o => o.UseNodaTime()
                                                                                                         .MigrationsAssembly("Agenda.DataStores.Postgres"));
                                                                        });
-builder.Services.AddDataStores(builder.Configuration);
+builder.Services.AddDataStores();
 builder.Services.AddSerilog();
 builder.Services.Configure<JsonOptions>(c => optionsSerializerSettings.Invoke(c.SerializerOptions));
 builder.Services

@@ -76,8 +76,7 @@ namespace Agenda.API.ArchitecturalTests
                                            IType requestType = request.Type;
 
                                            Namespace requestNamespace = requestType.Namespace;
-                                           bool requestNamespaceIsSameAsEndpointNamespace = requestNamespace.Equals(endpoint.Namespace)
-                                                                                            || requestNamespace.Name.StartsWith("System.Collections.Generic") ;
+                                           bool requestNamespaceIsSameAsEndpointNamespace = requestNamespace.Equals(endpoint.Namespace);
                                            return new ConditionResult(endpoint,
                                                                       requestNamespaceIsSameAsEndpointNamespace,
                                                                       $"should not use request type reside in the same '{endpoint.Namespace}' namespace ('{requestType.Name}' is in '{requestNamespace}')");

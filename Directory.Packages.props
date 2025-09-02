@@ -13,6 +13,7 @@
     <PackageVersion Include="Aspire.Npgsql" Version="9.4.1" />
     <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.4.1" />
     <PackageVersion Include="AutoFixture.AutoFakeItEasy" Version="4.18.1" />
+    <PackageVersion Include="AwesomeAssertions" Version="8.2.0" />
     <PackageVersion Include="Bogus" Version="35.6.3" />
     <PackageVersion Include="Candoumbe.DataAccess" Version="0.1.0-beta0145" />
     <PackageVersion Include="Candoumbe.DataAccess.EFStore" Version="0.1.0-beta0145" />
@@ -28,13 +29,9 @@
     <PackageVersion Include="Extensions.Hosting.AsyncInitialization" Version="3.0.1" />
     <PackageVersion Include="FastEndpoints" Version="7.0.1" />
     <PackageVersion Include="FastEndpoints.Swagger" Version="7.0.1" />
-    <PackageVersion Include="AwesomeAssertions" Version="8.2.0" />
     <PackageVersion Include="FluentAssertions.Nodatime" Version="2.0.1" />
     <PackageVersion Include="FsCheck.Xunit" Version="3.3.1" />
-    <PackageVersion Include="JetBrains.Annotations" Version="2025.2.2" />
-    <PackageVersion Include="JsonPatch.Net" Version="3.3.0" />
-    <PackageVersion Include="MassTransit.AspNetCore" Version="7.3.1" />
-    <PackageVersion Include="MassTransit.RabbitMQ" Version="8.5.2" />
+    <PackageVersion Include="JetBrains.Annotations" Version="2025.2.1" />
     <PackageVersion Include="Xunit.DependencyInjection.Logging" Version="10.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.8" />
     <PackageVersion Include="Microsoft.AspNetCore.JsonPatch" Version="9.0.8" />
@@ -71,6 +68,7 @@
     <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
+    <PackageVersion Include="SystemTextJsonPatch" Version="4.2.0"/>
     <PackageVersion Include="TestContainers.PostgreSql" Version="4.7.0" />
     <PackageVersion Include="TngTech.ArchUnitNET.xUnit" Version="0.12.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />

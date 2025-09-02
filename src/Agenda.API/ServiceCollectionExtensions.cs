@@ -1,10 +1,13 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agenda.DataStores;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;
 using Fluxera.StronglyTypedId.SystemTextJson;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 
@@ -33,8 +36,7 @@ public static class ServiceCollectionExtensions
     /// Adds required dependencies to access API datastores
     /// </summary>
     /// <param name="services"></param>
-    /// <param name="configuration"></param>
-    public static void AddDataStores(this IServiceCollection services, IConfiguration configuration)
+    public static void AddDataStores(this IServiceCollection services)
     {
         using IServiceScope scope = services.BuildServiceProvider().CreateScope();
 

@@ -1,3 +1,4 @@
+using System;
 using Fluxera.StronglyTypedId;
 using NJsonSchema;
 using NJsonSchema.Generation.TypeMappers;

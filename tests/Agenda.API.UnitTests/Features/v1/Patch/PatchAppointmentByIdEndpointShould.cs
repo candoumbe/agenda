@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.Resources.Appointments.v1.Update;
+using Agenda.Ids;
 using FastEndpoints;
 using FluentAssertions;
 using Xunit;
@@ -29,8 +30,14 @@ public class PatchAppointmentByIdEndpointShould
     [Fact]
     public async Task Return_NoContent()
     {
+        PatchRequest<AppointmentId, PatchAppointmentRequest> request = new()
+        {
+            Id = AppointmentId.New(),
+            Operations = []
+        };
+
         // Act
-        Func<Task> patch = async () => _ = await _sut.ExecuteAsync([], CancellationToken.None);
+        Func<Task> patch = async () => _ = await _sut.ExecuteAsync(request, CancellationToken.None);
 
         // Assert
         await patch.Should().NotThrowAsync();
