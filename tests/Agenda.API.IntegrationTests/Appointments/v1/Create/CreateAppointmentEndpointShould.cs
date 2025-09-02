@@ -12,23 +12,22 @@ using Agenda.API.Features.v1.Appointments;
 using Agenda.API.IntegrationTests.Fixtures;
 using Agenda.Ids;
 using Aspire.Hosting;
-using Aspire.Hosting.Testing;
 using Bogus;
 using Candoumbe.Forms;
 using DataFilters.Converters;
 using FluentAssertions;
+using FluentAssertions.NodaTime;
 using Fluxera.StronglyTypedId.SystemTextJson;
 using Json.More;
 using Json.Patch;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
+using Xunit.OpenCategories.V3;
 
 namespace Agenda.API.IntegrationTests.Appointments.v1.Create;
 
-[IntegrationTest]
+[IntegrationTests]
 [Feature(nameof(Appointments))]
 public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : IAsyncLifetime
 {
@@ -57,7 +56,7 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
 
 
     ///<inheritdoc/>
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         _appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper);
 
@@ -66,10 +65,10 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
     }
 
     ///<inheritdoc/>
-    public async Task DisposeAsync() => await _appHost.DisposeAsync();
+    public async ValueTask DisposeAsync() => await _appHost.DisposeAsync();
 
 
-    [Fact]
+    [UnitTest]
     public async Task Returns_the_appointment_when_created_successfully()
     {
         // Arrange

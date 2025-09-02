@@ -3,17 +3,17 @@ using System.Threading.Tasks;
 using Agenda.API.IntegrationTests.Fixtures;
 using Aspire.Hosting;
 using Xunit;
-using Xunit.Abstractions;
-using Xunit.Categories;
+using Xunit.OpenCategories.V3;
+
 
 namespace Agenda.API.IntegrationTests;
 
-[IntegrationTest]
+[IntegrationTests]
 public class AppHostShould(ITestOutputHelper outputHelper)
 {
     private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(120);
 
-    [Fact]
+    [TestCase]
     public async Task StartAndStopWithoutException()
     {
         await using AgendaApplicationTestingBuilder appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper);

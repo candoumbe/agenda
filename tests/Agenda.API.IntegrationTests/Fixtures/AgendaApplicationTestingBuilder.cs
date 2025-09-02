@@ -61,10 +61,10 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
 
 
     /// <inheritdoc />
-    public async Task InitializeAsync() => await StartAsync();
+    public async ValueTask InitializeAsync() => await StartAsync();
 
     /// <inheritdoc />
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _app.StopAsync().WaitAsync(s_buildStopTimeout);
         await _sutBuilder.DisposeAsync();
