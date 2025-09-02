@@ -1,4 +1,9 @@
-﻿using System.Linq.Expressions;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 using Agenda.API.Resources.Appointments.v1.Delete;
 using Agenda.API.Resources.Appointments.v1.GetById;
 using Agenda.Objects;
@@ -8,7 +13,10 @@ using Candoumbe.Forms;
 using DataFilters;
 using DataFilters.Expressions;
 using FastEndpoints;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 
 namespace Agenda.API.Resources.Appointments.v1.Search;

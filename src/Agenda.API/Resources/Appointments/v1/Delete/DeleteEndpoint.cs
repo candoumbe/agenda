@@ -1,6 +1,10 @@
-﻿using Agenda.Objects;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
 using FastEndpoints;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Agenda.API.Resources.Appointments.v1.Delete;

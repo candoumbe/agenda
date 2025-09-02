@@ -1,4 +1,6 @@
-﻿namespace Agenda.API.Resources;
+﻿using System;
+
+namespace Agenda.API.Resources;
 
 /// <summary>
 /// Represents a resource
