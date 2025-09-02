@@ -13,4 +13,8 @@
     <PackageReference Include="Testcontainers.PostgreSql" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Appointments\" />
+  </ItemGroup>
+
 </Project>
