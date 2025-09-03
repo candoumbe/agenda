@@ -20,137 +20,138 @@ using Microsoft.AspNetCore.Routing;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
-namespace Agenda.API.UnitTests.Features.v1.Create;
-
-[UnitTest]
-public class CreateAppointementEndpointShould
+namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
 {
-    private readonly IUnitOfWorkFactory _unitOfWorkFactory;
-    private readonly LinkGenerator _linkGenerator;
-    private readonly CurrentRequestMetadataInfoProvider _currentRequestMetadataInfoProvider;
-    private static readonly Faker s_faker;
-    private static readonly Faker<AttendeeInfo> s_attendeeFaker;
-    private readonly CreateAppointmentEndpoint _sut;
-
-    static CreateAppointementEndpointShould()
+    [UnitTest]
+    public class CreateAppointementEndpointShould
     {
-        s_faker = new Faker();
-        s_attendeeFaker = new Faker<AttendeeInfo>();
-        s_attendeeFaker.RuleFor(attendee => attendee.Id, AttendeeId.New)
-            .RuleFor(attendee => attendee.Name, s_faker.Name.FullName())
-            .RuleFor(attendee => attendee.Email, s_faker.Internet.Email())
-            .RuleFor(attendee => attendee.PhoneNumber, s_faker.Phone.PhoneNumber())
-            ;
-    }
+        private readonly IUnitOfWorkFactory _unitOfWorkFactory;
+        private readonly LinkGenerator _linkGenerator;
+        private readonly CurrentRequestMetadataInfoProvider _currentRequestMetadataInfoProvider;
+        private static readonly Faker s_faker;
+        private static readonly Faker<AttendeeInfo> s_attendeeFaker;
+        private readonly CreateAppointmentEndpoint _sut;
 
-    public CreateAppointementEndpointShould()
-    {
-        _unitOfWorkFactory = A.Fake<IUnitOfWorkFactory>();
-        _linkGenerator = A.Fake<LinkGenerator>();
-        _currentRequestMetadataInfoProvider = A.Fake<CurrentRequestMetadataInfoProvider>();
-        _sut = Factory.Create<CreateAppointmentEndpoint>(_unitOfWorkFactory, _linkGenerator, _currentRequestMetadataInfoProvider);
-    }
-
-    public static TheoryData<NewAppointmentInfo, Expression<Func<AppointmentInfo, bool>>> CreateAppointmentWithValidRequestCases
-    {
-        get
+        static CreateAppointementEndpointShould()
         {
-            TheoryData<NewAppointmentInfo, Expression<Func<AppointmentInfo, bool>>> cases = new();
-            // Request with valid data and client side generated id
-            {
-                NewAppointmentInfo req = new()
-                {
-                    Id = AppointmentId.New(),
-                    Subject = s_faker.Lorem.Sentence(),
-                    Location = s_faker.Address.FullAddress(),
-                    StartDate = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime(),
-                    EndDate = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime(),
-                    Attendees = s_attendeeFaker.Generate(2),
-                };
-
-                cases.Add(req, resource => resource.Id == req.Id
-                                           && resource.Subject == req.Subject
-                                           && resource.Location == req.Location
-                                           && resource.StartDate == req.StartDate
-                                           && resource.EndDate == req.EndDate);
-            }
-
-            // Request with valid data and server side generated id
-            {
-                NewAppointmentInfo req = new()
-                {
-                    Subject = s_faker.Lorem.Sentence(),
-                    Location = s_faker.Address.FullAddress(),
-                    StartDate = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime(),
-                    EndDate = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime(),
-                    Attendees = s_attendeeFaker.Generate(2),
-                };
-
-                cases.Add(req, resource => resource.Id != null && resource.Id.Value != Guid.Empty
-                                                               && resource.Subject == req.Subject
-                                                               && resource.Location == req.Location
-                                                               && resource.StartDate == req.StartDate
-                                                               && resource.EndDate == req.EndDate);
-            }
-
-            // Request with no location
-            {
-                NewAppointmentInfo req = new()
-                {
-                    Subject = s_faker.Lorem.Sentence(),
-                    StartDate = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime(),
-                    EndDate = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime(),
-                    Attendees = s_attendeeFaker.Generate(2),
-                };
-
-                cases.Add(req, resource => resource.Id != null && resource.Id.Value != Guid.Empty
-                                                               && resource.Subject == req.Subject
-                                                               && resource.Location == string.Empty
-                                                               && resource.StartDate == req.StartDate
-                                                               && resource.EndDate == req.EndDate);
-            }
-            return cases;
+            s_faker = new Faker();
+            s_attendeeFaker = new Faker<AttendeeInfo>();
+            s_attendeeFaker.RuleFor(attendee => attendee.Id, AttendeeId.New)
+                .RuleFor(attendee => attendee.Name, s_faker.Name.FullName())
+                .RuleFor(attendee => attendee.Email, s_faker.Internet.Email())
+                .RuleFor(attendee => attendee.PhoneNumber, s_faker.Phone.PhoneNumber())
+                ;
         }
-    }
 
-    [Theory]
-    [MemberData(nameof(CreateAppointmentWithValidRequestCases))]
-    public async Task Create_appointment_when_valid_request_is_received(NewAppointmentInfo req,
-                                                                        Expression<Func<AppointmentInfo, bool>> responseExpectation)
-    {
-        // Arrange
-        A.CallTo(() => _linkGenerator.GetUriByAddress(A<HttpContext>.Ignored,
-                                                      A<string>.Ignored,
-                                                      A<RouteValueDictionary>.Ignored,
-                                                      A<RouteValueDictionary>.Ignored,
-                                                      A<string>.Ignored,
-                                                      A<HostString>.Ignored,
-                                                      A<PathString>.Ignored,
-                                                      A<FragmentString>.Ignored,
-                                                      A<LinkOptions>.Ignored))
-            .WithAnyArguments()
-            .Returns(s_faker.Internet.Url());
+        public CreateAppointementEndpointShould()
+        {
+            _unitOfWorkFactory = A.Fake<IUnitOfWorkFactory>();
+            _linkGenerator = A.Fake<LinkGenerator>();
+            _currentRequestMetadataInfoProvider = A.Fake<CurrentRequestMetadataInfoProvider>();
+            _sut = Factory.Create<CreateAppointmentEndpoint>(_unitOfWorkFactory, _linkGenerator, _currentRequestMetadataInfoProvider);
+        }
+
+        public static TheoryData<NewAppointmentInfo, Expression<Func<AppointmentInfo, bool>>> CreateAppointmentWithValidRequestCases
+        {
+            get
+            {
+                TheoryData<NewAppointmentInfo, Expression<Func<AppointmentInfo, bool>>> cases = new();
+                // Request with valid data and client side generated id
+                {
+                    NewAppointmentInfo req = new()
+                    {
+                        Id = AppointmentId.New(),
+                        Subject = s_faker.Lorem.Sentence(),
+                        Location = s_faker.Address.FullAddress(),
+                        StartDate = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime(),
+                        EndDate = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime(),
+                        Attendees = s_attendeeFaker.Generate(2),
+                    };
+
+                    cases.Add(req, resource => resource.Id == req.Id
+                                               && resource.Subject == req.Subject
+                                               && resource.Location == req.Location
+                                               && resource.StartDate == req.StartDate
+                                               && resource.EndDate == req.EndDate);
+                }
+
+                // Request with valid data and server side generated id
+                {
+                    NewAppointmentInfo req = new()
+                    {
+                        Subject = s_faker.Lorem.Sentence(),
+                        Location = s_faker.Address.FullAddress(),
+                        StartDate = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime(),
+                        EndDate = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime(),
+                        Attendees = s_attendeeFaker.Generate(2),
+                    };
+
+                    cases.Add(req, resource => resource.Id != null && resource.Id.Value != Guid.Empty
+                                                                   && resource.Subject == req.Subject
+                                                                   && resource.Location == req.Location
+                                                                   && resource.StartDate == req.StartDate
+                                                                   && resource.EndDate == req.EndDate);
+                }
+
+                // Request with no location
+                {
+                    NewAppointmentInfo req = new()
+                    {
+                        Subject = s_faker.Lorem.Sentence(),
+                        StartDate = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime(),
+                        EndDate = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime(),
+                        Attendees = s_attendeeFaker.Generate(2),
+                    };
+
+                    cases.Add(req, resource => resource.Id != null && resource.Id.Value != Guid.Empty
+                                                                   && resource.Subject == req.Subject
+                                                                   && resource.Location == string.Empty
+                                                                   && resource.StartDate == req.StartDate
+                                                                   && resource.EndDate == req.EndDate);
+                }
+                return cases;
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(CreateAppointmentWithValidRequestCases))]
+        public async Task Create_appointment_when_valid_request_is_received(NewAppointmentInfo req,
+                                                                            Expression<Func<AppointmentInfo, bool>> responseExpectation)
+        {
+            // Arrange
+            A.CallTo(() => _linkGenerator.GetUriByAddress(A<HttpContext>.Ignored,
+                                                          A<string>.Ignored,
+                                                          A<RouteValueDictionary>.Ignored,
+                                                          A<RouteValueDictionary>.Ignored,
+                                                          A<string>.Ignored,
+                                                          A<HostString>.Ignored,
+                                                          A<PathString>.Ignored,
+                                                          A<FragmentString>.Ignored,
+                                                          A<LinkOptions>.Ignored))
+                .WithAnyArguments()
+                .Returns(s_faker.Internet.Url());
 
 
-        // Act
-        CreatedAtRoute<Browsable<AppointmentInfo>> response = await _sut.ExecuteAsync(req, CancellationToken.None);
+            // Act
+            CreatedAtRoute<Browsable<AppointmentInfo>> response = await _sut.ExecuteAsync(req, CancellationToken.None);
 
-        // Assert
-        response.RouteValues
-            .Should().ContainKey("id");
+            // Assert
+            response.RouteValues
+                .Should().ContainKey("id");
 
-        Browsable<AppointmentInfo> browsable = response.Value;
-        browsable.Resource.Should().NotBeNull();
+            Browsable<AppointmentInfo> browsable = response.Value;
+            browsable.Resource.Should().NotBeNull();
 
-        AppointmentInfo resource = browsable.Resource;
-        resource.Should().Match(responseExpectation);
+            AppointmentInfo resource = browsable.Resource;
+            resource.Should().Match(responseExpectation);
 
-        IEnumerable<Link> links = browsable.Links;
-        links.Should()
-             .OnlyContain(link => !string.IsNullOrWhiteSpace(link.Href))
-             .And.OnlyContain(link => Uri.IsWellFormedUriString(link.Href, UriKind.Absolute), "all links must be absolute URIs")
-             .And.OnlyContain(link => link.Relations.AtLeastOnce())
-             .And.Contain(link => link.Relations.Once(rel => rel == LinkRelation.Self))
-             .And.Contain(link => link.Relations.Once(rel => string.Equals(rel, "delete", StringComparison.OrdinalIgnoreCase)));
+            IEnumerable<Link> links = browsable.Links;
+            links.Should()
+                .OnlyContain(link => !string.IsNullOrWhiteSpace(link.Href))
+                .And.OnlyContain(link => Uri.IsWellFormedUriString(link.Href, UriKind.Absolute), "all links must be absolute URIs")
+                .And.OnlyContain(link => link.Relations.AtLeastOnce())
+                .And.Contain(link => link.Relations.Once(rel => rel == LinkRelation.Self))
+                .And.Contain(link => link.Relations.Once(rel => string.Equals(rel, "delete", StringComparison.OrdinalIgnoreCase)));
+        }
     }
 }

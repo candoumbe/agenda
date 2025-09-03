@@ -4,6 +4,7 @@
     <IsPackable>false</IsPackable>
     <IsIntegrationTestProject>false</IsIntegrationTestProject>
     <IsIntegrationTestProject Condition="$(MSBuildProjectName.EndsWith('IntegrationTests'))">true</IsIntegrationTestProject>
+<!--    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>-->
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
@@ -12,25 +13,26 @@
     <AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="xunit.v3"/>
-    <PackageReference Include="xunit.runner.visualstudio">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Xunit.OpenCategories.V3" />
+    <PackageReference Include="AutoFixture.AutoFakeItEasy" />
     <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="Bogus" />
-    <PackageReference Include="NodaTime.Bogus" />
-    <PackageReference Include="NodaTime.Testing" />
-    <PackageReference Include="FsCheck.Xunit.v3" />
-
-    <PackageReference Include="Moq" />
-    <PackageReference Include="AutoFixture.AutoFakeItEasy" />
     <PackageReference Include="coverlet.msbuild">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="FsCheck.Xunit.v3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="NodaTime.Bogus" />
+    <PackageReference Include="NodaTime.Testing" />
+    <PackageReference Include="Remote.Linq.Text.Json" />
+    <PackageReference Include="Xunit.OpenCategories.V3" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.v3"/>
+
 
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

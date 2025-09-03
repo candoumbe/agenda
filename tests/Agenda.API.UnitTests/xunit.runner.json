@@ -1,5 +1,6 @@
 {
   "methodDisplay": "method",
   "methodDisplayOptions": "all",
-  "shadowCopy": false
+  "shadowCopy": false,
+  "preEnumerateTheories": true
 }

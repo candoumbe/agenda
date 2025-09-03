@@ -68,7 +68,7 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
     public async ValueTask DisposeAsync() => await _appHost.DisposeAsync();
 
 
-    [UnitTest]
+    [Fact]
     public async Task Returns_the_appointment_when_created_successfully()
     {
         // Arrange
@@ -88,13 +88,13 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
         };
 
         // Act
-        using HttpResponseMessage response = await _client.PostAsJsonAsync("/appointments", newAppointmentInfo, s_jsonSerializerOptions);
+        using HttpResponseMessage response = await _client.PostAsJsonAsync("/appointments", newAppointmentInfo, s_jsonSerializerOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should()
             .Be(HttpStatusCode.Created);
 
-        Browsable<AppointmentInfo> browsable = await response.Content.ReadFromJsonAsync<Browsable<AppointmentInfo>>(s_jsonSerializerOptions);
+        Browsable<AppointmentInfo> browsable = await response.Content.ReadFromJsonAsync<Browsable<AppointmentInfo>>(s_jsonSerializerOptions, cancellationToken: TestContext.Current.CancellationToken);
 
         IEnumerable<Link> links = browsable.Links;
         links.Should()

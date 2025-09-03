@@ -7,31 +7,32 @@ using NJsonSchema.Generation;
 using NJsonSchema.Generation.TypeMappers;
 using Xunit;
 
-namespace Agenda.API.UnitTests.TypeMappers;
-
-public class AppointmentIdTypeMapperShould
+namespace Agenda.API.UnitTests.TypeMappers
 {
-    private readonly ITypeMapper _sut = new StronglyTypedIdMapper<AppointmentId, Guid>();
-
-    [Fact]
-    public void Generate_expected_informations()
+    public class AppointmentIdTypeMapperShould
     {
-        // Arrange
-        var rootObject = new { };
-        JsonSchemaGeneratorSettings schemaGeneratorSettings = new SystemTextJsonSchemaGeneratorSettings();
-        JsonSchemaGenerator schemaGenerator = new JsonSchemaGenerator(schemaGeneratorSettings);
-        JsonSchemaResolver schemaResolver = new(rootObject, schemaGeneratorSettings);
-        TypeMapperContext context = new(typeof(AppointmentId), schemaGenerator, schemaResolver, []);
-        JsonSchema schema = new();
+        private readonly ITypeMapper _sut = new StronglyTypedIdMapper<AppointmentId, Guid>();
 
-        // Act
-        _sut.GenerateSchema(schema, context);
+        [Fact]
+        public void Generate_expected_informations()
+        {
+            // Arrange
+            var rootObject = new { };
+            JsonSchemaGeneratorSettings schemaGeneratorSettings = new SystemTextJsonSchemaGeneratorSettings();
+            JsonSchemaGenerator schemaGenerator = new JsonSchemaGenerator(schemaGeneratorSettings);
+            JsonSchemaResolver schemaResolver = new(rootObject, schemaGeneratorSettings);
+            TypeMapperContext context = new(typeof(AppointmentId), schemaGenerator, schemaResolver, []);
+            JsonSchema schema = new();
 
-        // Assert
-        _sut.MappedType.Should().Be<AppointmentId>();
-        _sut.UseReference.Should().BeFalse();
+            // Act
+            _sut.GenerateSchema(schema, context);
 
-        schema.Type.Should().Be(JsonObjectType.String);
-        schema.Format.Should().Be(JsonFormatStrings.Guid);
+            // Assert
+            _sut.MappedType.Should().Be<AppointmentId>();
+            _sut.UseReference.Should().BeFalse();
+
+            schema.Type.Should().Be(JsonObjectType.String);
+            schema.Format.Should().Be(JsonFormatStrings.Guid);
+        }
     }
 }

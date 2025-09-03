@@ -7,40 +7,41 @@ using FastEndpoints;
 using FluentAssertions;
 using Xunit;
 
-namespace Agenda.API.UnitTests.Features.v1.Patch;
-
-public class PatchAppointmentByIdEndpointShould
+namespace Agenda.API.UnitTests.Features.Appointments.v1.Patch
 {
-    private readonly PatchAppointmentByIdEndpoint _sut = Factory.Create<PatchAppointmentByIdEndpoint>();
-
-    [Fact]
-    public void Have_expected_route()
+    public class PatchAppointmentByIdEndpointShould
     {
-        // Assert
-        string[] routes = _sut.Definition.Routes;
-        routes.Should()
-            .HaveCount(1)
-            .And
-            .ContainSingle("/appointments/{id}");
+        private readonly PatchAppointmentByIdEndpoint _sut = Factory.Create<PatchAppointmentByIdEndpoint>();
 
-        string[] methods = _sut.Definition.Verbs;
-        methods.Should().HaveCount(1).And.ContainSingle("PATCH");
-    }
-
-    [Fact]
-    public async Task Return_NoContent()
-    {
-        PatchRequest<AppointmentId, PatchAppointmentRequest> request = new()
+        [Fact]
+        public void Have_expected_route()
         {
-            Id = AppointmentId.New(),
-            Operations = []
-        };
+            // Assert
+            string[] routes = _sut.Definition.Routes;
+            routes.Should()
+                .HaveCount(1)
+                .And
+                .ContainSingle("/appointments/{id}");
 
-        // Act
-        Func<Task> patch = async () => _ = await _sut.ExecuteAsync(request, CancellationToken.None);
+            string[] methods = _sut.Definition.Verbs;
+            methods.Should().HaveCount(1).And.ContainSingle("PATCH");
+        }
 
-        // Assert
-        await patch.Should().NotThrowAsync();
+        [Fact]
+        public async Task Return_NoContent()
+        {
+            PatchRequest<AppointmentId, PatchAppointmentRequest> request = new()
+            {
+                Id = AppointmentId.New(),
+                Operations = []
+            };
 
+            // Act
+            Func<Task> patch = async () => _ = await _sut.ExecuteAsync(request, CancellationToken.None);
+
+            // Assert
+            await patch.Should().NotThrowAsync();
+
+        }
     }
 }
