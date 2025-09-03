@@ -18,20 +18,6 @@ namespace Agenda.API;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    private static Action<JsonSerializerOptions> ConfigureJsonOptions => jsonSerializerOptions =>
-                                                                         {
-                                                                             jsonSerializerOptions.UseStronglyTypedId();
-                                                                             jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-
-                                                                             jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-                                                                             jsonSerializerOptions.IgnoreReadOnlyFields = true;
-                                                                             jsonSerializerOptions.IgnoreReadOnlyProperties = true;
-                                                                             jsonSerializerOptions.AllowTrailingCommas = true;
-                                                                             jsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-                                                                             jsonSerializerOptions.PropertyNameCaseInsensitive = true;
-                                                                             jsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                                                                         };
-
     /// <summary>
     /// Adds required dependencies to access API datastores
     /// </summary>
