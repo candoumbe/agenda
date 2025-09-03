@@ -13,7 +13,7 @@ public class AppHostShould(ITestOutputHelper outputHelper)
 {
     private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(120);
 
-    [TestCase]
+    [Fact]
     public async Task StartAndStopWithoutException()
     {
         await using AgendaApplicationTestingBuilder appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper);
