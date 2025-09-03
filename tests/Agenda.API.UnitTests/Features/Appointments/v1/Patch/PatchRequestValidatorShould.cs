@@ -2,6 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Text.Json;
 using Agenda.API.Features.Appointments.v1.Update;
+using Agenda.API.UnitTests.Helpers;
 using Agenda.Ids;
 using FastEndpoints;
 using FluentAssertions;
@@ -19,29 +20,32 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Patch
         private readonly PatchAppointmentInfoRequestValidator _sut = Factory.CreateValidator<PatchAppointmentInfoRequestValidator>(services => { });
         private static readonly JsonSerializerOptions s_jsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true, AllowTrailingCommas = true };
 
-        public static TheoryData<PatchRequest<AppointmentId, PatchAppointmentRequest>, Expression<Func<ValidationResult, bool>>, string> InvalidRequestCases => new()
+        public static TheoryData<GenericSerializable<PatchRequest<AppointmentId, PatchAppointmentRequest>>, XunitSerializableExpression<ValidationResult>, string> InvalidRequestCases => new()
         {
             {
                 new PatchRequest<AppointmentId, PatchAppointmentRequest>()
                 {
-                    Id = AppointmentId.New(), Operations = []
+                    Id = AppointmentId.New(),
+                    Operations = []
                 },
-                validationResult => !validationResult.IsValid
-                                    && validationResult.Errors.Count == 1
-                                    && validationResult.Errors[0].Severity == Severity.Error
-                                    && validationResult.Errors[0].PropertyName == nameof(PatchRequest<AppointmentId, PatchAppointmentRequest>.Operations),
+                new XunitSerializableExpression<ValidationResult>
+                {
+                    Value = validationResult => !validationResult.IsValid
+                                                && validationResult.Errors.Count == 1
+                                                && validationResult.Errors[0].Severity == Severity.Error
+                                                && validationResult.Errors[0].PropertyName == nameof(PatchRequest<AppointmentId, PatchAppointmentRequest>.Operations),
+                },
                 "Patch document must have one operation at least"
             },
             {
-                new PatchRequest<AppointmentId, PatchAppointmentRequest>()
+                new PatchRequest<AppointmentId, PatchAppointmentRequest>() { Id = AppointmentId.New(), Operations = null },
+                new XunitSerializableExpression<ValidationResult>()
                 {
-                    Id = AppointmentId.New(),
-                    Operations = null
-                },
-                validationResult => !validationResult.IsValid
+                    Value =validationResult => !validationResult.IsValid
                                     && validationResult.Errors.Count == 1
                                     && validationResult.Errors[0].Severity == Severity.Error
-                                    && validationResult.Errors[0].PropertyName == $"{nameof(PatchRequest<AppointmentId, PatchAppointmentRequest>.Operations)}",
+                                    && validationResult.Errors[0].PropertyName == $"{nameof(PatchRequest<AppointmentId, PatchAppointmentRequest>.Operations)}"
+                },
                 "Operations is required and cannot be null"
             },
             {
@@ -56,18 +60,21 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Patch
                                                                value: "New subject")
                     ]
                 },
-                validationResult => !validationResult.IsValid
-                                    && validationResult.Errors.Count == 1
-                                    && validationResult.Errors[0].Severity == Severity.Warning
-                                    && validationResult.Errors[0].PropertyName == $"{nameof(PatchRequest<AppointmentId, PatchAppointmentRequest>.Operations)}",
+                new XunitSerializableExpression<ValidationResult>
+                {
+                    Value = validationResult => !validationResult.IsValid
+                                                && validationResult.Errors.Count == 1
+                                                && validationResult.Errors[0].Severity == Severity.Warning
+                                                && validationResult.Errors[0].PropertyName == $"{nameof(PatchRequest<AppointmentId, PatchAppointmentRequest>.Operations)}"
+                },
                 "Operations must provide at least one test operation"
             }
         };
 
         [Theory]
         [MemberData(nameof(InvalidRequestCases))]
-        public void Reject_invalid_requests(PatchRequest<AppointmentId, PatchAppointmentRequest> request,
-                                            Expression<Func<ValidationResult, bool>> failureExpectation,
+        public void Reject_invalid_requests(GenericSerializable<PatchRequest<AppointmentId, PatchAppointmentRequest>> request,
+                                            XunitSerializableExpression<ValidationResult> failureExpectation,
                                             string reason)
         {
             // Arrange
@@ -75,11 +82,11 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Patch
 
 
             // Act
-            ValidationResult validationResult = _sut.Validate(request);
+            ValidationResult validationResult = _sut.Validate(request.Value);
 
             // Assert
             outputHelper.WriteLine(JsonSerializer.Serialize(validationResult, s_jsonSerializerOptions));
-            validationResult.Should().Match(failureExpectation, reason);
+            validationResult.Should().Match(failureExpectation.Value, reason);
         }
     }
 }

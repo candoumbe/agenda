@@ -7,7 +7,7 @@ using Xunit.Sdk;
 
 namespace Agenda.API.UnitTests.Helpers;
 
-public class ExpressionSerializable<T>() : IXunitSerializable
+public class XunitSerializableExpression<T>() : IXunitSerializable
 {
     public Expression<Func<T, bool>> Value { get; set; }
 
@@ -22,4 +22,8 @@ public class ExpressionSerializable<T>() : IXunitSerializable
     {
         info.AddValue(nameof(Value), JsonSerializer.Serialize(Value.ToRemoteLinqExpression(), s_serializerSettings));
     }
+
+    public static implicit operator Expression<Func<T, bool>>(XunitSerializableExpression<T> expressionSerializable) => expressionSerializable.Value;
+
+    public static implicit operator XunitSerializableExpression<T>(Expression<Func<T, bool>> expression) => new() { Value = expression };
 }
