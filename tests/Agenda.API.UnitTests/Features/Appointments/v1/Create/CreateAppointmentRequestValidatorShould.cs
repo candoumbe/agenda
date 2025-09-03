@@ -40,11 +40,11 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
             s_jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
         }
 
-        public static TheoryData<GenericSerializable<NewAppointmentInfo>, ExpressionSerializable<ValidationResult>, string> CreateAppointmentRequestCases
+        public static TheoryData<GenericSerializable<NewAppointmentInfo>, XunitSerializableExpression<ValidationResult>, string> CreateAppointmentRequestCases
         {
             get
             {
-                TheoryData<GenericSerializable<NewAppointmentInfo>, ExpressionSerializable<ValidationResult>, string> cases = new();
+                TheoryData<GenericSerializable<NewAppointmentInfo>, XunitSerializableExpression<ValidationResult>, string> cases = new();
                 {
                     OffsetDateTime start = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime();
                     OffsetDateTime end = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime();
@@ -61,7 +61,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                                           Attendees = null,
                                       }
                               },
-                              new ExpressionSerializable<ValidationResult>
+                              new XunitSerializableExpression<ValidationResult>
                               {
                                   Value = validationResult => !validationResult.IsValid
                                                               && validationResult.Errors.Count == 1
@@ -74,18 +74,15 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     OffsetDateTime start = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime();
                     OffsetDateTime end = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime();
 
-                    cases.Add(new GenericSerializable<NewAppointmentInfo>
+                    cases.Add(new NewAppointmentInfo()
                               {
-                                  Value = new NewAppointmentInfo()
-                                  {
-                                      StartDate = start,
-                                      EndDate = end,
-                                      Subject = s_faker.Lorem.Sentence(),
-                                      Location = null,
-                                      Attendees = [],
-                                  },
+                                  StartDate = start,
+                                  EndDate = end,
+                                  Subject = s_faker.Lorem.Sentence(),
+                                  Location = null,
+                                  Attendees = [],
                               },
-                              new ExpressionSerializable<ValidationResult>
+                              new XunitSerializableExpression<ValidationResult>
                               {
                                   Value = validationResult => !validationResult.IsValid
                                                               && validationResult.Errors.Count == 1
@@ -100,21 +97,23 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                 {
                     OffsetDateTime start = s_faker.Noda().Instant.Past(reference: s_instantReference).InUtc().ToOffsetDateTime();
                     OffsetDateTime end = s_faker.Noda().Instant.Past(reference: start.ToInstant()).InUtc().ToOffsetDateTime();
-                    cases.Add(new GenericSerializable<NewAppointmentInfo>()
+                    cases.Add(new NewAppointmentInfo()
                               {
-                                  Value = new NewAppointmentInfo()
-                                  {
-                                      StartDate = start,
-                                      EndDate = end,
-                                      Subject = s_faker.Lorem.Sentence(),
-                                      Location = null,
-                                      Attendees =
-                                      [
-                                          new AttendeeInfo() { Email = s_faker.Internet.Email(), Name = s_faker.Name.FullName(), PhoneNumber = s_faker.Phone.PhoneNumber() }
-                                      ],
-                                  }
+                                  StartDate = start,
+                                  EndDate = end,
+                                  Subject = s_faker.Lorem.Sentence(),
+                                  Location = null,
+                                  Attendees =
+                                  [
+                                      new AttendeeInfo
+                                      {
+                                          Email = s_faker.Internet.Email(),
+                                          Name = s_faker.Name.FullName(),
+                                          PhoneNumber = s_faker.Phone.PhoneNumber()
+                                      }
+                                  ],
                               },
-                              new ExpressionSerializable<ValidationResult>
+                              new XunitSerializableExpression<ValidationResult>
                               {
                                   Value = validationResult => !validationResult.IsValid
                                                               && validationResult.Errors.Count == 1
@@ -129,21 +128,23 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                 {
                     OffsetDateTime end = s_faker.Noda().Instant.Past(reference: s_instantReference).InUtc().ToOffsetDateTime();
                     OffsetDateTime start = s_faker.Noda().Instant.Past(reference: end.ToInstant()).InUtc().ToOffsetDateTime();
-                    cases.Add(new GenericSerializable<NewAppointmentInfo>
+                    cases.Add(new NewAppointmentInfo()
                               {
-                                  Value = new NewAppointmentInfo()
-                                  {
-                                      StartDate = start,
-                                      EndDate = end,
-                                      Subject = s_faker.Lorem.Sentence(),
-                                      Location = null,
-                                      Attendees =
-                                      [
-                                          new AttendeeInfo() { Email = s_faker.Internet.Email(), Name = s_faker.Name.FullName(), PhoneNumber = s_faker.Phone.PhoneNumber() }
-                                      ],
-                                  }
+                                  StartDate = start,
+                                  EndDate = end,
+                                  Subject = s_faker.Lorem.Sentence(),
+                                  Location = null,
+                                  Attendees =
+                                  [
+                                      new AttendeeInfo
+                                      {
+                                          Email = s_faker.Internet.Email(),
+                                          Name = s_faker.Name.FullName(),
+                                          PhoneNumber = s_faker.Phone.PhoneNumber()
+                                      }
+                                  ],
                               },
-                              new ExpressionSerializable<ValidationResult>
+                              new XunitSerializableExpression<ValidationResult>
                               {
                                   Value = validationResult => !validationResult.IsValid
                                                               && validationResult.Errors.Count == 1
@@ -159,7 +160,9 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
 
         [Theory]
         [MemberData(nameof(CreateAppointmentRequestCases))]
-        public void Given_a_request_When_validating_Then_validationResult_should_match_expectations(GenericSerializable<NewAppointmentInfo> request, ExpressionSerializable<ValidationResult> validationResultExpectation, string reason)
+        public void Given_a_request_When_validating_Then_validationResult_should_match_expectations(GenericSerializable<NewAppointmentInfo> request,
+                                                                                                    XunitSerializableExpression<ValidationResult> validationResultExpectation,
+                                                                                                    string reason)
         {
             // Arrange
 

@@ -27,5 +27,9 @@ namespace Agenda.API.UnitTests.Helpers
         {
             info.AddValue(nameof(Value), JsonSerializer.Serialize(Value, _serializerSettings));
         }
+
+        public static implicit operator T(GenericSerializable<T> genericSerializable) => genericSerializable.Value;
+
+        public static implicit operator GenericSerializable<T>(T value) => new() { Value = value };
     }
 }
