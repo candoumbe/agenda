@@ -8,7 +8,7 @@ using Microsoft.Extensions.Primitives;
 using Moq;
 using NodaTime;
 using Xunit;
-using Xunit.Categories;
+using Xunit.OpenCategories.V3;
 using static Moq.MockBehavior;
 
 namespace Agenda.API.UnitTests;

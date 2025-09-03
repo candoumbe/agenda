@@ -16,11 +16,9 @@ using FastEndpoints;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Xunit;
-using Xunit.Categories;
+using Xunit.OpenCategories.V3;
 
 namespace Agenda.API.UnitTests.Features.v1.Create;
 

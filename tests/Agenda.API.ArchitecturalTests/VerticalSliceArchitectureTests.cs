@@ -1,17 +1,19 @@
 #if NET9_0_OR_GREATER
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using ArchUnitNET.Domain;
 using ArchUnitNET.Domain.Extensions;
 using ArchUnitNET.Fluent;
 using ArchUnitNET.Fluent.Conditions;
 using ArchUnitNET.Fluent.Syntax.Elements.Types.Classes;
 using ArchUnitNET.Loader;
-using ArchUnitNET.xUnit;
+using ArchUnitNET.xUnitV3;
 using FastEndpoints;
 using Xunit;
-using Xunit.Categories;
+using Xunit.OpenCategories.V3;
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
+using Architecture = ArchUnitNET.Domain.Architecture;
 using Assembly = System.Reflection.Assembly;
 
 namespace Agenda.API.ArchitecturalTests

@@ -1,7 +1,7 @@
 using System;
 using FluentAssertions;
 using FsCheck.Xunit;
-using Xunit.Categories;
+using Xunit.OpenCategories.V3;
 
 namespace Agenda.Ids.UnitTests;
 [UnitTest]

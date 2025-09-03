@@ -1,10 +1,10 @@
 <Project>
-  <Import Project="core.props" />
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsIntegrationTestProject>false</IsIntegrationTestProject>
     <IsIntegrationTestProject Condition="$(MSBuildProjectName.EndsWith('IntegrationTests'))">true</IsIntegrationTestProject>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <!-- Exclude tests from code coverage analysis-->
@@ -13,17 +13,17 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.v3"/>
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="xunit.categories" />
+    <PackageReference Include="Xunit.OpenCategories.V3" />
     <PackageReference Include="AwesomeAssertions" />
     <PackageReference Include="Bogus" />
     <PackageReference Include="NodaTime.Bogus" />
     <PackageReference Include="NodaTime.Testing" />
-    <PackageReference Include="FsCheck.Xunit" />
+    <PackageReference Include="FsCheck.Xunit.v3" />
 
     <PackageReference Include="Moq" />
     <PackageReference Include="AutoFixture.AutoFakeItEasy" />

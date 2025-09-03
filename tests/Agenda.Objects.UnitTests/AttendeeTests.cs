@@ -2,7 +2,7 @@ using System;
 using Agenda.Ids;
 using FluentAssertions;
 using Xunit;
-using Xunit.Categories;
+using Xunit.OpenCategories.V3;
 
 namespace Agenda.Objects.UnitTests;
 [Feature("Agenda")]

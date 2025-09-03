@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Testing;
+using FluentAssertions.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Projects;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Agenda.API.IntegrationTests.Fixtures;
 
@@ -25,7 +25,7 @@ namespace Agenda.API.IntegrationTests.Fixtures;
 /// </remarks>
 public static class DistributedApplicationTestingBuilderFactory
 {
-    private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan s_defaultTimeout = 30.Seconds();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DistributedApplicationTestingBuilderFactory"/> class.

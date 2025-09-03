@@ -9,9 +9,8 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.Testing" />
     <PackageReference Include="FluentAssertions.Nodatime" />
-    <PackageReference Include="MartinCostello.Logging.XUnit"/>
+    <PackageReference Include="MartinCostello.Logging.XUnit.v3"/>
     <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing"/>
-    <PackageReference Include="Xunit.Extensions.AssemblyFixture" />
   </ItemGroup>
 
   <ItemGroup>

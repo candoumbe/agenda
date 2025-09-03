@@ -9,10 +9,11 @@ using FluentValidation;
 using FluentValidation.Results;
 using SystemTextJsonPatch.Operations;
 using Xunit;
-using Xunit.Abstractions;
+using Xunit.OpenCategories.V3;
 
-namespace Agenda.API.UnitTests.Features.v1.Patch;
+namespace Agenda.API.UnitTests.Features.Appointments.v1.Patch;
 
+[UnitTest]
 public class PatchRequestValidatorShould(ITestOutputHelper outputHelper)
 {
     private readonly PatchAppointmentInfoRequestValidator _sut = Factory.CreateValidator<PatchAppointmentInfoRequestValidator>(services => { });
