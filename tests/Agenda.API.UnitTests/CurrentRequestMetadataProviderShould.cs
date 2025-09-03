@@ -11,55 +11,56 @@ using Xunit;
 using Xunit.OpenCategories.V3;
 using static Moq.MockBehavior;
 
-namespace Agenda.API.UnitTests;
-
-[UnitTest]
-public class CurrentRequestMetadataProviderShould
+namespace Agenda.API.UnitTests
 {
-    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-    private readonly Mock<ILogger<CurrentRequestMetadataInfoProvider>> _loggerMock;
-    private readonly CurrentRequestMetadataInfoProvider _sut;
-    private static readonly Faker s_faker = new();
-
-    public CurrentRequestMetadataProviderShould()
+    [UnitTest]
+    public class CurrentRequestMetadataProviderShould
     {
-        _httpContextAccessorMock = new(Strict);
-        _loggerMock = new Mock<ILogger<CurrentRequestMetadataInfoProvider>>();
-        _sut = new CurrentRequestMetadataInfoProvider(_httpContextAccessorMock.Object, _loggerMock.Object);
-    }
+        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+        private readonly Mock<ILogger<CurrentRequestMetadataInfoProvider>> _loggerMock;
+        private readonly CurrentRequestMetadataInfoProvider _sut;
+        private static readonly Faker s_faker = new();
 
-    [Fact]
-    public void Returns_utc_when_no_DateTimeZone_information_can_be_found_in_the_current_http_request()
-    {
-        // Arrange
-        DefaultHttpContext httpContext = new DefaultHttpContext();
-        _httpContextAccessorMock.Setup(mock => mock.HttpContext)
-                                .Returns(httpContext);
+        public CurrentRequestMetadataProviderShould()
+        {
+            _httpContextAccessorMock = new(Strict);
+            _loggerMock = new Mock<ILogger<CurrentRequestMetadataInfoProvider>>();
+            _sut = new CurrentRequestMetadataInfoProvider(_httpContextAccessorMock.Object, _loggerMock.Object);
+        }
 
-        // Act
-        DateTimeZone dateTimeZone = _sut.GetCurrentDateTimeZone();
+        [Fact]
+        public void Returns_utc_when_no_DateTimeZone_information_can_be_found_in_the_current_http_request()
+        {
+            // Arrange
+            DefaultHttpContext httpContext = new DefaultHttpContext();
+            _httpContextAccessorMock.Setup(mock => mock.HttpContext)
+                .Returns(httpContext);
 
-        // Assert
-        dateTimeZone.Should().Be(DateTimeZone.Utc, "The current http context does not contains any information on the user time zone");
-        _loggerMock.Verify();
-    }
+            // Act
+            DateTimeZone dateTimeZone = _sut.GetCurrentDateTimeZone();
 
-    [Fact]
-    public void Returns_the_timezone_found_in_the_request_When_the_request_contains_a_DateTimeZone_information()
-    {
-        // Arrange
-        DefaultHttpContext httpContext = new();
+            // Assert
+            dateTimeZone.Should().Be(DateTimeZone.Utc, "The current http context does not contains any information on the user time zone");
+            _loggerMock.Verify();
+        }
 
-        DateTimeZone expected = s_faker.Noda().DateTimeZone();
-        httpContext.Request.Headers.Append(CurrentRequestMetadataInfoProvider.TimeZoneHeaderName, new StringValues(expected.Id));
+        [Fact]
+        public void Returns_the_timezone_found_in_the_request_When_the_request_contains_a_DateTimeZone_information()
+        {
+            // Arrange
+            DefaultHttpContext httpContext = new();
 
-        _httpContextAccessorMock.Setup(mock => mock.HttpContext)
-                                .Returns(httpContext);
+            DateTimeZone expected = s_faker.Noda().DateTimeZone();
+            httpContext.Request.Headers.Append(CurrentRequestMetadataInfoProvider.TimeZoneHeaderName, new StringValues(expected.Id));
 
-        // Act
-        DateTimeZone actual = _sut.GetCurrentDateTimeZone();
+            _httpContextAccessorMock.Setup(mock => mock.HttpContext)
+                .Returns(httpContext);
 
-        // Assert
-        actual.Should().Be(expected, $"The current http context contains exactly one header named {CurrentRequestMetadataInfoProvider.TimeZoneHeaderName}");
+            // Act
+            DateTimeZone actual = _sut.GetCurrentDateTimeZone();
+
+            // Assert
+            actual.Should().Be(expected, $"The current http context contains exactly one header named {CurrentRequestMetadataInfoProvider.TimeZoneHeaderName}");
+        }
     }
 }
