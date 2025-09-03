@@ -22,6 +22,8 @@ public class AppHostShould(ITestOutputHelper outputHelper)
         //app.EnsureNoErrorsLogged();
 
         await sut.StopAsync(TestContext.Current.CancellationToken).WaitAsync(s_buildStopTimeout, TestContext.Current.CancellationToken);
+        // ReSharper disable DisposeOnUsingVariable
         await appHost.DisposeAsync();
+        // ReSharper restore DisposeOnUsingVariable
     }
 }
