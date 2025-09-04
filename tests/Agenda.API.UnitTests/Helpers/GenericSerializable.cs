@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Aqua.Text.Json;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Xunit.Sdk;
@@ -10,12 +9,7 @@ public class GenericSerializable<T> : IXunitSerializable
 {
     public T Value { get; set; }
 
-    private readonly JsonSerializerOptions _serializerSettings;
-
-    public GenericSerializable()
-    {
-        _serializerSettings = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-    }
+    private readonly JsonSerializerOptions _serializerSettings = new JsonSerializerOptions().ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 
     /// <inheritdoc />
     public void Deserialize(IXunitSerializationInfo info)

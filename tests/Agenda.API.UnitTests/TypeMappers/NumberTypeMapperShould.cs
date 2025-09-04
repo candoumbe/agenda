@@ -1,6 +1,5 @@
 using System;
 using Agenda.API.TypeMappers;
-using Agenda.Ids;
 using Candoumbe.Types.Numerics;
 using FluentAssertions;
 using NJsonSchema;

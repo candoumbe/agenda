@@ -1,9 +1,5 @@
 using System;
 using System.Linq.Expressions;
-using System.Text.Json;
-using Fluxera.StronglyTypedId.SystemTextJson;
-using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
 using Serialize.Linq.Serializers;
 using Xunit.Sdk;
 using JsonSerializer = Serialize.Linq.Serializers.JsonSerializer;
