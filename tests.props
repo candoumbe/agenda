@@ -25,7 +25,7 @@
     <PackageReference Include="Moq" />
     <PackageReference Include="NodaTime.Bogus" />
     <PackageReference Include="NodaTime.Testing" />
-    <PackageReference Include="Remote.Linq.Text.Json" />
+    <PackageReference Include="Serialize.Linq" />
     <PackageReference Include="Xunit.OpenCategories.V3" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
