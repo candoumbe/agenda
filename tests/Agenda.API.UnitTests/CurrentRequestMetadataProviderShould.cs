@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using Bogus;
+﻿using Bogus;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

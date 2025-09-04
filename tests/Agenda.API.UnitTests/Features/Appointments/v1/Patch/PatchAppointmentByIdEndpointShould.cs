@@ -5,7 +5,6 @@ using Agenda.API.Features.Appointments.v1.Update;
 using Agenda.Ids;
 using FastEndpoints;
 using FluentAssertions;
-using SystemTextJsonPatch.Operations;
 using Xunit;
 
 namespace Agenda.API.UnitTests.Features.Appointments.v1.Patch

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Text.Json;
 using Agenda.API.Features.Appointments.v1.Update;
 using Agenda.API.UnitTests.Helpers;

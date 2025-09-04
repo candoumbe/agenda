@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Text.Json;
 using Agenda.API.Features.Appointments.v1.Create;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.API.UnitTests.Helpers;
 using Bogus;
-using DataFilters;
 using FastEndpoints;
 using FluentAssertions;
 using FluentValidation;
