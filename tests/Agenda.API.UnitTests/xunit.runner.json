@@ -1,6 +1,9 @@
 {
+  "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
   "methodDisplay": "method",
   "methodDisplayOptions": "all",
   "shadowCopy": false,
-  "preEnumerateTheories": true
+  "preEnumerateTheories": true,
+  "showLiveOutput": true,
+  "diagnosticMessages": true
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text.Json;
 using Agenda.API.Features.Appointments.v1.Create;
@@ -49,18 +50,14 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     OffsetDateTime start = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime();
                     OffsetDateTime end = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime();
 
-                    cases.Add(new GenericSerializable<NewAppointmentInfo>()
+                    cases.Add(new NewAppointmentInfo()
                               {
-                                  Value =
-                                      new NewAppointmentInfo()
-                                      {
-                                          StartDate = start,
-                                          EndDate = end,
-                                          Subject = s_faker.Lorem.Sentence(),
-                                          Location = null,
-                                          Attendees = null,
-                                      }
-                              },
+                                  StartDate = start,
+                                  EndDate = end,
+                                  Subject = s_faker.Lorem.Sentence(),
+                                  Location = null,
+                                  Attendees = null,
+                             },
                               new XunitSerializableExpression<ValidationResult>
                               {
                                   Value = validationResult => !validationResult.IsValid
@@ -80,7 +77,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                                   EndDate = end,
                                   Subject = s_faker.Lorem.Sentence(),
                                   Location = null,
-                                  Attendees = [],
+                                  Attendees = new List<AttendeeInfo>(),
                               },
                               new XunitSerializableExpression<ValidationResult>
                               {
@@ -103,15 +100,15 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                                   EndDate = end,
                                   Subject = s_faker.Lorem.Sentence(),
                                   Location = null,
-                                  Attendees =
-                                  [
+                                  Attendees = new List<AttendeeInfo>
+                                    {
                                       new AttendeeInfo
                                       {
                                           Email = s_faker.Internet.Email(),
                                           Name = s_faker.Name.FullName(),
                                           PhoneNumber = s_faker.Phone.PhoneNumber()
                                       }
-                                  ],
+                                  },
                               },
                               new XunitSerializableExpression<ValidationResult>
                               {
