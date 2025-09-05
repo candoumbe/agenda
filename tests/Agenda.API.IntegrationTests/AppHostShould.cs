@@ -16,7 +16,7 @@ public class AppHostShould(ITestOutputHelper outputHelper)
     [Fact]
     public async Task StartAndStopWithoutException()
     {
-        await using AgendaApplicationTestingBuilder appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper);
+        await using AgendaApplicationTestingBuilder appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper, TestContext.Current.CancellationToken);
         await using DistributedApplication sut = await appHost.StartAsync(TestContext.Current.CancellationToken).WaitAsync(s_buildStopTimeout, TestContext.Current.CancellationToken);
 
         //app.EnsureNoErrorsLogged();

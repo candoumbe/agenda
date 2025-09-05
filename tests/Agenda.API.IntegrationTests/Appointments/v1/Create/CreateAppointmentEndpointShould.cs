@@ -16,7 +16,6 @@ using Bogus;
 using Candoumbe.Forms;
 using DataFilters.Converters;
 using FluentAssertions;
-using FluentAssertions.NodaTime;
 using Fluxera.StronglyTypedId.SystemTextJson;
 using Json.More;
 using Json.Patch;
@@ -60,7 +59,7 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
     {
         _appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper);
 
-        _sut = await _appHost.StartAsync();
+        _sut = await _appHost.StartAsync(TestContext.Current.CancellationToken);
         _client = _appHost.ApiClient;
     }
 

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
+using FluentAssertions.Extensions;
 using Xunit;
 
 namespace Agenda.API.IntegrationTests.Fixtures;
@@ -46,7 +47,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// The application under test is started after the infrastructure is built.
     /// This method will wait for the application to reach the "running" state (i.e. all resources are running or have exited with a success code).
     /// </remarks>
-    public async Task<DistributedApplication> StartAsync(CancellationToken cancellationToken = default)
+    public async Task<DistributedApplication> StartAsync(CancellationToken cancellationToken)
     {
         _app  = await _sutBuilder.BuildAsync(cancellationToken).WaitAsync(s_buildStopTimeout, cancellationToken);
 
@@ -61,12 +62,46 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
 
 
     /// <inheritdoc />
-    public async ValueTask InitializeAsync() => await StartAsync();
+    public async ValueTask InitializeAsync() => await StartAsync(TestContext.Current.CancellationToken);
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        await _app.StopAsync().WaitAsync(s_buildStopTimeout);
+        // Approche en deux phases : arrêt gracieux puis forcé
+        bool stopped = await TryGracefulStopAsync();
+
+        if (!stopped && _app is not null)
+        {
+            Console.WriteLine("Arrêt gracieux échoué, nettoyage forcé...");
+            await _app.DisposeAsync();
+        }
+
         await _sutBuilder.DisposeAsync();
+    }
+
+    private async Task<bool> TryGracefulStopAsync()
+    {
+        if (_app == null)
+        {
+            return true;
+        }
+
+        try
+        {
+            // Timeout plus court pour l'arrêt gracieux
+            using var cts = new CancellationTokenSource(s_startStopTimeout);
+            await _app.StopAsync(cts.Token);
+            return true;
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
+        {
+            Console.WriteLine($"Timeout lors de l'arrêt gracieux: {ex.Message}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors de l'arrêt gracieux: {ex.Message}");
+            return false;
+        }
     }
 }
