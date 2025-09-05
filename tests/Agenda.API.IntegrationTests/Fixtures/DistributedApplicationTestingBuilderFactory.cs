@@ -31,14 +31,15 @@ public static class DistributedApplicationTestingBuilderFactory
     /// Initializes a new instance of the <see cref="DistributedApplicationTestingBuilderFactory"/> class.
     /// </summary>
     /// <param name="outputHelper"></param>
+    /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<AgendaApplicationTestingBuilder> CreateBuilderAsync(ITestOutputHelper outputHelper = null)
+    public static async Task<AgendaApplicationTestingBuilder> CreateBuilderAsync(ITestOutputHelper outputHelper = null, CancellationToken cancellationToken = default)
     {
-        CancellationToken cancellationToken = new CancellationTokenSource(s_defaultTimeout).Token;
         IDistributedApplicationTestingBuilder builder = await DistributedApplicationTestingBuilder.CreateAsync<Agenda_AppHost>(cancellationToken);
 
         builder.WithRandomParameterValues();
         builder.WithRandomVolumeNames();
+        // Containers should be re-created for each test.
         builder.WithContainersLifetime(ContainerLifetime.Session);
 
         builder.Services.ConfigureHttpClientDefaults(clientBuilder =>

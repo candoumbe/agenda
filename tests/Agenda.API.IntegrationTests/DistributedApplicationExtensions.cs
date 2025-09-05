@@ -103,9 +103,9 @@ public static class DistributedApplicationExtensions
 
         return;
 
-        async Task<(string Name, string State)> GetResourceWaitTask(string resourceName, IEnumerable<string> targetStates, CancellationToken ct)
+        async Task<(string Name, string State)> GetResourceWaitTask(string resourceName, IEnumerable<string> targetResourceStates, CancellationToken ct)
         {
-            string state = await app.ResourceNotifications.WaitForResourceAsync(resourceName, targetStates, ct);
+            string state = await app.ResourceNotifications.WaitForResourceAsync(resourceName, targetResourceStates, ct);
             return (resourceName, state);
         }
     }
