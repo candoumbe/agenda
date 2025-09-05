@@ -4,7 +4,8 @@
     <IsPackable>false</IsPackable>
     <IsIntegrationTestProject>false</IsIntegrationTestProject>
     <IsIntegrationTestProject Condition="$(MSBuildProjectName.EndsWith('IntegrationTests'))">true</IsIntegrationTestProject>
-<!--    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>-->
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
@@ -22,6 +23,7 @@
     </PackageReference>
     <PackageReference Include="FsCheck.Xunit.v3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage"/>
     <PackageReference Include="Moq" />
     <PackageReference Include="NodaTime.Bogus" />
     <PackageReference Include="NodaTime.Testing" />
