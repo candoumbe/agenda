@@ -109,17 +109,6 @@ public class Build : EnhancedNukeBuild,
     ///<inheritdoc/>
     IEnumerable<Project> IUnitTest.UnitTestsProjects => this.Get<IHaveSolution>().Solution.GetAllProjects("*.UnitTests");
 
-    /// <inheritdoc />
-    Configure<DotNetTestSettings, (Project project, string framework)> IUnitTest.ProjectUnitTestSettings
-        => (settings, tuple) => (tuple.project.GetProperty<bool>("TestingPlatformDotnetTestSupport") && tuple.project.GetProperty<bool>("UseMicrosoftTestingPlatformRunner")) switch
-        {
-            true => settings.AddProcessAdditionalArguments(
-                        [
-                            $"-- --coverage --coverage-output-format 'cobertura' --coverage-output '{(this.Get<IUnitTest>().UnitTestResultsDirectory / $"{tuple.project.Name}.{tuple.framework}.xml")}'"
-                        ]),
-            _ => settings
-        };
-
     ///<inheritdoc/>
     IEnumerable<Project> IIntegrationTest.IntegrationTestsProjects => this.Get<IHaveSolution>().Solution.GetAllProjects("*.IntegrationTests");
 

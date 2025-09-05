@@ -18,7 +18,7 @@
     <PackageVersion Include="Candoumbe.DataAccess" Version="0.1.0-beta0145" />
     <PackageVersion Include="Candoumbe.DataAccess.EFStore" Version="0.1.0-beta0145" />
     <PackageVersion Include="Candoumbe.Forms" Version="0.3.0" />
-    <PackageVersion Include="Candoumbe.Pipelines" Version="1.1.0-alpha.9" />
+    <PackageVersion Include="Candoumbe.Pipelines" Version="1.0.1-microsoft-testing-platform-support.14" />
     <PackageVersion Include="Candoumbe.Types.Numerics" Version="0.4.2-fix.1" />
     <PackageVersion Include="CodecovUploader" Version="0.8.0" />
     <PackageVersion Include="CorrelationId" Version="3.0.1" />
@@ -46,7 +46,7 @@
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.8.0" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.4.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2"/>
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageVersion Include="MartinCostello.Logging.XUnit.v3" Version="0.6.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
@@ -70,7 +70,7 @@
     <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
-    <PackageVersion Include="SystemTextJsonPatch" Version="4.2.0"/>
+    <PackageVersion Include="SystemTextJsonPatch" Version="4.2.0" />
     <PackageVersion Include="TestContainers.PostgreSql" Version="4.7.0" />
     <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.12.1" />
     <PackageVersion Include="Xunit.OpenCategories.V3" Version="2.3.0.12" />

@@ -7,6 +7,7 @@
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <!-- Exclude tests from code coverage analysis-->
