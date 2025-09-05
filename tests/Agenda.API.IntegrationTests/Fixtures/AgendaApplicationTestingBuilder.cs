@@ -89,7 +89,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         try
         {
             // Timeout plus court pour l'arrêt gracieux
-            using var cts = new CancellationTokenSource(s_startStopTimeout);
+            using CancellationTokenSource cts = new (s_startStopTimeout);
             await _app.StopAsync(cts.Token);
             return true;
         }
