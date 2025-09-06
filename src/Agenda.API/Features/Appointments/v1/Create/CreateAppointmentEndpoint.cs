@@ -44,6 +44,7 @@ public class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, CreatedAtR
         Post("/appointments");
         AllowAnonymous();
         SerializerContext<CreateAppointmentSerializerContext>();
+        Validator<NewAppointmentInfoValidator>();
     }
 
 

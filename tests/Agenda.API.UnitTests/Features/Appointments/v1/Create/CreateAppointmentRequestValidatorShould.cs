@@ -20,7 +20,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
     public class CreateAppointmentRequestValidatorShould
     {
         private readonly ITestOutputHelper _outputHelper;
-        private readonly NewAppointmentModelValidator _sut;
+        private readonly NewAppointmentInfoValidator _sut;
         private static readonly Faker s_faker = new();
         private static readonly Faker<AttendeeInfo> s_attendeeFaker = new();
         private static readonly Instant s_instantReference = s_faker.Noda().Instant.Recent();
@@ -30,7 +30,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
         public CreateAppointmentRequestValidatorShould(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            _sut = Factory.CreateValidator<NewAppointmentModelValidator>(services => { services.AddSingleton<IClock>(new FakeClock(s_instantReference)); });
+            _sut = Factory.CreateValidator<NewAppointmentInfoValidator>(services => { services.AddSingleton<IClock>(new FakeClock(s_instantReference)); });
         }
 
         static CreateAppointmentRequestValidatorShould()

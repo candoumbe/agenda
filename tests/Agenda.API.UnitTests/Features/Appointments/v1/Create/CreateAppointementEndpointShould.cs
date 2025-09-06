@@ -127,6 +127,24 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
         }
 
 
+        [Fact]
+        public void Have_expected_definition()
+        {
+            // Assert
+            string[] routes = _sut.Definition.Routes;
+            routes.Should()
+                .HaveCount(1)
+                .And
+                .ContainSingle("/appointments");
+
+            string[] methods = _sut.Definition.Verbs;
+            methods.Should().HaveCount(1)
+                .And.ContainSingle("POST");
+
+            Type validatorType = _sut.Definition.ValidatorType;
+            validatorType.Should().Be<NewAppointmentInfoValidator>();
+        }
+
         [Theory]
         [MemberData(nameof(CreateAppointmentWithValidRequestCases))]
         public async Task Create_appointment_when_valid_request_is_received(GenericSerializable<NewAppointmentInfo> req,
