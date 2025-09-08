@@ -55,11 +55,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
         Verbs(Http.GET, Http.HEAD);
         Routes("/appointments");
         AllowAnonymous();
-        Summary(s =>
-                {
-                    s.Summary = "Search appointments";
-                    s.Description = "Returns a page of appointments matching optional filters";
-                });
+        PostProcessor<AddLinkHeaderPostProcessor>();
     }
 
     /// <inheritdoc />
@@ -93,16 +89,23 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             filters.Add($"{nameof(Appointment.Subject)}={subject}".ToFilter<Appointment>());
         }
 
+        if (!string.IsNullOrWhiteSpace(search.Attendees))
+        {
+            filters.Add(@$"{nameof(Appointment.Attendees)}[""{nameof(Attendee.Name)}""]={search.Attendees}".ToFilter<Appointment>());
+        }
+
         IOrder<Appointment> order = new Order<Appointment>(nameof(Appointment.StartDate));
 
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
 
-        Expression<Func<Appointment, bool>> predicate = ( filters.Count switch
-                                                            {
-                                                                1   => filters.Single(),
-                                                                > 1 => new MultiFilter { Logic = FilterLogic.And, Filters = filters },
-                                                                _   => Filter.True
-                                                            } ).ToExpression<Appointment>(NullableValueBehavior.AddNullCheck);
+        IFilter searchFilter = filters.Count switch
+        {
+            1   => filters.Single(),
+            > 1 => new MultiFilter { Logic = FilterLogic.And, Filters = filters },
+            _   => Filter.True
+        };
+
+        Expression<Func<Appointment, bool>> predicate = searchFilter.ToExpression<Appointment>(NullableValueBehavior.AddNullCheck);
 
         Page<Appointment> pageOfAppointments = await unitOfWork.Repository<Appointment>()
                                                    .Where(predicate,
@@ -115,6 +118,39 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
 
         IReadOnlyList<Appointment> entries = [.. pageOfAppointments.Entries];
         int count = entries.Count;
+
+        Link firstPageLink = new()
+        {
+            Href = _linkGenerator.GetUriByRouteValues(http!,
+                                                      nameof(SearchAppointmentsEndpoint),
+                                                      new
+                                                      {
+                                                          Page = 1,
+                                                          search.PageSize,
+                                                          search.Subject,
+                                                          search.Attendees,
+                                                          search.From,
+                                                          search.To,
+                                                          search.Sort
+                                                      }),
+            Relations = [LinkRelation.First]
+        };
+        Link lastPageLink = new()
+        {
+            Href = _linkGenerator.GetUriByRouteValues(http!,
+                                                      nameof(SearchAppointmentsEndpoint),
+                                                      new
+                                                      {
+                                                          Page = (int)pageOfAppointments.Total,
+                                                          search.PageSize,
+                                                          search.Subject,
+                                                          search.Attendees,
+                                                          search.From,
+                                                          search.To,
+                                                          search.Sort
+                                                      }),
+            Relations = [LinkRelation.Last]
+        };
 
         PageOf<Browsable<AppointmentInfo>> content = new()
         {
@@ -136,17 +172,18 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                     [
                         new Link
                         {
-                            Href = _linkGenerator.GetUriByRouteValues(http, nameof(GetAppointmentByIdEndpoint), new { x.Id }),
+                            Href = _linkGenerator.GetUriByRouteValues(http!, nameof(GetAppointmentByIdEndpoint), new { x.Id }),
                             Relations = [LinkRelation.Self]
                         },
                         new Link
                         {
-                            Href = _linkGenerator.GetUriByRouteValues(http, nameof(DeleteEndpoint), new { x.Id }),
+                            Href = _linkGenerator.GetUriByRouteValues(http!, nameof(DeleteEndpoint), new { x.Id }),
                             Relations = ["delete"]
                         }
                     ]
                 })
-            ]
+            ],
+            Links = new PageLinks(First: firstPageLink, Last: lastPageLink)
         };
 
         return TypedResults.Ok(content);

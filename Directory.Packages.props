@@ -12,7 +12,6 @@
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.4.2" />
     <PackageVersion Include="Aspire.Npgsql" Version="9.4.2" />
     <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.4.2" />
-    <PackageVersion Include="AutoFixture.AutoFakeItEasy" Version="4.18.1" />
     <PackageVersion Include="AwesomeAssertions" Version="8.2.0" />
     <PackageVersion Include="Bogus" Version="35.6.3" />
     <PackageVersion Include="Candoumbe.DataAccess" Version="0.1.0-beta0145" />
@@ -27,6 +26,7 @@
     <PackageVersion Include="Destructurama.ByIgnoring" Version="4.0.1" />
     <PackageVersion Include="EntityFrameworkCore.Sqlite.NodaTime" Version="9.2.1" />
     <PackageVersion Include="Extensions.Hosting.AsyncInitialization" Version="3.0.1" />
+    <PackageVersion Include="FakeItEasy" Version="8.3.0"/>
     <PackageVersion Include="FastEndpoints" Version="7.0.1" />
     <PackageVersion Include="FastEndpoints.Swagger" Version="7.0.1" />
     <PackageVersion Include="FluentAssertions.Nodatime" Version="2.0.1" />
@@ -70,27 +70,14 @@
     <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
+    <PackageVersion Include="StronglyTypedId" Version="1.0.0-beta08" PrivateAssets="all" ExcludeAssets="runtime" />
+    <PackageVersion Include="StronglyTypedId.Templates" Version="1.0.0-beta08" PrivateAssets="all" ExcludeAssets="runtime" />
     <PackageVersion Include="SystemTextJsonPatch" Version="4.2.0" />
     <PackageVersion Include="TestContainers.PostgreSql" Version="4.7.0" />
     <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.12.1" />
     <PackageVersion Include="Xunit.OpenCategories.V3" Version="2.3.0.12" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
     <PackageVersion Include="xunit.v3" Version="3.0.1" />
+    <PackageVersion Include="System.Text.Json" Version="9.0.8"/>
   </ItemGroup>
-  <Choose>
-    <When Condition="'$(TargetFramework)'=='netstandard2.1'">
-      <ItemGroup>
-        <PackageVersion Include="Fluxera.StronglyTypedId" Version="7.0.1" />
-        <PackageVersion Include="Fluxera.StronglyTypedId.EntityFrameworkCore" Version="7.1.7" />
-        <PackageVersion Include="Fluxera.StronglyTypedId.SystemTextJson" Version="9.2.0" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageVersion Include="Fluxera.StronglyTypedId" Version="9.2.0" />
-        <PackageVersion Include="Fluxera.StronglyTypedId.EntityFrameworkCore" Version="9.2.0" />
-        <PackageVersion Include="Fluxera.StronglyTypedId.SystemTextJson" Version="9.2.0" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
 </Project>

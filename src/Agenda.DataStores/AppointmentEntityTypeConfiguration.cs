@@ -1,19 +1,19 @@
 ﻿
+using Agenda.Ids;
 using Agenda.Objects;
-
-using Fluxera.StronglyTypedId.EntityFrameworkCore;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Agenda.DataStores;
-public class AppointmentEntityTypeConfiguration : IEntityTypeConfiguration<Appointment>
+internal class AppointmentEntityTypeConfiguration : IEntityTypeConfiguration<Appointment>
 {
     ///<inheritdoc/>
     public void Configure(EntityTypeBuilder<Appointment> builder)
     {
-        builder.UseStronglyTypedId();
         builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.Id).HasConversion<AppointmentId.EfCoreValueConverter>();
 
         builder.Property(x => x.Location)
             .HasMaxLength(AgendaDataStore.NormalTextLength);
@@ -31,8 +31,5 @@ public class AppointmentEntityTypeConfiguration : IEntityTypeConfiguration<Appoi
         builder.HasMany(x => x.Attendees)
               .WithMany(x => x.Appointments)
               .UsingEntity(j => j.ToTable("AppointmentAttendee"));
-
-
     }
 }
-

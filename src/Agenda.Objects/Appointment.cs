@@ -39,6 +39,9 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// </summary>
     public IList<Attendee> Attendees => _attendees;
 
+    /// <summary>
+    /// Status of the <see cref="Appointment"/>.
+    /// </summary>
     public AppointmentStatus Status { get; }
 
     /// <summary>
@@ -50,7 +53,7 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// <param name="startDate">defines when the appointment starts</param>
     /// <param name="endDate">defines when the appointment ends</param>
     /// <exception cref="ArgumentException">if <paramref name="startDate"/> is after <paramref name="endDate"/></exception>
-    public Appointment(AppointmentId id, string subject, string location, Instant startDate, Instant endDate) : base(id ?? AppointmentId.New())
+    public Appointment(AppointmentId id, string subject, string location, Instant startDate, Instant endDate) : base(id == default ? AppointmentId.New() : id)
     {
         if (startDate > endDate)
         {
@@ -89,11 +92,6 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// <exception cref="ArgumentNullException">if <paramref name="attendeeId"/> is <c>null</c></exception>
     public void RemoveAttendee(AttendeeId attendeeId)
     {
-        if (attendeeId is null)
-        {
-            throw new ArgumentNullException(nameof(attendeeId));
-        }
-
         Option<Attendee> optionalAttendee = _attendees.SingleOrDefault(x => x.Id == attendeeId)
             .SomeNotNull();
 

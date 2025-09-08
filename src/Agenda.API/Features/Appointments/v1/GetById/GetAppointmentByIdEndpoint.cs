@@ -81,7 +81,7 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
                                                                                                                   [
                                                                                                                       new Link
                                                                                                                       {
-                                                                                                                          Href = _linkGenerator.GetUriByName(HttpContext, nameof(GetAppointmentByIdEndpoint), new { Id = req.Id.Value }),
+                                                                                                                          Href = _linkGenerator.GetUriByName(HttpContext, nameof(GetAppointmentByIdEndpoint), new { req.Id }),
                                                                                                                           Method = "GET",
                                                                                                                           Relations = new[] { LinkRelation.Self }.ToHashSet()
                                                                                                                       }

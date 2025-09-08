@@ -32,7 +32,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Patch
         {
             PatchRequest<AppointmentId, PatchAppointmentRequest> request = new()
             {
-                Id = AppointmentId.New(),
+                Id = new AppointmentId(),
                 Operations = new()
             };
 

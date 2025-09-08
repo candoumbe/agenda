@@ -40,7 +40,7 @@ public class NewAppointmentInfoValidatorShould
                 ZonedDateTime now = s_faker.Noda().Instant.Soon().InUtc();
                 NewAppointmentInfo input = new()
                 {
-                    Id = AppointmentId.New(),
+                    Id = new AppointmentId(),
                     Subject = s_faker.Lorem.Sentence(),
                     Location = s_faker.Address.FullAddress(),
                     StartDate = s_faker.Noda().ZonedDateTime.Past(reference: now).ToOffsetDateTime(),

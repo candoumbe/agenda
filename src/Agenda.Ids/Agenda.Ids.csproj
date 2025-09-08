@@ -1,12 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="../../core.props"/>
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net8.0;net9.0;</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0;</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fluxera.StronglyTypedId"/>
+    <PackageReference Include="StronglyTypedId"/>
+    <PackageReference Include="StronglyTypedId.Templates"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="JetBrains.Annotations" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="guid-v7.typedid" />
+    <AdditionalFiles Include="guid-v7.typedid" />
   </ItemGroup>
 
 </Project>

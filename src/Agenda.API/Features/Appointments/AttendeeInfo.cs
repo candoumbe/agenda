@@ -1,6 +1,6 @@
 ﻿using Agenda.Ids;
 
-namespace Agenda.API.Features.v1.Appointments;
+namespace Agenda.API.Features.Appointments;
 
 /// <summary>
 /// A person who participate to an appointment

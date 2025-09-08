@@ -16,7 +16,6 @@ using Bogus;
 using Candoumbe.Forms;
 using DataFilters.Converters;
 using FluentAssertions;
-using Fluxera.StronglyTypedId.SystemTextJson;
 using Json.More;
 using Json.Patch;
 using NodaTime;
@@ -44,13 +43,15 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             AllowTrailingCommas = true
         };
-        s_jsonSerializerOptions.UseStronglyTypedId();
+
         s_jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
         s_jsonSerializerOptions.Converters.Add(new MultiFilterConverter());
         s_jsonSerializerOptions.Converters.Add(new FilterConverter());
         s_jsonSerializerOptions.Converters.Add(new PatchJsonConverter());
         s_jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<OperationType>());
         s_jsonSerializerOptions.Converters.Add(new EnumStringConverter<OperationType>());
+        s_jsonSerializerOptions.Converters.Add(new AppointmentId.AppointmentIdSystemTextJsonConverter());
+        s_jsonSerializerOptions.Converters.Add(new AttendeeId.AttendeeIdSystemTextJsonConverter());
     }
 
 

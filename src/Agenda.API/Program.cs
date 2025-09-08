@@ -9,7 +9,6 @@ using Candoumbe.Types.Numerics;
 using DataFilters.Converters;
 using FastEndpoints;
 using FastEndpoints.Swagger;
-using Fluxera.StronglyTypedId.SystemTextJson;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +25,6 @@ Action<JsonSerializerOptions> optionsSerializerSettings = s =>
                                                               //s.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
                                                               s.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                                                               s.AllowTrailingCommas = true;
-                                                              s.UseStronglyTypedId();
                                                               s.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
                                                               s.Converters.Add(new MultiFilterConverter());
                                                               s.Converters.Add(new FilterConverter());
@@ -57,8 +55,7 @@ builder.Services
                          options.DocumentSettings = docSettings =>
                                                     {
                                                         docSettings.SchemaSettings.AllowReferencesWithProperties = true;
-                                                        docSettings.SchemaSettings.TypeMappers.Add(new StronglyTypedIdMapper<AppointmentId, Guid>());
-                                                        docSettings.SchemaSettings.TypeMappers.Add(new StronglyTypedIdMapper<AttendeeId, Guid>());
+
                                                         docSettings.SchemaSettings.TypeMappers.Add(new NumberTypeMapper<PositiveInteger, int>());
                                                         docSettings.SchemaSettings.TypeMappers.Add(new NumberTypeMapper<NonNegativeInteger, int>());
                                                     };
@@ -75,7 +72,7 @@ WebApplication app = builder.Build();
 // app.UseSerilogRequestLogging(opts => opts.EnrichDiagnosticContext = (diagnosticContext, httpContext) => diagnosticContext.Set("CorrelationId", httpContext.TraceIdentifier));
 app.UseFastEndpoints(config =>
                      {
-                         config.Binding.ValueParserFor<AppointmentId>(values => new ParseResult(AppointmentId.TryParse(values.ToString(), out AppointmentId id), id));
+                         // config.Binding.ValueParserFor<AppointmentId>(values => new ParseResult(AppointmentId.TryParse(values.ToString(), out AppointmentId id), id));
                          // config.Binding.ValueParserFor<NonNegativeInteger>(values => new ParseResult(int.TryParse(values.ToString(), out int value)
                          //                                                                             && NonNegativeInteger.MinValue <= value && value <= NonNegativeInteger.MaxValue, NonNegativeInteger.From(value)));
                          // config.Binding.ValueParserFor<PositiveInteger>(values => new ParseResult(int.TryParse(values.ToString(), out int value)
