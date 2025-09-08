@@ -1,9 +1,9 @@
 ﻿using Bogus;
+using FakeItEasy;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using FakeItEasy;
 using NodaTime;
 using Xunit;
 using Xunit.Categories;
