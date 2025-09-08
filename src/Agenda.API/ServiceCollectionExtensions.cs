@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Agenda.DataStores;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;
@@ -8,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
 
 namespace Agenda.API;
 

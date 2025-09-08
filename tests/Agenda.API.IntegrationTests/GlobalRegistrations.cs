@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using Xunit;
-// using Xunit.Extensions.AssemblyFixture;
 
 // Dans les projets de type SDK comme celui-là, plusieurs attributs d'assembly définis
 // historiquement dans ce fichier sont maintenant automatiquement ajoutés pendant
@@ -17,4 +16,4 @@ using Xunit;
 // Le GUID suivant concerne l'ID de typelib si ce projet est exposé à COM.
 
 [assembly: Guid("4975582d-f484-4764-a5d0-200cc24afa6c")]
-// [assembly: TestFramework(AssemblyFixtureFramework.TypeName, AssemblyFixtureFramework.AssemblyName)]
+//[assembly: TestFramework(AssemblyFixtureFramework.TypeName, AssemblyFixtureFramework.AssemblyName)]

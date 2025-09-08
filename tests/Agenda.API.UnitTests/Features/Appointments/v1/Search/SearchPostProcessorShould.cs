@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.Features;
 using Agenda.API.Features.Appointments;
@@ -74,7 +75,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Search
 
 
             // Act
-            await _sut.PostProcessAsync(context, TestContext.Current.CancellationToken);
+            await _sut.PostProcessAsync(context, CancellationToken.None);
 
             // Assert
             using AssertionScope _ = new();

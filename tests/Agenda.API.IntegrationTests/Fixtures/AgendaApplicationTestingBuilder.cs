@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
-using FluentAssertions.Extensions;
 using Xunit;
 
 namespace Agenda.API.IntegrationTests.Fixtures;
@@ -47,7 +46,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// The application under test is started after the infrastructure is built.
     /// This method will wait for the application to reach the "running" state (i.e. all resources are running or have exited with a success code).
     /// </remarks>
-    public async Task<DistributedApplication> StartAsync(CancellationToken cancellationToken)
+    public async Task<DistributedApplication> StartAsync(CancellationToken cancellationToken = default)
     {
         _app  = await _sutBuilder.BuildAsync(cancellationToken).WaitAsync(s_buildStopTimeout, cancellationToken);
 
@@ -62,10 +61,10 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
 
 
     /// <inheritdoc />
-    public async ValueTask InitializeAsync() => await StartAsync(TestContext.Current.CancellationToken);
+    public async Task InitializeAsync() => await StartAsync();
 
     /// <inheritdoc />
-    public async ValueTask DisposeAsync()
+    public async Task DisposeAsync()
     {
         // Approche en deux phases : arrêt gracieux puis forcé
         bool stopped = await TryGracefulStopAsync();

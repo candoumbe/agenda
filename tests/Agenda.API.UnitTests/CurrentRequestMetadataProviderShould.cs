@@ -3,35 +3,34 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using Moq;
+using FakeItEasy;
 using NodaTime;
 using Xunit;
-using Xunit.OpenCategories.V3;
-using static Moq.MockBehavior;
+using Xunit.Categories;
 
 namespace Agenda.API.UnitTests
 {
     [UnitTest]
     public class CurrentRequestMetadataProviderShould
     {
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private readonly Mock<ILogger<CurrentRequestMetadataInfoProvider>> _loggerMock;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<CurrentRequestMetadataInfoProvider> _logger;
         private readonly CurrentRequestMetadataInfoProvider _sut;
         private static readonly Faker s_faker = new();
 
         public CurrentRequestMetadataProviderShould()
         {
-            _httpContextAccessorMock = new(Strict);
-            _loggerMock = new Mock<ILogger<CurrentRequestMetadataInfoProvider>>();
-            _sut = new CurrentRequestMetadataInfoProvider(_httpContextAccessorMock.Object, _loggerMock.Object);
+            _httpContextAccessor = A.Fake<IHttpContextAccessor>(x => x.Strict());
+            _logger = A.Fake<ILogger<CurrentRequestMetadataInfoProvider>>();
+            _sut = new CurrentRequestMetadataInfoProvider(_httpContextAccessor, _logger);
         }
 
         [Fact]
         public void Returns_utc_when_no_DateTimeZone_information_can_be_found_in_the_current_http_request()
         {
             // Arrange
-            DefaultHttpContext httpContext = new DefaultHttpContext();
-            _httpContextAccessorMock.Setup(mock => mock.HttpContext)
+            DefaultHttpContext httpContext = new ();
+            A.CallTo(() => _httpContextAccessor.HttpContext)
                 .Returns(httpContext);
 
             // Act
@@ -39,7 +38,6 @@ namespace Agenda.API.UnitTests
 
             // Assert
             dateTimeZone.Should().Be(DateTimeZone.Utc, "The current http context does not contains any information on the user time zone");
-            _loggerMock.Verify();
         }
 
         [Fact]
@@ -51,7 +49,7 @@ namespace Agenda.API.UnitTests
             DateTimeZone expected = s_faker.Noda().DateTimeZone();
             httpContext.Request.Headers.Append(CurrentRequestMetadataInfoProvider.TimeZoneHeaderName, new StringValues(expected.Id));
 
-            _httpContextAccessorMock.Setup(mock => mock.HttpContext)
+            A.CallTo(() => _httpContextAccessor.HttpContext)
                 .Returns(httpContext);
 
             // Act

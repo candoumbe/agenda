@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.Features;
@@ -7,7 +8,6 @@ using Agenda.API.Features.Appointments;
 using Agenda.API.Features.Appointments.v1.Create;
 using Agenda.API.Features.Appointments.v1.Search;
 using Agenda.API.Features.v1.Appointments;
-using Agenda.API.UnitTests.Helpers;
 using Agenda.Ids;
 using Bogus;
 using Candoumbe.DataAccess.Abstractions;
@@ -17,9 +17,11 @@ using FastEndpoints;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Xunit;
-using Xunit.OpenCategories.V3;
+using Xunit.Categories;
 
 namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
 {
@@ -52,11 +54,11 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
             _sut = Factory.Create<CreateAppointmentEndpoint>(_unitOfWorkFactory, _linkGenerator, _currentRequestMetadataInfoProvider);
         }
 
-        public static TheoryData<GenericSerializable<NewAppointmentInfo>, XunitSerializableExpression<AppointmentInfo>> CreateAppointmentWithValidRequestCases
+        public static TheoryData<NewAppointmentInfo, Expression<Func<AppointmentInfo, bool>>> CreateAppointmentWithValidRequestCases
         {
             get
             {
-                TheoryData<GenericSerializable<NewAppointmentInfo>, XunitSerializableExpression<AppointmentInfo>> cases = new();
+                TheoryData<NewAppointmentInfo, Expression<Func<AppointmentInfo, bool>>> cases = new();
                 // Request with valid data and client side generated id
                 {
                     NewAppointmentInfo req = new()
@@ -70,14 +72,12 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     };
 
                     cases.Add(req,
-                              new XunitSerializableExpression<AppointmentInfo>()
-                              {
-                                  Value = resource => resource.Id == req.Id
+                               resource => resource.Id == req.Id
                                                       && resource.Subject == req.Subject
                                                       && resource.Location == req.Location
                                                       && resource.StartDate == req.StartDate
                                                       && resource.EndDate == req.EndDate
-                              });
+                              );
                 }
                 // Request with valid data and server side generated id
                 {
@@ -91,14 +91,12 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     };
 
                     cases.Add(req,
-                              new XunitSerializableExpression<AppointmentInfo>()
-                              {
-                                  Value = resource => resource.Id != AppointmentId.Empty
+                              resource => resource.Id != AppointmentId.Empty
                                                       && resource.Subject == req.Subject
                                                       && resource.Location == req.Location
                                                       && resource.StartDate == req.StartDate
                                                       && resource.EndDate == req.EndDate
-                              });
+                              );
                 }
 
                 // Request with no location
@@ -112,14 +110,12 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     };
 
                     cases.Add(req,
-                              new XunitSerializableExpression<AppointmentInfo>()
-                              {
-                                  Value = resource => resource.Id != AppointmentId.Empty
+                              resource => resource.Id != AppointmentId.Empty
                                                       && resource.Subject == req.Subject
                                                       && resource.Location == string.Empty
                                                       && resource.StartDate == req.StartDate
                                                       && resource.EndDate == req.EndDate
-                              });
+                              );
                 }
 
                 return cases;
@@ -148,8 +144,8 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
 
         [Theory]
         [MemberData(nameof(CreateAppointmentWithValidRequestCases))]
-        public async Task Create_appointment_when_valid_request_is_received(GenericSerializable<NewAppointmentInfo> req,
-                                                                            XunitSerializableExpression<AppointmentInfo> responseExpectation)
+        public async Task Create_appointment_when_valid_request_is_received(NewAppointmentInfo req,
+                                                                            Expression<Func<AppointmentInfo, bool>> responseExpectation)
         {
             // Arrange
             A.CallTo(() => _linkGenerator.GetUriByAddress(A<HttpContext>.Ignored,
@@ -176,7 +172,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
             browsable.Resource.Should().NotBeNull();
 
             AppointmentInfo resource = browsable.Resource;
-            resource.Should().Match(responseExpectation.Value);
+            resource.Should().Match(responseExpectation);
 
             IEnumerable<Link> links = browsable.Links;
             links.Should()

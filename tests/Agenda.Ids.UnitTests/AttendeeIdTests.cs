@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FluentAssertions;
-using Xunit.OpenCategories.V3;
+using Xunit.Categories;
 
 namespace Agenda.Ids.UnitTests;
 [UnitTest]

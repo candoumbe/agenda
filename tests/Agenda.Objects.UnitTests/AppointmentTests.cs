@@ -10,7 +10,8 @@ using FsCheck.Xunit;
 using NodaTime;
 using NodaTime.Extensions;
 using Xunit;
-using Xunit.OpenCategories.V3;
+using Xunit.Abstractions;
+using Xunit.Categories;
 
 namespace Agenda.Objects.UnitTests;
 
