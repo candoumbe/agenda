@@ -1,7 +1,6 @@
-using System;
-using System.Linq.Expressions;
 using System.Text.Json;
 using Agenda.API.Features.Appointments.v1.Create;
+using Agenda.API.UnitTests.Helpers;
 using Agenda.Ids;
 using Bogus;
 using FakeItEasy;
@@ -29,11 +28,11 @@ public class NewAppointmentInfoValidatorShould
         _sut = Factory.CreateValidator<NewAppointmentInfoValidator>(services => services.AddSingleton(_clock));
     }
 
-    public static TheoryData<NewAppointmentInfo, ZonedDateTime, Expression<Func<ValidationResult, bool>>, string> RequestCases
+    public static TheoryData<GenericSerializable<NewAppointmentInfo>, GenericSerializable<ZonedDateTime>, XunitSerializableExpression<ValidationResult>, string> RequestCases
     {
         get
         {
-            TheoryData<NewAppointmentInfo, ZonedDateTime, Expression<Func<ValidationResult, bool>>, string> cases = new();
+            TheoryData<GenericSerializable<NewAppointmentInfo>, GenericSerializable<ZonedDateTime>, XunitSerializableExpression<ValidationResult>, string> cases = new();
 
             // Request without attendees
             {
@@ -50,10 +49,13 @@ public class NewAppointmentInfoValidatorShould
 
                 cases.Add(input,
                           now,
-                          validationResult => !validationResult.IsValid
-                                              && validationResult.Errors.Count == 1
-                                              && validationResult.Errors[0].PropertyName == nameof(NewAppointmentInfo.Attendees)
-                                              && validationResult.Errors[0].Severity == Severity.Error,
+                          new XunitSerializableExpression<ValidationResult>
+                          {
+                              Value = validationResult => !validationResult.IsValid
+                                                          && validationResult.Errors.Count == 1
+                                                          && validationResult.Errors[0].PropertyName == nameof(NewAppointmentInfo.Attendees)
+                                                          && validationResult.Errors[0].Severity == Severity.Error
+                          },
                           "attendees cannot be null");
             }
 
@@ -70,11 +72,13 @@ public class NewAppointmentInfoValidatorShould
                 };
                 cases.Add(input,
                           now,
-                          validationResult => !validationResult.IsValid
-                                              && validationResult.Errors.Count == 1
-                                              && validationResult.Errors[0].PropertyName == nameof(NewAppointmentInfo.EndDate)
-                                              && validationResult.Errors[0].Severity == Severity.Error
-                          ,
+                          new XunitSerializableExpression<ValidationResult>
+                          {
+                              Value = validationResult => !validationResult.IsValid
+                                                          && validationResult.Errors.Count == 1
+                                                          && validationResult.Errors[0].PropertyName == nameof(NewAppointmentInfo.EndDate)
+                                                          && validationResult.Errors[0].Severity == Severity.Error
+                          },
                           "end date cannot be before start date");
             }
 
@@ -90,7 +94,10 @@ public class NewAppointmentInfoValidatorShould
                 };
                 cases.Add(input,
                           now,
-                          validationResult => validationResult.IsValid,
+                          new XunitSerializableExpression<ValidationResult>
+                          {
+                              Value = validationResult => validationResult.IsValid
+                          },
                           "attendees and end date are valid");
             }
 
@@ -101,18 +108,19 @@ public class NewAppointmentInfoValidatorShould
 
     [Theory]
     [MemberData(nameof(RequestCases))]
-    public void Validate_inputs(NewAppointmentInfo input,
-                                ZonedDateTime now,
-                                Expression<Func<ValidationResult, bool>> validationResultExpectation,
+    public void Validate_inputs(GenericSerializable<NewAppointmentInfo> input,
+                                GenericSerializable<ZonedDateTime> now,
+                                XunitSerializableExpression<ValidationResult> validationResultExpectation,
                                 string reason)
     {
         // Arrange
-        A.CallTo(() => _clock.GetCurrentInstant()).Returns(now.ToInstant());
+        A.CallTo(() => _clock.GetCurrentInstant()).Returns(now.Value.ToInstant());
+        NewAppointmentInfo inputValue = input;
 
         // Act
         ValidationResult validationResult = _sut.Validate(input);
 
         // Assert
-        validationResult.Should().Match(validationResultExpectation, reason);
+        validationResult.Should().Match(validationResultExpectation.Value, reason);
     }
 }

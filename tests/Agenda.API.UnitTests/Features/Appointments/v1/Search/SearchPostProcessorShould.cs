@@ -16,9 +16,11 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Xunit;
+using Xunit.Categories;
 
 namespace Agenda.API.UnitTests.Features.Appointments.v1.Search
 {
+    [UnitTest]
     public class AddLinkHeaderPostProcessorShould
     {
         private readonly ILogger<AddLinkHeaderPostProcessor> _logger;
@@ -63,13 +65,13 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Search
             Ok<PageOf<Browsable<AppointmentInfo>>> response = TypedResults.Ok(emptyPage);
             HttpContext fakeHttpContext = A.Fake<HttpContext>(x => x.Strict());
             HttpResponse fakeResponse = A.Fake<HttpResponse>(x => x.Strict());
+
             A.CallTo(() => fakeHttpContext.Response).Returns(fakeResponse);
             Captured<Func<Task>> capturedOnStartingCallback = A.Captured<Func<Task>>();
             A.CallTo(() => fakeResponse.OnStarting(capturedOnStartingCallback._)).Invokes(() => {});
             A.CallTo(() => fakeResponse.Headers).Returns(new HeaderDictionary());
 
-
-            IPostProcessorContext<SearchAppointmentRequest, Ok<PageOf<Browsable<AppointmentInfo>>>> context = A.Fake<IPostProcessorContext<SearchAppointmentRequest, Ok<PageOf<Browsable<AppointmentInfo>>>>>(x => x.Strict());;
+            IPostProcessorContext<SearchAppointmentRequest, Ok<PageOf<Browsable<AppointmentInfo>>>> context = A.Fake<IPostProcessorContext<SearchAppointmentRequest, Ok<PageOf<Browsable<AppointmentInfo>>>>>(x => x.Strict());
             A.CallTo(() => context.HttpContext).Returns(fakeHttpContext);
             A.CallTo(() => context.Response).Returns(response);
 

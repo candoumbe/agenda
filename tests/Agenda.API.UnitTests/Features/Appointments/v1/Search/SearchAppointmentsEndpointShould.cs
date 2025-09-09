@@ -9,6 +9,7 @@ using Agenda.API.Features.Appointments;
 using Agenda.API.Features.Appointments.v1.Create;
 using Agenda.API.Features.Appointments.v1.Search;
 using Agenda.API.Features.v1.Appointments;
+using Agenda.API.UnitTests.Helpers;
 using Agenda.Ids;
 using Agenda.Objects;
 using Bogus;
@@ -103,11 +104,11 @@ public class SearchAppointmentsEndpointShould
             .And.Contain(processor => processor is AddLinkHeaderPostProcessor);
     }
 
-    public static TheoryData<IReadOnlyList<Appointment>, SearchAppointmentRequest, Expression<Func<PageOf<Browsable<AppointmentInfo>>, bool>>> RequestCases
+    public static TheoryData<GenericSerializable<IReadOnlyList<Appointment>>, GenericSerializable<SearchAppointmentRequest>, XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>> RequestCases
     {
         get
         {
-            TheoryData<IReadOnlyList<Appointment>, SearchAppointmentRequest, Expression<Func<PageOf<Browsable<AppointmentInfo>>, bool>>> cases = new();
+            TheoryData<GenericSerializable<IReadOnlyList<Appointment>>, GenericSerializable<SearchAppointmentRequest>, XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>> cases = new();
 
             // No data in the database
             {
@@ -118,19 +119,21 @@ public class SearchAppointmentsEndpointShould
                     PageSize = PositiveInteger.From(10),
                     Attendees = "e*"
                 };
-                cases.Add([],
+                cases.Add(new GenericSerializable<IReadOnlyList<Appointment>>{ Value = data },
                           request,
-                          pageOfAppointments => pageOfAppointments.Total == 0
-                                                && pageOfAppointments.Count == 0
-                                                && pageOfAppointments.Items != null
-                                                && pageOfAppointments.Items.Exactly(0)
-                                                && pageOfAppointments.Page == 1
-                                                && pageOfAppointments.Links != null
-                                                && pageOfAppointments.Links.First != null
-                                                && pageOfAppointments.Links.Previous == null
-                                                && pageOfAppointments.Links.Next == null
-                                                && pageOfAppointments.Links.Last != null
-                          );
+                          new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
+                          {
+                              Value = pageOfAppointments => pageOfAppointments.Total == 0
+                                                            && pageOfAppointments.Count == 0
+                                                            && pageOfAppointments.Items != null
+                                                            && pageOfAppointments.Items.Exactly(0)
+                                                            && pageOfAppointments.Page == 1
+                                                            && pageOfAppointments.Links != null
+                                                            && pageOfAppointments.Links.First != null
+                                                            && pageOfAppointments.Links.Previous == null
+                                                            && pageOfAppointments.Links.Next == null
+                                                            && pageOfAppointments.Links.Last != null
+                          });
             }
 
             return cases;
@@ -139,13 +142,13 @@ public class SearchAppointmentsEndpointShould
 
     [Theory]
     [MemberData(nameof(RequestCases))]
-    public async Task Have_expected_response(IReadOnlyList<Appointment> appointments,
-                                             SearchAppointmentRequest request,
-                                             Expression<Func<PageOf<Browsable<AppointmentInfo>>, bool>> responseExpectation)
+    public async Task Have_expected_response(GenericSerializable<IReadOnlyList<Appointment>> appointments,
+                                             GenericSerializable<SearchAppointmentRequest> request,
+                                             XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>> responseExpectation)
     {
         // Arrange
         Captured<Expression<Func<Appointment, bool>>> capturedExpression = A.Captured<Expression<Func<Appointment,bool>>>();
-        A.CallTo(() => _appointmentRepository.Where(A<Expression<Func<Appointment, bool>>>._,
+        A.CallTo(() => _appointmentRepository.Where(capturedExpression._,
                                                                  A<IOrder<Appointment>>._,
                                                                  A<PageSize>._,
                                                                  A<PageIndex>._,
@@ -155,8 +158,8 @@ public class SearchAppointmentsEndpointShould
                                =>
                            {
                                Func<Appointment, bool> compiledPredicate = predicate.Compile();
-                               long count = appointments.Count(compiledPredicate);
-                               List<Appointment> results = appointments.AsQueryable()
+                               long count = appointments.Value.Count(compiledPredicate);
+                               List<Appointment> results = appointments.Value.AsQueryable()
                                    .Where(predicate)
                                    .OrderBy(order)
                                    .Skip(pageIndex * pageSize)
@@ -169,12 +172,12 @@ public class SearchAppointmentsEndpointShould
                            });
 
         // Act
-        Ok<PageOf<Browsable<AppointmentInfo>>> response = await _sut.ExecuteAsync(request, CancellationToken.None);
+        Ok<PageOf<Browsable<AppointmentInfo>>> response = await _sut.ExecuteAsync(request.Value, A.Dummy<CancellationToken>());
 
         // Assert
         _outputHelper.WriteLine($"Expression was : {capturedExpression.Values.FirstOrDefault()}");
         response.Value.Should().NotBeNull();
-        response.Value.Should().Match(responseExpectation);
+        response.Value.Should().Match(responseExpectation.Value);
 
     }
 }
