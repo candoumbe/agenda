@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using Agenda.API.Features.Appointments;
 using Agenda.API.Features.Appointments.v1.Create;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.API.UnitTests.Helpers;
@@ -20,7 +21,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
     public class CreateAppointmentRequestValidatorShould
     {
         private readonly ITestOutputHelper _outputHelper;
-        private readonly NewAppointmentModelValidator _sut;
+        private readonly NewAppointmentInfoValidator _sut;
         private static readonly Faker s_faker = new();
         private static readonly Faker<AttendeeInfo> s_attendeeFaker = new();
         private static readonly Instant s_instantReference = s_faker.Noda().Instant.Recent();
@@ -30,7 +31,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
         public CreateAppointmentRequestValidatorShould(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            _sut = Factory.CreateValidator<NewAppointmentModelValidator>(services => { services.AddSingleton<IClock>(new FakeClock(s_instantReference)); });
+            _sut = Factory.CreateValidator<NewAppointmentInfoValidator>(services => { services.AddSingleton<IClock>(new FakeClock(s_instantReference)); });
         }
 
         static CreateAppointmentRequestValidatorShould()
@@ -75,17 +76,14 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                                   EndDate = end,
                                   Subject = s_faker.Lorem.Sentence(),
                                   Location = null,
-                                  Attendees = new List<AttendeeInfo>(),
+                                  Attendees = [],
                               },
                               new XunitSerializableExpression<ValidationResult>
                               {
-                                  Value = validationResult => !validationResult.IsValid
-                                                              && validationResult.Errors.Count == 1
-                                                              && validationResult.Errors[0].PropertyName == nameof(NewAppointmentInfo.Attendees)
-                                                              && validationResult.Errors[0].Severity == Severity.Error
+                                  Value = validationResult => validationResult.IsValid
                               },
                               $"""
-                               "{nameof(NewAppointmentInfo.Attendees)}" must have at least one item.
+                               "{nameof(NewAppointmentInfo.Attendees)}" can be empty.
                                """);
                 }
 

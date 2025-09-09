@@ -1,7 +1,7 @@
 ﻿
+using Agenda.Ids;
 using Agenda.Objects;
 
-using Fluxera.StronglyTypedId.EntityFrameworkCore;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,8 +13,8 @@ public class AttendeeEntityTypeConfiguration : IEntityTypeConfiguration<Attendee
     ///<inheritdoc/>
     public void Configure(EntityTypeBuilder<Attendee> builder)
     {
+        builder.Property(x => x.Id).HasConversion<AttendeeId.EfCoreValueConverter>();
 
-        builder.UseStronglyTypedId();
         builder.Property(x => x.Name)
             .HasMaxLength(AgendaDataStore.NormalTextLength)
             .IsRequired();
@@ -27,4 +27,3 @@ public class AttendeeEntityTypeConfiguration : IEntityTypeConfiguration<Attendee
 
     }
 }
-

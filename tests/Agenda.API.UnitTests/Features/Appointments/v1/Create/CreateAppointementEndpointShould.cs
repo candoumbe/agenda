@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Agenda.API.Features;
 using Agenda.API.Features.Appointments;
 using Agenda.API.Features.Appointments.v1.Create;
+using Agenda.API.Features.Appointments.v1.Search;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.API.UnitTests.Helpers;
 using Agenda.Ids;
@@ -36,7 +37,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
         {
             s_faker = new Faker();
             s_attendeeFaker = new Faker<AttendeeInfo>();
-            s_attendeeFaker.RuleFor(attendee => attendee.Id, AttendeeId.New)
+            s_attendeeFaker.RuleFor(attendee => attendee.Id, new AttendeeId())
                 .RuleFor(attendee => attendee.Name, s_faker.Name.FullName())
                 .RuleFor(attendee => attendee.Email, s_faker.Internet.Email())
                 .RuleFor(attendee => attendee.PhoneNumber, s_faker.Phone.PhoneNumber())
@@ -92,8 +93,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     cases.Add(req,
                               new XunitSerializableExpression<AppointmentInfo>()
                               {
-                                  Value = resource => resource.Id != null
-                                                      && resource.Id.Value != Guid.Empty
+                                  Value = resource => resource.Id != AppointmentId.Empty
                                                       && resource.Subject == req.Subject
                                                       && resource.Location == req.Location
                                                       && resource.StartDate == req.StartDate
@@ -114,11 +114,11 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     cases.Add(req,
                               new XunitSerializableExpression<AppointmentInfo>()
                               {
-                                  Value = resource => resource.Id != null && resource.Id.Value != Guid.Empty
-                                                                          && resource.Subject == req.Subject
-                                                                          && resource.Location == string.Empty
-                                                                          && resource.StartDate == req.StartDate
-                                                                          && resource.EndDate == req.EndDate
+                                  Value = resource => resource.Id != AppointmentId.Empty
+                                                      && resource.Subject == req.Subject
+                                                      && resource.Location == string.Empty
+                                                      && resource.StartDate == req.StartDate
+                                                      && resource.EndDate == req.EndDate
                               });
                 }
 
@@ -126,6 +126,25 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
             }
         }
 
+
+        [Fact]
+        public void Have_expected_definition()
+        {
+            // Assert
+            EndpointDefinition endpointDefinition = _sut.Definition;
+            string[] routes = endpointDefinition.Routes;
+            routes.Should()
+                .HaveCount(1)
+                .And
+                .ContainSingle("/appointments");
+
+            string[] methods = endpointDefinition.Verbs;
+            methods.Should().HaveCount(1)
+                .And.ContainSingle("POST");
+
+            Type validatorType = endpointDefinition.ValidatorType;
+            validatorType.Should().Be<NewAppointmentInfoValidator>();
+        }
 
         [Theory]
         [MemberData(nameof(CreateAppointmentWithValidRequestCases))]

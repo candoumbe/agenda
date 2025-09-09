@@ -1,4 +1,5 @@
-﻿using Agenda.Ids;
+﻿using Agenda.API.Features.Appointments;
+using Agenda.Ids;
 using NodaTime;
 
 namespace Agenda.API.Features.v1.Appointments;

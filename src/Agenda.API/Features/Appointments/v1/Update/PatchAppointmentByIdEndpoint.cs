@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Agenda.Ids;
 using FastEndpoints;
-using Fluxera.StronglyTypedId;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using SystemTextJsonPatch;

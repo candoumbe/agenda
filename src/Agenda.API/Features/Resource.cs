@@ -5,7 +5,7 @@ namespace Agenda.API.Features;
 /// <summary>
 /// Represents a resource
 /// </summary>
-/// <typeparam name="TId">Type of the identifier of the resource</typeparam>
+/// <typeparam name="TId">Type of the resource's identifier.</typeparam>
 public record Resource<TId> where TId : IComparable<TId>
 {
     /// <summary>

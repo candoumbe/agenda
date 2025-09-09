@@ -251,22 +251,4 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
         // Assert
         appointment.Should().Match(appointmentExpectation);
     }
-
-    [Fact]
-    public void Given_an_appointment_When_calling_RemoveAttendee_with_a_null_id_Then_an_ArgumentNullException_is_thrown()
-    {
-        // Arrange
-        Appointment appointment = new(AppointmentId.New(),
-                                      s_faker.Lorem.Sentence(),
-                                      s_faker.Address.FullAddress(),
-                                      s_faker.Noda().Instant.Past(),
-                                      s_faker.Noda().Instant.Future());
-
-        // Act
-        Action removingAnAttendeeWithNullId = () => appointment.RemoveAttendee(null);
-
-        // Assert
-        removingAnAttendeeWithNullId.Should()
-            .Throw<ArgumentNullException>();
-    }
 }

@@ -24,7 +24,7 @@ public class PatchRequestValidatorShould(ITestOutputHelper outputHelper)
         {
             new PatchRequest<AppointmentId, PatchAppointmentRequest>()
             {
-                Id = AppointmentId.New(),
+                Id = new AppointmentId(),
                 Operations = new List<Operation<PatchAppointmentRequest>>()
             },
             new XunitSerializableExpression<ValidationResult>
@@ -37,7 +37,7 @@ public class PatchRequestValidatorShould(ITestOutputHelper outputHelper)
             "Patch document must have one operation at least"
         },
         {
-            new PatchRequest<AppointmentId, PatchAppointmentRequest>() { Id = AppointmentId.New(), Operations = null },
+            new PatchRequest<AppointmentId, PatchAppointmentRequest>() { Id = new AppointmentId(), Operations = null },
             new XunitSerializableExpression<ValidationResult>()
             {
                 Value =validationResult => !validationResult.IsValid
@@ -50,7 +50,7 @@ public class PatchRequestValidatorShould(ITestOutputHelper outputHelper)
         {
             new PatchRequest<AppointmentId, PatchAppointmentRequest>()
             {
-                Id = AppointmentId.New(),
+                Id = new AppointmentId(),
                 Operations = new List<Operation<PatchAppointmentRequest>>
                 {
                     new Operation<PatchAppointmentRequest>(nameof(OperationType.Add),

@@ -6,7 +6,7 @@ using NodaTime;
 namespace Agenda.API.Features.Appointments;
 
 /// <summary>
-/// An appointment beetween two or more people
+/// An appointment between two or more people
 /// </summary>
 public record AppointmentInfo : Resource<AppointmentId>
 {

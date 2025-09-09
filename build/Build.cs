@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Candoumbe.Pipelines.Components;
 using Candoumbe.Pipelines.Components.Formatting;
 using Candoumbe.Pipelines.Components.GitHub;
@@ -78,7 +77,6 @@ public class Build : EnhancedNukeBuild,
     IClean,
     IDotnetFormat,
     IRestore,
-    IMutationTest,
     IBenchmark,
     IReportUnitTestCoverage,
     IReportIntegrationTestCoverage,
@@ -111,16 +109,6 @@ public class Build : EnhancedNukeBuild,
 
     ///<inheritdoc/>
     IEnumerable<Project> IIntegrationTest.IntegrationTestsProjects => this.Get<IHaveSolution>().Solution.GetAllProjects("*.IntegrationTests");
-
-    private static readonly string[] s_projectWithUnitTests = ["Agenda.API", "Agenda.Ids", "Agenda.Objects"];
-
-    ///<inheritdoc/>
-    IEnumerable<MutationProjectConfiguration> IMutationTest.MutationTestsProjects
-        => s_projectWithUnitTests
-            .Select(projectName => new MutationProjectConfiguration(sourceProject: this.Get<IHaveSolution>().Solution.AllProjects.Single(csproj => string.Equals(csproj.Name, projectName, StringComparison.InvariantCultureIgnoreCase)),
-                                                                    testProjects: this.Get<IHaveSolution>().Solution.AllProjects.Where(csproj => string.Equals(csproj.Name, $"{projectName}.UnitTests", StringComparison.InvariantCultureIgnoreCase)),
-                                                                    configurationFile: this.Get<IHaveTestDirectory>().TestDirectory / $"{projectName}.UnitTests" / "stryker-config.json"))
-            .ToArray();
 
     ///<inheritdoc/>
     IEnumerable<Project> IBenchmark.BenchmarkProjects => this.Get<IHaveSolution>().Solution.GetAllProjects("*.PerformanceTests");

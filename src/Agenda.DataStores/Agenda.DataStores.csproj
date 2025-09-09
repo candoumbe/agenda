@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="../../core.props"/>
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <LangVersion>latest</LangVersion>
@@ -7,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="Candoumbe.DataAccess.EFStore" />
-    <PackageReference Include="Fluxera.StronglyTypedId.EntityFrameworkCore" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     
   </ItemGroup>

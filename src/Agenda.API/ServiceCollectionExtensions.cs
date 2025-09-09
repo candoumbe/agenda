@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using Agenda.DataStores;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;
-using Fluxera.StronglyTypedId.SystemTextJson;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

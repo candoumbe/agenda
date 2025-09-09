@@ -20,7 +20,7 @@ public class PageOf<TResource> where TResource : class
     public long Total { get; init; }
 
     /// <summary>
-    /// The number of element the current page holds
+    /// The number of elements the current page holds
     /// </summary>
     public long Count { get; init; }
 
