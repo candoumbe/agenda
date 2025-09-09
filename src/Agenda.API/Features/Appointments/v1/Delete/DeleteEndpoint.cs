@@ -40,10 +40,12 @@ public class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, Not
 
         IRepository<Appointment> repository = unitOfWork.Repository<Appointment>();
         Results<NoContent, NotFound> result;
+
         if (await repository.Any(appointment => appointment.Id == req.Id, ct))
         {
             await repository.Delete(appointment => appointment.Id == req.Id, ct);
             await unitOfWork.SaveChangesAsync(ct);
+
             result = TypedResults.NoContent();
         }
         else
