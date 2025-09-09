@@ -81,13 +81,16 @@ public class DeleteByIdEndpointShould
     {
         get
         {
-            TheoryData<GenericSerializable<IReadOnlyList<Appointment>>, GenericSerializable<DeleteByIdRequest>, XunitSerializableExpression<Results<NoContent, NotFound>>, string> cases = new();
-
-            // No data in the database
-            cases.Add(Array.Empty<Appointment>(),
-                      new DeleteByIdRequest(AppointmentId.New()),
-                      new XunitSerializableExpression<Results<NoContent, NotFound>> { Value = result => result.Result is NotFound },
-                      "no data in the database");
+            TheoryData<GenericSerializable<IReadOnlyList<Appointment>>, GenericSerializable<DeleteByIdRequest>, XunitSerializableExpression<Results<NoContent, NotFound>>, string> cases = new()
+            {
+                // No data in the database
+                {
+                    Array.Empty<Appointment>(),
+                    new DeleteByIdRequest(AppointmentId.New()),
+                    new XunitSerializableExpression<Results<NoContent, NotFound>> { Value = result => result.Result is NotFound },
+                    "no data in the database"
+                }
+            };
 
             // Data in the database and request id match an existing appointment
             {
