@@ -119,38 +119,8 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
         IReadOnlyList<Appointment> entries = [.. pageOfAppointments.Entries];
         int count = entries.Count;
 
-        Link firstPageLink = new()
-        {
-            Href = _linkGenerator.GetUriByRouteValues(http!,
-                                                      nameof(SearchAppointmentsEndpoint),
-                                                      new
-                                                      {
-                                                          Page = 1,
-                                                          search.PageSize,
-                                                          search.Subject,
-                                                          search.Attendees,
-                                                          search.From,
-                                                          search.To,
-                                                          search.Sort
-                                                      }),
-            Relations = [LinkRelation.First]
-        };
-        Link lastPageLink = new()
-        {
-            Href = _linkGenerator.GetUriByRouteValues(http!,
-                                                      nameof(SearchAppointmentsEndpoint),
-                                                      new
-                                                      {
-                                                          Page = (int)pageOfAppointments.Total,
-                                                          search.PageSize,
-                                                          search.Subject,
-                                                          search.Attendees,
-                                                          search.From,
-                                                          search.To,
-                                                          search.Sort
-                                                      }),
-            Relations = [LinkRelation.Last]
-        };
+        Link firstPageLink = ComputeLinkToFirstPage(search, http);
+        Link lastPageLink = ComputeLinkToLastPage(search, http, pageOfAppointments);
 
         PageOf<Browsable<AppointmentInfo>> content = new()
         {
@@ -161,31 +131,106 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             [
                 .. entries.Select(x => new Browsable<AppointmentInfo>
                 {
-                    Resource = new AppointmentInfo
-                    {
-                        Id = x.Id,
-                        Location = x.Location,
-                        StartDate = x.StartDate.InZone(zone).ToOffsetDateTime(),
-                        EndDate = x.EndDate.InZone(zone).ToOffsetDateTime()
-                    },
+                    Resource = new AppointmentInfo { Id = x.Id, Location = x.Location, StartDate = x.StartDate.InZone(zone).ToOffsetDateTime(), EndDate = x.EndDate.InZone(zone).ToOffsetDateTime() },
                     Links =
                     [
-                        new Link
-                        {
-                            Href = _linkGenerator.GetUriByRouteValues(http!, nameof(GetAppointmentByIdEndpoint), new { x.Id }),
-                            Relations = [LinkRelation.Self]
-                        },
-                        new Link
-                        {
-                            Href = _linkGenerator.GetUriByRouteValues(http!, nameof(DeleteEndpoint), new { x.Id }),
-                            Relations = ["delete"]
-                        }
+                        new Link { Href = _linkGenerator.GetUriByRouteValues(http!, nameof(GetAppointmentByIdEndpoint), new { x.Id }), Relations = [LinkRelation.Self] },
+                        new Link { Href = _linkGenerator.GetUriByRouteValues(http!, nameof(DeleteEndpoint), new { x.Id }), Relations = ["delete"] }
                     ]
                 })
             ],
-            Links = new PageLinks(First: firstPageLink, Last: lastPageLink)
+            Links = new PageLinks(First: firstPageLink,
+                                  Last: lastPageLink,
+                                  Previous: ComputeLinkToPreviousPage(search, pageOfAppointments, http),
+                                  Next: ComputeLinkToNextPage(search, pageOfAppointments, http))
         };
 
         return TypedResults.Ok(content);
+
+        Link ComputeLinkToPreviousPage(SearchAppointmentRequest localSearch, Page<Appointment> page, HttpContext httpContext)
+        {
+            ArgumentNullException.ThrowIfNull(httpContext);
+            
+            return (page.Count, localSearch.Page.Value) switch
+            {
+                (> 1, > 1) => new Link
+                {
+                    Href = _linkGenerator.GetUriByRouteValues(httpContext,
+                                                              IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
+                                                              new
+                                                              {
+                                                                  Page = localSearch.Page - 1,
+                                                                  localSearch.PageSize,
+                                                                  localSearch.Subject,
+                                                                  localSearch.Attendees,
+                                                                  localSearch.From,
+                                                                  localSearch.To,
+                                                                  localSearch.Sort
+                                                              }),
+                },
+                _ => null
+            };
+        }
+
+        Link ComputeLinkToNextPage(SearchAppointmentRequest searchAppointmentRequest, Page<Appointment> page, HttpContext httpContext)
+        {
+            return searchAppointmentRequest.Page < page.Count
+                       ? new Link
+                       {
+                           Href = _linkGenerator.GetUriByRouteValues(httpContext,
+                                                                     IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
+                                                                     new
+                                                                     {
+                                                                         Page = searchAppointmentRequest.Page + 1,
+                                                                         searchAppointmentRequest.PageSize,
+                                                                         searchAppointmentRequest.Subject,
+                                                                         searchAppointmentRequest.Attendees,
+                                                                         searchAppointmentRequest.From,
+                                                                         searchAppointmentRequest.To,
+                                                                         searchAppointmentRequest.Sort
+                                                                     }),
+                       }
+                       : null;
+        }
+
+        Link ComputeLinkToFirstPage(SearchAppointmentRequest localSearch, HttpContext httpContext)
+        {
+            return new()
+            {
+                Href = _linkGenerator.GetUriByRouteValues(httpContext!,
+                                                          nameof(SearchAppointmentsEndpoint),
+                                                          new
+                                                          {
+                                                              Page = 1,
+                                                              localSearch.PageSize,
+                                                              localSearch.Subject,
+                                                              localSearch.Attendees,
+                                                              localSearch.From,
+                                                              localSearch.To,
+                                                              localSearch.Sort
+                                                          }),
+                Relations = [LinkRelation.First]
+            };
+        }
+
+        Link ComputeLinkToLastPage(SearchAppointmentRequest localSearch, HttpContext httpContext, Page<Appointment> page)
+        {
+            return new()
+            {
+                Href = _linkGenerator.GetUriByRouteValues(httpContext!,
+                                                          nameof(SearchAppointmentsEndpoint),
+                                                          new
+                                                          {
+                                                              Page = (int)page.Total,
+                                                              localSearch.PageSize,
+                                                              localSearch.Subject,
+                                                              localSearch.Attendees,
+                                                              localSearch.From,
+                                                              localSearch.To,
+                                                              localSearch.Sort
+                                                          }),
+                Relations = [LinkRelation.Last]
+            };
+        }
     }
 }

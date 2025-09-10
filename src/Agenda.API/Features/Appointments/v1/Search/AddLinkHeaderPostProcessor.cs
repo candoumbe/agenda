@@ -25,7 +25,8 @@ public class AddLinkHeaderPostProcessor : IPostProcessor<SearchAppointmentReques
     }
 
     /// <inheritdoc />
-    public Task PostProcessAsync(IPostProcessorContext<SearchAppointmentRequest, Ok<PageOf<Browsable<AppointmentInfo>>>> context, CancellationToken ct)
+    public Task PostProcessAsync(IPostProcessorContext<SearchAppointmentRequest, Ok<PageOf<Browsable<AppointmentInfo>>>> context,
+                                 CancellationToken ct)
     {
         PageLinks pageLinks = context.Response.Value.Links;
         Link first = pageLinks.First;

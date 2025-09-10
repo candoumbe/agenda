@@ -38,43 +38,48 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Search;
 public class SearchAppointmentsEndpointShould
 {
     private readonly ITestOutputHelper _outputHelper;
-    private readonly IUnitOfWorkFactory _unitOfWorkFactory;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly LinkGenerator _linkGenerator;
-    private readonly CurrentRequestMetadataInfoProvider _currentRequestMetadataInfoProvider;
     private static readonly Faker s_faker;
-    private static readonly Faker<AttendeeInfo> s_attendeeFaker;
+    private static readonly Faker<Appointment> s_appointementFaker;
     private readonly SearchAppointmentsEndpoint _sut;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IRepository<Appointment> _appointmentRepository;
 
     static SearchAppointmentsEndpointShould()
     {
         s_faker = new Faker();
-        s_attendeeFaker = new Faker<AttendeeInfo>();
-        s_attendeeFaker.RuleFor(attendee => attendee.Id, new AttendeeId())
-            .RuleFor(attendee => attendee.Name, s_faker.Name.FullName())
-            .RuleFor(attendee => attendee.Email, s_faker.Internet.Email())
-            .RuleFor(attendee => attendee.PhoneNumber, s_faker.Phone.PhoneNumber())
-            ;
+        s_appointementFaker = new Faker<Appointment>()
+            .CustomInstantiator(f =>
+                                {
+                                    Appointment appointement =  new Appointment(AppointmentId.New(),
+                                                                                f.Lorem.Sentence(),
+                                                                                f.Address.FullAddress(),
+                                                                                f.Noda().Instant.Past(),
+                                                                                f.Noda().Instant.Future());
+
+                                    for (int i = 0; i < Random.Shared.Next(1, 10); i++)
+                                    {
+                                        appointement.AddAttendee(new Attendee(AttendeeId.New(), f.Name.FullName(), f.Internet.Email(), f.Phone.PhoneNumber()));
+                                    }
+
+                                    return appointement;
+                                });
     }
 
     public SearchAppointmentsEndpointShould(ITestOutputHelper outputHelper)
     {
         _outputHelper = outputHelper;
 
-        _unitOfWorkFactory = A.Fake<IUnitOfWorkFactory>(x => x.Strict().Named("unitOfWorkFactory"));
-        _unitOfWork = A.Fake<IUnitOfWork>(x => x.Strict().Named("unitOfWork"));
-        A.CallTo(() => _unitOfWork.Dispose()).DoesNothing();
+        IUnitOfWorkFactory unitOfWorkFactory = A.Fake<IUnitOfWorkFactory>(x => x.Strict().Named("unitOfWorkFactory"));
+        IUnitOfWork unitOfWork = A.Fake<IUnitOfWork>(x => x.Strict().Named("unitOfWork"));
+        A.CallTo(() => unitOfWork.Dispose()).DoesNothing();
         _appointmentRepository = A.Fake<IRepository<Appointment>>(x => x.Strict().Named("repository"));
 
-        A.CallTo(() => _unitOfWorkFactory.NewUnitOfWork()).Returns(_unitOfWork);
-        A.CallTo(() => _unitOfWork.Repository<Appointment>()).Returns(_appointmentRepository);
+        A.CallTo(() => unitOfWorkFactory.NewUnitOfWork()).Returns(unitOfWork);
+        A.CallTo(() => unitOfWork.Repository<Appointment>()).Returns(_appointmentRepository);
 
-        _linkGenerator = A.Fake<LinkGenerator>();
-        _httpContextAccessor = A.Fake<IHttpContextAccessor>();
-        _currentRequestMetadataInfoProvider = A.Fake<CurrentRequestMetadataInfoProvider>();
-        _sut = Factory.Create<SearchAppointmentsEndpoint>(_unitOfWorkFactory, _httpContextAccessor, _linkGenerator, _currentRequestMetadataInfoProvider);
+        LinkGenerator linkGenerator = A.Fake<LinkGenerator>();
+        IHttpContextAccessor httpContextAccessor = A.Fake<IHttpContextAccessor>();
+        CurrentRequestMetadataInfoProvider currentRequestMetadataInfoProvider = A.Fake<CurrentRequestMetadataInfoProvider>();
+        _sut = Factory.Create<SearchAppointmentsEndpoint>(unitOfWorkFactory, httpContextAccessor, linkGenerator, currentRequestMetadataInfoProvider);
     }
 
 
@@ -107,18 +112,18 @@ public class SearchAppointmentsEndpointShould
     {
         get
         {
-            TheoryData<GenericSerializable<IReadOnlyList<Appointment>>, GenericSerializable<SearchAppointmentRequest>, XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>> cases = new();
+            TheoryData<GenericSerializable<IReadOnlyList<Appointment>>, GenericSerializable<SearchAppointmentRequest>, XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>> cases = [];
 
             // No data in the database
             {
-                IReadOnlyList<Appointment> data = [];
+                List<Appointment> data = [];
                 SearchAppointmentRequest request = new()
                 {
                     Page = NonNegativeInteger.One,
                     PageSize = PositiveInteger.From(10),
                     Attendees = "e*"
                 };
-                cases.Add(new GenericSerializable<IReadOnlyList<Appointment>>{ Value = data },
+                cases.Add( data ,
                           request,
                           new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
                           {
@@ -135,6 +140,71 @@ public class SearchAppointmentsEndpointShould
                           });
             }
 
+            // Search with no filter, first page and there are 3 pages of 10 items
+            {
+                List<Appointment> data = s_appointementFaker.Generate(30);
+
+                SearchAppointmentRequest request = new() {Page = NonNegativeInteger.One, PageSize = PositiveInteger.From(10) };
+                cases.Add( data ,
+                          request,
+                          new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
+                          {
+                              Value = pageOfAppointments => pageOfAppointments.Total == 30
+                                                            && pageOfAppointments.Count == 10
+                                                            && pageOfAppointments.Items != null
+                                                            && pageOfAppointments.Items.Exactly(10)
+                                                            && pageOfAppointments.Page == 1
+                                                            && pageOfAppointments.Links != null
+                                                            && pageOfAppointments.Links.First != null
+                                                            && pageOfAppointments.Links.Previous == null
+                                                            && pageOfAppointments.Links.Next != null
+                                                            && pageOfAppointments.Links.Last != null
+                          });
+            }
+
+            // Search with no filter, second page and there are 3 pages of 10 items
+            {
+                List<Appointment> data = s_appointementFaker.Generate(30);
+                SearchAppointmentRequest request = new() { Page = NonNegativeInteger.From(2), PageSize = PositiveInteger.From(10), };
+                cases.Add(data,
+                          request,
+                          new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>()
+                          {
+                              Value = pageOfAppointments => pageOfAppointments.Total == 30
+                                                            && pageOfAppointments.Count == 10
+                                                            && pageOfAppointments.Items != null
+                                                            && pageOfAppointments.Items.Exactly(10)
+                                                            && pageOfAppointments.Page == 2
+                                                            && pageOfAppointments.Links != null
+                                                            && pageOfAppointments.Links.First != null
+                                                            && pageOfAppointments.Links.Previous != null
+                                                            && pageOfAppointments.Links.Next != null
+                                                            && pageOfAppointments.Links.Last != null
+                          });
+
+            }
+
+            // Search with no filter, last page and there are 3 pages of 10 items
+            {
+                List<Appointment> data = s_appointementFaker.Generate(30);
+                SearchAppointmentRequest request = new (){ Page = NonNegativeInteger.From(3), PageSize = PositiveInteger.From(10) };
+                cases.Add(data,
+                          request,
+                          new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>()
+                          {
+                              Value = pageOfAppointments => pageOfAppointments.Total == 30
+                                                            && pageOfAppointments.Count == 10
+                                                            && pageOfAppointments.Items != null
+                                                            && pageOfAppointments.Items.Exactly(10)
+                                                            && pageOfAppointments.Page == 3
+                                                            && pageOfAppointments.Links != null
+                                                            && pageOfAppointments.Links.First != null
+                                                            && pageOfAppointments.Links.Previous != null
+                                                            && pageOfAppointments.Links.Next == null
+                                                            && pageOfAppointments.Links.Last != null
+                          });
+            }
+
             return cases;
         }
     }
@@ -146,13 +216,17 @@ public class SearchAppointmentsEndpointShould
                                              XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>> responseExpectation)
     {
         // Arrange
-        Captured<Expression<Func<Appointment, bool>>> capturedExpression = A.Captured<Expression<Func<Appointment,bool>>>();
-        A.CallTo(() => _appointmentRepository.Where(A<Expression<Func<Appointment, bool>>>._,
+        Expression<Func<Appointment, bool>> capturedExpression = null;
+        A.CallTo(() => _appointmentRepository.Where(An<Expression<Func<Appointment, bool>>>._,
                                                                  A<IOrder<Appointment>>._,
                                                                  A<PageSize>._,
                                                                  A<PageIndex>._,
                                                                  A.Dummy<CancellationToken>()))
             .WithAnyArguments()
+            .Invokes((Expression<Func<Appointment, bool>> predicate, IOrder<Appointment> order, PageSize pageSize, PageIndex pageIndex, CancellationToken _) =>
+                     {
+                         capturedExpression = predicate;
+                     })
             .ReturnsLazily((Expression<Func<Appointment, bool>> predicate, IOrder<Appointment> order, PageSize pageSize, PageIndex pageIndex, CancellationToken _)
                                =>
                            {
@@ -161,7 +235,7 @@ public class SearchAppointmentsEndpointShould
                                List<Appointment> results = appointments.Value.AsQueryable()
                                    .Where(predicate)
                                    .OrderBy(order)
-                                   .Skip(pageIndex * pageSize)
+                                   .Skip((pageIndex - 1)* pageSize)
                                    .Take(pageSize)
                                    .ToList();
 
@@ -174,9 +248,10 @@ public class SearchAppointmentsEndpointShould
         Ok<PageOf<Browsable<AppointmentInfo>>> response = await _sut.ExecuteAsync(request.Value, TestContext.Current.CancellationToken);
 
         // Assert
-        _outputHelper.WriteLine($"Expression was : {capturedExpression.Values.FirstOrDefault()}");
-        response.Value.Should().NotBeNull();
-        response.Value.Should().Match(responseExpectation.Value);
+        _outputHelper.WriteLine($"Expression was : {capturedExpression}");
+        PageOf<Browsable<AppointmentInfo>> page = response.Value;
+        _outputHelper.WriteLine($"Response : {new{ page.Count, page.Page, page.Total, page.Links }.Jsonify()}");
+        page.Should().Match(responseExpectation.Value);
 
     }
 }
