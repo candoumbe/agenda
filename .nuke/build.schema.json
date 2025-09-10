@@ -126,10 +126,6 @@
           "type": "string",
           "description": "The name of the chore branch prefix"
         },
-        "ChoreBranchSourceName": {
-          "type": "string",
-          "description": "The name of the chore branch source"
-        },
         "CodecovToken": {
           "type": "string",
           "description": "The API key used to push code coverage to CodeCov",
