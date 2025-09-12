@@ -12,7 +12,7 @@ namespace Agenda.Objects;
 /// </summary>
 public class Appointment : AuditableEntity<AppointmentId, Appointment>
 {
-    private readonly IList<Attendee> _attendees;
+    private readonly List<Attendee> _attendees;
 
     /// <summary>
     /// Location of the appointment
@@ -37,7 +37,7 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// <summary>
     /// Participants of the <see cref="Appointment"/>
     /// </summary>
-    public IList<Attendee> Attendees => _attendees;
+    public IReadOnlyList<Attendee> Attendees => _attendees;
 
     /// <summary>
     /// Status of the <see cref="Appointment"/>.
@@ -64,7 +64,7 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
         Location = location ?? string.Empty;
         StartDate = startDate;
         EndDate = endDate;
-        _attendees = new List<Attendee>();
+        _attendees = [];
     }
 
     /// <summary>

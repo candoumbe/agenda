@@ -38,5 +38,5 @@ public record AppointmentInfo : Resource<AppointmentId>
     /// <summary>
     /// Participants
     /// </summary>
-    public IEnumerable<AttendeeInfo> Attendees { get; init; }
+    public required IReadOnlyList<AttendeeInfo> Attendees { get; init; }
 }

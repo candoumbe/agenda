@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Candoumbe.Forms;
 using FastEndpoints;
@@ -9,7 +10,7 @@ namespace Agenda.API.Features.Appointments.v1.Search;
 /// <summary>
 /// Post processor for handling responses from <see cref="SearchAppointmentsEndpoint"/>.
 /// </summary>
-public class AddLinkHeaderPostProcessor : IPostProcessor<SearchAppointmentRequest, Ok<PageOf<Browsable<AppointmentInfo>>>>
+public partial class AddLinkHeaderPostProcessor : IPostProcessor<SearchAppointmentRequest, Ok<PageOf<Browsable<AppointmentInfo>>>>
 {
     private readonly ILogger<AddLinkHeaderPostProcessor> _logger;
 
@@ -36,7 +37,6 @@ public class AddLinkHeaderPostProcessor : IPostProcessor<SearchAppointmentReques
 
         Link[] links = [first, last, next, previous];
 
-
         context.HttpContext.Response.OnStarting(() =>
                                                 {
                                                     List<string> linkToRender = [];
@@ -47,10 +47,15 @@ public class AddLinkHeaderPostProcessor : IPostProcessor<SearchAppointmentReques
                                                                                                                  """));
                                                     }
 
+                                                    LogLinkHeader(string.Join(", ", linkToRender));
                                                     context.HttpContext.Response.Headers.Link = new StringValues([..linkToRender]);
 
                                                     return Task.CompletedTask;
                                                 });
         return Task.CompletedTask;
     }
+
+    [ExcludeFromCodeCoverage]
+    [LoggerMessage(LogLevel.Trace, "Link header: {LinkHeader}")]
+    private partial void LogLinkHeader(string linkHeader);
 }

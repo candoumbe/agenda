@@ -38,7 +38,7 @@ public record NewAppointmentInfo
     /// <summary>
     /// Participants of the appointment
     /// </summary>
-    public IEnumerable<AttendeeInfo> Attendees { get; init; }
+    public IReadOnlyList<AttendeeInfo> Attendees { get; init; }
 
     /// <summary>
     /// Builds a new <see cref="NewAppointmentInfo"/> instance.

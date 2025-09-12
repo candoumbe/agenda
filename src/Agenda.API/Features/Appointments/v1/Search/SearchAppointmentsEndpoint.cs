@@ -6,11 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.Features.Appointments.v1.Delete;
 using Agenda.API.Features.Appointments.v1.GetById;
+using Agenda.Ids;
 using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.Repositories;
 using Candoumbe.Forms;
 using DataFilters;
+using DataFilters.Casing;
 using DataFilters.Expressions;
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
@@ -59,79 +61,73 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
     }
 
     /// <inheritdoc />
-    public override async Task<Ok<PageOf<Browsable<AppointmentInfo>>>> ExecuteAsync(SearchAppointmentRequest search, CancellationToken ct)
+    public override async Task<Ok<PageOf<Browsable<AppointmentInfo>>>> ExecuteAsync(SearchAppointmentRequest request, CancellationToken ct)
     {
         Logger.LogInformation("Searching appointments");
         DateTimeZone zone = _currentRequestMetadataInfo.GetCurrentDateTimeZone();
 
-        List<IFilter> filters = [];
-        if (search.From is not null || search.To is not null)
-        {
-            filters.Add((search.From, search.To) switch
-            {
-                (not null, not null) => new MultiFilter
-                {
-                    Logic = FilterLogic.And,
-                    Filters =
-                    [
-                        new Filter(nameof(Appointment.StartDate), FilterOperator.GreaterThanOrEqual, search.From.Value.ToInstant()),
-                        new Filter(nameof(Appointment.EndDate), FilterOperator.LessThanOrEqualTo, search.To.Value.ToInstant())
-                    ]
-                },
-                (not null, null) => new Filter(nameof(Appointment.StartDate), FilterOperator.GreaterThanOrEqual, search.From.Value.ToInstant()),
-                (null, not null) => new Filter(nameof(Appointment.EndDate), FilterOperator.LessThanOrEqualTo, search.To.Value.ToInstant()),
-            });
-        }
+        IFilter searchFilter = ComputeFilter(request);
+        IOrder<AppointmentDto> order = string.IsNullOrWhiteSpace(request.Sort)
+                                            ? new Order<AppointmentDto>(nameof(Appointment.StartDate))
+                                            : request.Sort.ToOrder<AppointmentDto>(PropertyNameResolutionStrategy.Default);
 
-        string subject = search.Subject?.Trim();
-        if (!string.IsNullOrWhiteSpace(subject))
-        {
-            filters.Add($"{nameof(Appointment.Subject)}={subject}".ToFilter<Appointment>());
-        }
-
-        if (!string.IsNullOrWhiteSpace(search.Attendees))
-        {
-            filters.Add(@$"{nameof(Appointment.Attendees)}[""{nameof(Attendee.Name)}""]={search.Attendees}".ToFilter<Appointment>());
-        }
-
-        IOrder<Appointment> order = new Order<Appointment>(nameof(Appointment.StartDate));
+        Expression<Func<AppointmentDto, bool>> predicate = searchFilter.ToExpression<AppointmentDto>(NullableValueBehavior.AddNullCheck);
 
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
-
-        IFilter searchFilter = filters.Count switch
-        {
-            1   => filters.Single(),
-            > 1 => new MultiFilter { Logic = FilterLogic.And, Filters = filters },
-            _   => Filter.True
-        };
-
-        Expression<Func<Appointment, bool>> predicate = searchFilter.ToExpression<Appointment>(NullableValueBehavior.AddNullCheck);
-
-        Page<Appointment> pageOfAppointments = await unitOfWork.Repository<Appointment>()
-                                                   .Where(predicate,
-                                                          order,
-                                                          PageSize.From(search.PageSize),
-                                                          PageIndex.From(search.Page),
-                                                          cancellationToken: ct);
+        Page<AppointmentDto> pageOfAppointments = await unitOfWork.Repository<Appointment>()
+                                                       .Where(selector: (Appointment app) => new AppointmentDto
+                                                              {
+                                                                  Id = app.Id,
+                                                                  StartDate = app.StartDate,
+                                                                  EndDate = app.EndDate,
+                                                                  Subject = app.Subject,
+                                                                  Location = app.Location,
+                                                                  Attendees = app.Attendees.Select(attendee => new AttendeeDto
+                                                                                                       { Id = attendee.Id,
+                                                                                                           Name = attendee.Name,
+                                                                                                           Email = attendee.Email,
+                                                                                                           PhoneNumber = attendee.PhoneNumber })
+                                                              }
+                                                            , predicate,
+                                                              order,
+                                                              PageSize.From(request.PageSize),
+                                                              PageIndex.From(request.Page),
+                                                              cancellationToken: ct);
 
         HttpContext http = _httpContextAccessor.HttpContext;
 
-        IReadOnlyList<Appointment> entries = [.. pageOfAppointments.Entries];
+        IReadOnlyList<AppointmentInfo> entries = [.. pageOfAppointments.Entries.Select(x => new AppointmentInfo
+        {
+            Id = x.Id,
+            EndDate = x.EndDate.InZone(zone).ToOffsetDateTime(),
+            StartDate = x.StartDate.InZone(zone).ToOffsetDateTime(),
+            Subject = x.Subject,
+            Attendees = [ ..x.Attendees.Select(attendee => new AttendeeInfo { Id = attendee.Id, Email = attendee.Email, Name = attendee.Name, PhoneNumber = attendee.PhoneNumber }) ],
+            Location = x.Location,
+        })];
         int count = entries.Count;
 
-        Link firstPageLink = ComputeLinkToFirstPage(search, http);
-        Link lastPageLink = ComputeLinkToLastPage(search, http, pageOfAppointments);
+        Link firstPageLink = ComputeLinkToFirstPage(request, http);
+        Link lastPageLink = ComputeLinkToLastPage(request, http, pageOfAppointments);
 
         PageOf<Browsable<AppointmentInfo>> content = new()
         {
-            Page = search.Page,
+            Page = request.Page,
             Total = pageOfAppointments.Total,
             Count = count,
             Items =
             [
                 .. entries.Select(x => new Browsable<AppointmentInfo>
                 {
-                    Resource = new AppointmentInfo { Id = x.Id, Location = x.Location, StartDate = x.StartDate.InZone(zone).ToOffsetDateTime(), EndDate = x.EndDate.InZone(zone).ToOffsetDateTime() },
+                    Resource = new AppointmentInfo
+                    {
+                        Id = x.Id,
+                        EndDate = x.EndDate.InZone(zone).ToOffsetDateTime(),
+                        StartDate = x.StartDate.InZone(zone).ToOffsetDateTime(),
+                        Subject = x.Subject,
+                        Attendees = [ .. x.Attendees.Select(attendee => new AttendeeInfo { Id = attendee.Id, Email = attendee.Email, Name = attendee.Name, PhoneNumber = attendee.PhoneNumber  }) ],
+                        Location = x.Location,
+                    },
                     Links =
                     [
                         new Link { Href = _linkGenerator.GetUriByRouteValues(http!, nameof(GetAppointmentByIdEndpoint), new { x.Id }), Relations = [LinkRelation.Self] },
@@ -141,16 +137,56 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             ],
             Links = new PageLinks(First: firstPageLink,
                                   Last: lastPageLink,
-                                  Previous: ComputeLinkToPreviousPage(search, pageOfAppointments, http),
-                                  Next: ComputeLinkToNextPage(search, pageOfAppointments, http))
+                                  Previous: ComputeLinkToPreviousPage(request, pageOfAppointments, http),
+                                  Next: ComputeLinkToNextPage(request, pageOfAppointments, http))
         };
 
         return TypedResults.Ok(content);
 
-        Link ComputeLinkToPreviousPage(SearchAppointmentRequest localSearch, Page<Appointment> page, HttpContext httpContext)
+        IFilter ComputeFilter(SearchAppointmentRequest search)
+        {
+            List<IFilter> filters = [];
+            if (search.From is not null || search.To is not null)
+            {
+                filters.Add((search.From, search.To) switch
+                {
+                    (not null, not null) => new MultiFilter
+                    {
+                        Logic = FilterLogic.And,
+                        Filters =
+                        [
+                            new Filter(nameof(Appointment.StartDate), FilterOperator.GreaterThanOrEqual, search.From.Value.ToInstant()),
+                            new Filter(nameof(Appointment.EndDate), FilterOperator.LessThanOrEqualTo, search.To.Value.ToInstant())
+                        ]
+                    },
+                    (not null, null) => new Filter(nameof(Appointment.StartDate), FilterOperator.GreaterThanOrEqual, search.From.Value.ToInstant()),
+                    (null, not null) => new Filter(nameof(Appointment.EndDate), FilterOperator.LessThanOrEqualTo, search.To.Value.ToInstant()),
+                });
+            }
+
+            string subject = search.Subject?.Trim();
+            if (!string.IsNullOrWhiteSpace(subject))
+            {
+                filters.Add($"{nameof(Appointment.Subject)}={subject}".ToFilter<Appointment>());
+            }
+
+            if (!string.IsNullOrWhiteSpace(search.Attendees))
+            {
+                filters.Add($"""{nameof(Appointment.Attendees)}["{nameof(Attendee.Name)}"]={search.Attendees}""".ToFilter<Appointment>());
+            }
+
+            return filters.Count switch
+            {
+                1   => filters.Single(),
+                > 1 => new MultiFilter { Logic = FilterLogic.And, Filters = filters },
+                _   => Filter.True
+            };
+        }
+
+        Link ComputeLinkToPreviousPage(SearchAppointmentRequest localSearch, Page<AppointmentDto> page, HttpContext httpContext)
         {
             ArgumentNullException.ThrowIfNull(httpContext);
-            
+
             return (page.Count, localSearch.Page.Value) switch
             {
                 (> 1, > 1) => new Link
@@ -172,7 +208,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             };
         }
 
-        Link ComputeLinkToNextPage(SearchAppointmentRequest searchAppointmentRequest, Page<Appointment> page, HttpContext httpContext)
+        Link ComputeLinkToNextPage(SearchAppointmentRequest searchAppointmentRequest, Page<AppointmentDto> page, HttpContext httpContext)
         {
             return searchAppointmentRequest.Page < page.Count
                        ? new Link
@@ -213,7 +249,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             };
         }
 
-        Link ComputeLinkToLastPage(SearchAppointmentRequest localSearch, HttpContext httpContext, Page<Appointment> page)
+        Link ComputeLinkToLastPage(SearchAppointmentRequest localSearch, HttpContext httpContext, Page<AppointmentDto> page)
         {
             return new()
             {
@@ -233,4 +269,23 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             };
         }
     }
+}
+
+file record AppointmentDto
+{
+    public required AppointmentId Id { get; init; }
+    public required Instant StartDate { get; init; }
+    public required Instant EndDate { get; init; }
+    public IEnumerable<AttendeeDto> Attendees { get; init; }
+
+    public string Subject { get; init; }
+    public string Location { get; init; }
+}
+
+file record AttendeeDto
+{
+    public required AttendeeId Id { get; init; }
+    public string Name { get; init; }
+    public string Email { get; init; }
+    public string PhoneNumber { get; init; }
 }

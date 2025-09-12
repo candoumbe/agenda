@@ -19,7 +19,7 @@
     <PackageReference Include="CorrelationId" />
     <PackageReference Include="Candoumbe.Forms" />
     <PackageReference Include="Candoumbe.Types.Numerics" />
-    <PackageReference Include="DataFilters.AspNetCore" />
+    <PackageReference Include="DataFilters.Expressions" />
     <PackageReference Include="Destructurama.ByIgnoring" />
     <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" />
     <PackageReference Include="FastEndpoints" />
