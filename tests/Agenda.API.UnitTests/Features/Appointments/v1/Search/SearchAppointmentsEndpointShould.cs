@@ -82,9 +82,8 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                                                                                    new AgendaRepositoryFactory());
 
         LinkGenerator linkGenerator = A.Fake<LinkGenerator>();
-        IHttpContextAccessor httpContextAccessor = A.Fake<IHttpContextAccessor>();
         CurrentRequestMetadataInfoProvider currentRequestMetadataInfoProvider = A.Fake<CurrentRequestMetadataInfoProvider>();
-        _sut = Factory.Create<SearchAppointmentsEndpoint>(_unitOfWorkFactory, httpContextAccessor, linkGenerator, currentRequestMetadataInfoProvider);
+        _sut = Factory.Create<SearchAppointmentsEndpoint>(_unitOfWorkFactory, linkGenerator, currentRequestMetadataInfoProvider);
     }
 
 

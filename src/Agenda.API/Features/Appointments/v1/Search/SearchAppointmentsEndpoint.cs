@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Linq.Expressions;
 using Agenda.API.Features.Appointments.v1.Delete;
 using Agenda.API.Features.Appointments.v1.GetById;
 using Agenda.Ids;
@@ -15,10 +10,7 @@ using DataFilters;
 using DataFilters.Casing;
 using DataFilters.Expressions;
 using FastEndpoints;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
 using NodaTime;
 
 namespace Agenda.API.Features.Appointments.v1.Search;
@@ -29,7 +21,6 @@ namespace Agenda.API.Features.Appointments.v1.Search;
 public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<PageOf<Browsable<AppointmentInfo>>>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly LinkGenerator _linkGenerator;
     private readonly CurrentRequestMetadataInfoProvider _currentRequestMetadataInfo;
 
@@ -37,16 +28,13 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
     /// Builds a new <see cref="SearchAppointmentsEndpoint"/> instance
     /// </summary>
     /// <param name="unitOfWorkFactory">Gives access to the underlying datastore</param>
-    /// <param name="httpContextAccessor"></param>
     /// <param name="linkGenerator">Helper to generate links between resources.</param>
     /// <param name="currentRequestMetadataInfo"></param>
     public SearchAppointmentsEndpoint(IUnitOfWorkFactory unitOfWorkFactory,
-                                      IHttpContextAccessor httpContextAccessor,
                                       LinkGenerator linkGenerator,
                                       CurrentRequestMetadataInfoProvider currentRequestMetadataInfo)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
-        _httpContextAccessor = httpContextAccessor;
         _linkGenerator = linkGenerator;
         _currentRequestMetadataInfo = currentRequestMetadataInfo;
     }
@@ -87,14 +75,12 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                                                                                                            Name = attendee.Name,
                                                                                                            Email = attendee.Email,
                                                                                                            PhoneNumber = attendee.PhoneNumber })
-                                                              }
-                                                            , predicate,
+                                                              },
+                                                              predicate,
                                                               order,
                                                               PageSize.From(request.PageSize),
                                                               PageIndex.From(request.Page),
                                                               cancellationToken: ct);
-
-        HttpContext http = _httpContextAccessor.HttpContext;
 
         IReadOnlyList<AppointmentInfo> entries = [.. pageOfAppointments.Entries.Select(x => new AppointmentInfo
         {
@@ -107,8 +93,8 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
         })];
         int count = entries.Count;
 
-        Link firstPageLink = ComputeLinkToFirstPage(request, http);
-        Link lastPageLink = ComputeLinkToLastPage(request, http, pageOfAppointments);
+        Link firstPageLink = ComputeLinkToFirstPage(request, HttpContext!);
+        Link lastPageLink = ComputeLinkToLastPage(request, HttpContext, pageOfAppointments);
 
         PageOf<Browsable<AppointmentInfo>> content = new()
         {
@@ -130,15 +116,15 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                     },
                     Links =
                     [
-                        new Link { Href = _linkGenerator.GetUriByRouteValues(http!, nameof(GetAppointmentByIdEndpoint), new { x.Id }), Relations = [LinkRelation.Self] },
-                        new Link { Href = _linkGenerator.GetUriByRouteValues(http!, nameof(DeleteEndpoint), new { x.Id }), Relations = ["delete"] }
+                        new Link { Href = _linkGenerator.GetUriByRouteValues(HttpContext!, nameof(GetAppointmentByIdEndpoint), new { x.Id }), Relations = [LinkRelation.Self] },
+                        new Link { Href = _linkGenerator.GetUriByRouteValues(HttpContext!, nameof(DeleteEndpoint), new { x.Id }), Relations = ["delete"] }
                     ]
                 })
             ],
             Links = new PageLinks(First: firstPageLink,
                                   Last: lastPageLink,
-                                  Previous: ComputeLinkToPreviousPage(request, pageOfAppointments, http),
-                                  Next: ComputeLinkToNextPage(request, pageOfAppointments, http))
+                                  Previous: ComputeLinkToPreviousPage(request, pageOfAppointments, HttpContext),
+                                  Next: ComputeLinkToNextPage(request, pageOfAppointments, HttpContext))
         };
 
         return TypedResults.Ok(content);
@@ -231,7 +217,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
 
         Link ComputeLinkToFirstPage(SearchAppointmentRequest localSearch, HttpContext httpContext)
         {
-            return new()
+            return new Link()
             {
                 Href = _linkGenerator.GetUriByRouteValues(httpContext!,
                                                           nameof(SearchAppointmentsEndpoint),
