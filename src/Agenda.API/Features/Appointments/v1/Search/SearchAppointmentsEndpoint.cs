@@ -24,7 +24,6 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly LinkGenerator _linkGenerator;
     private readonly CurrentRequestMetadataInfoProvider _currentRequestMetadataInfo;
-    private readonly ILoggerFactory _loggerFactory;
 
     /// <summary>
     /// Builds a new <see cref="SearchAppointmentsEndpoint"/> instance
@@ -32,17 +31,13 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
     /// <param name="unitOfWorkFactory">Gives access to the underlying datastore</param>
     /// <param name="linkGenerator">Helper to generate links between resources.</param>
     /// <param name="currentRequestMetadataInfo"></param>
-    /// <param name="loggerFactory"></param>
-
     public SearchAppointmentsEndpoint(IUnitOfWorkFactory unitOfWorkFactory,
                                       LinkGenerator linkGenerator,
-                                      CurrentRequestMetadataInfoProvider currentRequestMetadataInfo,
-                                      ILoggerFactory loggerFactory)
+                                      CurrentRequestMetadataInfoProvider currentRequestMetadataInfo)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _linkGenerator = linkGenerator;
         _currentRequestMetadataInfo = currentRequestMetadataInfo;
-        _loggerFactory = loggerFactory;
     }
 
     /// <inheritdoc />
@@ -191,7 +186,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             return searchAppointmentRequest.Page < page.Count
                        ? new Link
                        {
-                           Href = _linkGenerator.GetPathByName(httpContext,
+                           Href = _linkGenerator.GetUriByRouteValues(httpContext,
                                                                      IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
                                                                      new SearchAppointmentQuery(searchAppointmentRequest.Page + 1, searchAppointmentRequest.PageSize, searchAppointmentRequest.Subject, searchAppointmentRequest.From, searchAppointmentRequest.To, searchAppointmentRequest.Sort)),
                        }
