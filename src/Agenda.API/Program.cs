@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agenda.API;
@@ -6,14 +6,10 @@ using Agenda.API.TypeMappers;
 using Agenda.DataStores;
 using Agenda.Ids;
 using Candoumbe.Types.Numerics;
-using DataFilters.Converters;
 using FastEndpoints;
 using FastEndpoints.Swagger;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Serilog;
@@ -26,9 +22,6 @@ Action<JsonSerializerOptions> optionsSerializerSettings = s =>
                                                               s.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                                                               s.AllowTrailingCommas = true;
                                                               s.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-                                                              s.Converters.Add(new MultiFilterConverter());
-                                                              s.Converters.Add(new FilterConverter());
-                                                              s.Converters.Add(new FilterConverter());
                                                               s.Converters.Add(new JsonStringEnumConverter<OperationType>());
                                                           };
 
@@ -60,25 +53,25 @@ builder.Services
                                                         docSettings.SchemaSettings.TypeMappers.Add(new NumberTypeMapper<NonNegativeInteger, int>());
                                                     };
                          options.SerializerSettings = optionsSerializerSettings;
-                     })
-    .AddFastEndpoints(options =>
+                     });
+builder.Services.AddFastEndpoints(options =>
                       {
-                          options.IncludeAbstractValidators = true;
+                          options.IncludeAbstractValidators = false;
                       });
 
 WebApplication app = builder.Build();
 
-
 // app.UseSerilogRequestLogging(opts => opts.EnrichDiagnosticContext = (diagnosticContext, httpContext) => diagnosticContext.Set("CorrelationId", httpContext.TraceIdentifier));
 app.UseFastEndpoints(config =>
                      {
-                         // config.Binding.ValueParserFor<AppointmentId>(values => new ParseResult(AppointmentId.TryParse(values.ToString(), out AppointmentId id), id));
-                         // config.Binding.ValueParserFor<NonNegativeInteger>(values => new ParseResult(int.TryParse(values.ToString(), out int value)
-                         //                                                                             && NonNegativeInteger.MinValue <= value && value <= NonNegativeInteger.MaxValue, NonNegativeInteger.From(value)));
-                         // config.Binding.ValueParserFor<PositiveInteger>(values => new ParseResult(int.TryParse(values.ToString(), out int value)
-                         //                                                                              && PositiveInteger.MinValue <= value
-                         //                                                                              && value <= PositiveInteger.MaxValue,
-                         //                                                                          PositiveInteger.From(value)));
+                         config.Binding.ValueParserFor<AppointmentId>(values => new ParseResult(AppointmentId.TryParse(values.ToString(), CultureInfo.InvariantCulture, out AppointmentId id), id));
+                         config.Binding.ValueParserFor<AttendeeId>(values => new ParseResult(AttendeeId.TryParse(values.ToString(), CultureInfo.InvariantCulture, out AttendeeId id), id));
+                         config.Binding.ValueParserFor<NonNegativeInteger>(values => new ParseResult(int.TryParse(values.ToString(), out int value)
+                                                                                                     && NonNegativeInteger.MinValue <= value && value <= NonNegativeInteger.MaxValue, NonNegativeInteger.From(value)));
+                         config.Binding.ValueParserFor<PositiveInteger>(values => new ParseResult(int.TryParse(values.ToString(), out int value)
+                                                                                                      && PositiveInteger.MinValue <= value
+                                                                                                      && value <= PositiveInteger.MaxValue,
+                                                                                                  PositiveInteger.From(value)));
 
                          config.Errors.UseProblemDetails(detailsConfig =>
                                                          {

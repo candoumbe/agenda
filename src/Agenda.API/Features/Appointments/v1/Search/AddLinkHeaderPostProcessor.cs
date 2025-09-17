@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Candoumbe.Forms;
 using FastEndpoints;
 using Microsoft.AspNetCore.Http.HttpResults;

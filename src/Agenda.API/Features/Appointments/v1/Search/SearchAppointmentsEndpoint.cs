@@ -55,42 +55,42 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
         DateTimeZone zone = _currentRequestMetadataInfo.GetCurrentDateTimeZone();
 
         IFilter searchFilter = ComputeFilter(request);
-        IOrder<AppointmentDto> order = string.IsNullOrWhiteSpace(request.Sort)
-                                            ? new Order<AppointmentDto>(nameof(Appointment.StartDate))
-                                            : request.Sort.ToOrder<AppointmentDto>(PropertyNameResolutionStrategy.Default);
+        IOrderSpecification<AppointmentDto> order = new SingleOrderSpecification<AppointmentDto>(x => x.StartDate);
 
-        Expression<Func<AppointmentDto, bool>> predicate = searchFilter.ToExpression<AppointmentDto>(NullableValueBehavior.AddNullCheck);
+
+        Expression<Func<AppointmentDto, bool>> filterExpression = searchFilter.ToExpression<AppointmentDto>(NullableValueBehavior.AddNullCheck);
+        FilterSpecification<AppointmentDto> predicate = new(filterExpression);
 
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
-        Page<AppointmentDto> pageOfAppointments = await unitOfWork.Repository<Appointment>()
-                                                       .Where(selector: (Appointment app) => new AppointmentDto
-                                                              {
-                                                                  Id = app.Id,
-                                                                  StartDate = app.StartDate,
-                                                                  EndDate = app.EndDate,
-                                                                  Subject = app.Subject,
-                                                                  Location = app.Location,
-                                                                  Attendees = app.Attendees.Select(attendee => new AttendeeDto
-                                                                                                       { Id = attendee.Id,
-                                                                                                           Name = attendee.Name,
-                                                                                                           Email = attendee.Email,
-                                                                                                           PhoneNumber = attendee.PhoneNumber })
-                                                              },
-                                                              predicate,
-                                                              order,
-                                                              PageSize.From(request.PageSize),
-                                                              PageIndex.From(request.Page),
-                                                              cancellationToken: ct);
-
-        IReadOnlyList<AppointmentInfo> entries = [.. pageOfAppointments.Entries.Select(x => new AppointmentInfo
+        SelectSpecification<Appointment, AppointmentDto> selector = new(app => new AppointmentDto
         {
-            Id = x.Id,
-            EndDate = x.EndDate.InZone(zone).ToOffsetDateTime(),
-            StartDate = x.StartDate.InZone(zone).ToOffsetDateTime(),
-            Subject = x.Subject,
-            Attendees = [ ..x.Attendees.Select(attendee => new AttendeeInfo { Id = attendee.Id, Email = attendee.Email, Name = attendee.Name, PhoneNumber = attendee.PhoneNumber }) ],
-            Location = x.Location,
-        })];
+            Id = app.Id,
+            StartDate = app.StartDate,
+            EndDate = app.EndDate,
+            Subject = app.Subject,
+            Location = app.Location,
+            Attendees = app.Attendees.Select(attendee => new AttendeeDto { Id = attendee.Id, Name = attendee.Name, Email = attendee.Email, PhoneNumber = attendee.PhoneNumber })
+        });
+        Page<AppointmentDto> pageOfAppointments = await unitOfWork.Repository<Appointment>()
+                                                      .Where(selector,
+                                                             predicate,
+                                                             order,
+                                                             PageSize.From(request.PageSize),
+                                                             PageIndex.From(request.Page),
+                                                             cancellationToken: ct);
+
+        IReadOnlyList<AppointmentInfo> entries =
+        [
+            .. pageOfAppointments.Entries.Select(x => new AppointmentInfo
+            {
+                Id = x.Id,
+                EndDate = x.EndDate.InZone(zone).ToOffsetDateTime(),
+                StartDate = x.StartDate.InZone(zone).ToOffsetDateTime(),
+                Subject = x.Subject,
+                Attendees = [..x.Attendees.Select(attendee => new AttendeeInfo { Id = attendee.Id, Email = attendee.Email, Name = attendee.Name, PhoneNumber = attendee.PhoneNumber })],
+                Location = x.Location,
+            })
+        ];
         int count = entries.Count;
 
         Link firstPageLink = ComputeLinkToFirstPage(request, HttpContext!);
@@ -111,13 +111,13 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                         EndDate = x.EndDate.InZone(zone).ToOffsetDateTime(),
                         StartDate = x.StartDate.InZone(zone).ToOffsetDateTime(),
                         Subject = x.Subject,
-                        Attendees = [ .. x.Attendees.Select(attendee => new AttendeeInfo { Id = attendee.Id, Email = attendee.Email, Name = attendee.Name, PhoneNumber = attendee.PhoneNumber  }) ],
+                        Attendees = [.. x.Attendees.Select(attendee => new AttendeeInfo { Id = attendee.Id, Email = attendee.Email, Name = attendee.Name, PhoneNumber = attendee.PhoneNumber })],
                         Location = x.Location,
                     },
                     Links =
                     [
-                        new Link { Href = _linkGenerator.GetUriByRouteValues(HttpContext!, nameof(GetAppointmentByIdEndpoint), new { x.Id }), Relations = [LinkRelation.Self] },
-                        new Link { Href = _linkGenerator.GetUriByRouteValues(HttpContext!, nameof(DeleteEndpoint), new { x.Id }), Relations = ["delete"] }
+                        new Link { Href = _linkGenerator.GetPathByName(HttpContext!, IEndpoint.GetName<GetAppointmentByIdEndpoint>(verb: Http.GET), new { x.Id }), Relations = [LinkRelation.Self] },
+                        new Link { Href = _linkGenerator.GetPathByName(HttpContext!, IEndpoint.GetName<DeleteEndpoint>(), new { x.Id }), Relations = ["delete"] }
                     ]
                 })
             ],
@@ -177,18 +177,18 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             {
                 (> 1, > 1) => new Link
                 {
-                    Href = _linkGenerator.GetUriByRouteValues(httpContext,
-                                                              IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
-                                                              new
-                                                              {
-                                                                  Page = localSearch.Page - 1,
-                                                                  localSearch.PageSize,
-                                                                  localSearch.Subject,
-                                                                  localSearch.Attendees,
-                                                                  localSearch.From,
-                                                                  localSearch.To,
-                                                                  localSearch.Sort
-                                                              }),
+                    Href = _linkGenerator.GetPathByName(httpContext,
+                                                      IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
+                                                      new
+                                                      {
+                                                          Page = localSearch.Page - 1,
+                                                          localSearch.PageSize,
+                                                          localSearch.Subject,
+                                                          localSearch.Attendees,
+                                                          localSearch.From,
+                                                          localSearch.To,
+                                                          localSearch.Sort
+                                                      }),
                 },
                 _ => null
             };
@@ -199,7 +199,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             return searchAppointmentRequest.Page < page.Count
                        ? new Link
                        {
-                           Href = _linkGenerator.GetUriByRouteValues(httpContext,
+                           Href = _linkGenerator.GetPathByName(httpContext,
                                                                      IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
                                                                      new
                                                                      {
@@ -219,8 +219,8 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
         {
             return new Link()
             {
-                Href = _linkGenerator.GetUriByRouteValues(httpContext!,
-                                                          nameof(SearchAppointmentsEndpoint),
+                Href = _linkGenerator.GetPathByName(httpContext!,
+                                                          IEndpoint.GetName<SearchAppointmentsEndpoint>(verb: Http.GET),
                                                           new
                                                           {
                                                               Page = 1,
@@ -239,18 +239,18 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
         {
             return new()
             {
-                Href = _linkGenerator.GetUriByRouteValues(httpContext!,
-                                                          nameof(SearchAppointmentsEndpoint),
-                                                          new
-                                                          {
-                                                              Page = (int)page.Total,
-                                                              localSearch.PageSize,
-                                                              localSearch.Subject,
-                                                              localSearch.Attendees,
-                                                              localSearch.From,
-                                                              localSearch.To,
-                                                              localSearch.Sort
-                                                          }),
+                Href = _linkGenerator.GetPathByName(httpContext!,
+                                                    IEndpoint.GetName<SearchAppointmentsEndpoint>(verb: Http.GET),
+                                                    new
+                                                    {
+                                                        Page = (int)page.Total,
+                                                        localSearch.PageSize,
+                                                        localSearch.Subject,
+                                                        localSearch.Attendees,
+                                                        localSearch.From,
+                                                        localSearch.To,
+                                                        localSearch.Sort
+                                                    }),
                 Relations = [LinkRelation.Last]
             };
         }

@@ -1,4 +1,4 @@
-﻿using JetBrains.Annotations;
+﻿#nullable enable
 using NodaTime;
 
 namespace Agenda.API.Features.Appointments.v1.Search;
@@ -21,12 +21,10 @@ public record SearchAppointmentRequest : AbstractSearchRequest<AppointmentInfo>
     /// <summary>
     /// Criteria on the subject
     /// </summary>
-    [CanBeNull]
-    public string Subject { get; init; }
+    public string? Subject { get; init; }
 
     /// <summary>
     /// Criteria on the attendees
     /// </summary>
-    [CanBeNull]
-    public string Attendees { get; init; }
+    public string? Attendees { get; init; }
 }

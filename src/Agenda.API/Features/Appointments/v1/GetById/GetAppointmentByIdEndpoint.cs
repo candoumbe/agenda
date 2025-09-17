@@ -26,11 +26,6 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
     private readonly CurrentRequestMetadataInfoProvider _currentRequestMetadataInfoProvider;
 
     /// <summary>
-    /// Name of the route to this endpoint
-    /// </summary>
-    public const string RouteName = nameof(GetAppointmentByIdEndpoint);
-
-    /// <summary>
     /// Builds a new <see cref="GetAppointmentByIdEndpoint"/> instance.
     /// </summary>
     /// <param name="unitOfWorkFactory"></param>
@@ -46,8 +41,9 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
     /// <inheritdoc />
     public override void Configure()
     {
-        Get("/appointments/{id}");
-        Options(o => o.WithName(RouteName));
+        Verbs(Http.GET, Http.HEAD);
+        Routes("/appointments/{id}");
+
         AllowAnonymous();
     }
 
@@ -56,8 +52,9 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
     public override async Task<Results<Ok<Browsable<GetAppointmentByIdResponse>>, NotFound>> ExecuteAsync(GetByIdRequest req, CancellationToken ct)
     {
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
+        FilterSpecification<Appointment> predicate = new(x => x.Id == req.Id);
         Option<Appointment> mayBeAppointment = await unitOfWork.Repository<Appointment>()
-                                                   .SingleOrDefault(predicate: x => x.Id == req.Id,
+                                                   .SingleOrDefault(predicate,
                                                                     includedProperties: [IncludeClause<Appointment>.Create(x => x.Attendees)],
                                                                     cancellationToken: ct)
                                                    .ConfigureAwait(false);
@@ -81,9 +78,9 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
                                                                                                                   [
                                                                                                                       new Link
                                                                                                                       {
-                                                                                                                          Href = _linkGenerator.GetUriByName(HttpContext, nameof(GetAppointmentByIdEndpoint), new { req.Id }),
+                                                                                                                          Href = _linkGenerator.GetPathByName(HttpContext, IEndpoint.GetName<GetAppointmentByIdEndpoint>(verb: Http.GET), new { req.Id }),
                                                                                                                           Method = "GET",
-                                                                                                                          Relations = new[] { LinkRelation.Self }.ToHashSet()
+                                                                                                                          Relations = [ LinkRelation.Self ]
                                                                                                                       }
                                                                                                                   ]
                                                                                                               };

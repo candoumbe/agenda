@@ -29,7 +29,6 @@ public class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, Not
     public override void Configure()
     {
         Delete("/appointments/{id}");
-        Options(o => o.WithName(nameof(DeleteEndpoint)));
         AllowAnonymous();
     }
 
@@ -41,9 +40,11 @@ public class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, Not
         IRepository<Appointment> repository = unitOfWork.Repository<Appointment>();
         Results<NoContent, NotFound> result;
 
-        if (await repository.Any(appointment => appointment.Id == req.Id, ct))
+        FilterSpecification<Appointment> filter = new(x => x.Id == req.Id);
+
+        if (await repository.Any(filter, ct))
         {
-            await repository.Delete(appointment => appointment.Id == req.Id, ct);
+            await repository.Delete(filter, ct);
             await unitOfWork.SaveChangesAsync(ct);
 
             result = TypedResults.NoContent();
