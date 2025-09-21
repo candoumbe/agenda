@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 using Xunit;
 using Xunit.OpenCategories.V3;
@@ -83,7 +84,8 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
 
         LinkGenerator linkGenerator = A.Fake<LinkGenerator>();
         CurrentRequestMetadataInfoProvider currentRequestMetadataInfoProvider = A.Fake<CurrentRequestMetadataInfoProvider>();
-        _sut = Factory.Create<SearchAppointmentsEndpoint>(_unitOfWorkFactory, linkGenerator, currentRequestMetadataInfoProvider);
+        LoggerFactory loggerFactory = A.Fake<ILoggerFactory>();
+        _sut = Factory.Create<SearchAppointmentsEndpoint>(_unitOfWorkFactory, linkGenerator, currentRequestMetadataInfoProvider, loggerFactory);
     }
 
 
@@ -109,7 +111,7 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
 
         endpointDefinition.PostProcessorsList.Should()
             .NotBeEmpty()
-            .And.Contain(processor => processor is AddLinkHeaderPostProcessor);
+            .And.Contain(processor => processor is AddLinkHeaderResponseInterceptor);
     }
 
     public static TheoryData<GenericSerializable<IReadOnlyList<Appointment>>, GenericSerializable<SearchAppointmentRequest>, XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>> RequestCases

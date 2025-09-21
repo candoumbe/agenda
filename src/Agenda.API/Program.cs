@@ -79,6 +79,7 @@ app.UseFastEndpoints(config =>
                                                              detailsConfig.IndicateErrorCode = true;
                                                              detailsConfig.TypeTransformer = problemDetails => problemDetails.Status switch
                                                              {
+                                                                 Status200OK => "https://www.rfc-editor.org/rfc/rfc7231#section-6.3.1",
                                                                  Status404NotFound => "https://www.rfc-editor.org/rfc/rfc7231#section-6.5.4",
                                                                  Status409Conflict => "https://www.rfc-editor.org/rfc/rfc7231#section-6.5.8",
                                                                  Status429TooManyRequests => "https://www.rfc-editor.org/rfc/rfc6585#section-4",
