@@ -84,7 +84,7 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
 
         LinkGenerator linkGenerator = A.Fake<LinkGenerator>();
         CurrentRequestMetadataInfoProvider currentRequestMetadataInfoProvider = A.Fake<CurrentRequestMetadataInfoProvider>();
-        LoggerFactory loggerFactory = A.Fake<ILoggerFactory>();
+        ILoggerFactory loggerFactory = A.Fake<ILoggerFactory>();
         _sut = Factory.Create<SearchAppointmentsEndpoint>(_unitOfWorkFactory, linkGenerator, currentRequestMetadataInfoProvider, loggerFactory);
     }
 
