@@ -1,12 +1,24 @@
 using Aspire.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Projects;
+
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
 var postgres = builder.AddPostgres("postgres")
-    .WithPgAdmin(containerName: "pg-admin")
-    .WithPgWeb(containerName: "pg-web")
-    .WithDataVolume(name: "postgres-data");
+    .WithImage("postgres:17-alpine");
+
+
+bool isRunningIntegrationTests = builder.Configuration.GetValue(RunningIntegrationTestsConfigName, false);
+
+if (! isRunningIntegrationTests)
+{
+    postgres = postgres
+            .WithDataVolume(name: "postgres-data")
+            .WithPgAdmin(containerName: "pg-admin")
+            .WithPgWeb(containerName: "pg-web");
+}
 
 var migrationService = builder.AddProject<Agenda_Migrator>("migrations")
     .WithReference(postgres)
@@ -18,10 +30,12 @@ var api = builder.AddProject<Agenda_API>("api")
     .WithHttpsEndpoint(name: "secured")
     .WithReference(postgres)
     .WaitForCompletion(migrationService)
-    .WaitFor(postgres)
     .PublishAsDockerFile();
 
 builder.Build().Run();
 
 
-public partial class Program;
+public partial class Program
+{
+    public const string RunningIntegrationTestsConfigName = "RunningIntegrationTests";
+}
