@@ -56,7 +56,7 @@ public static class DistributedApplicationTestingBuilderFactory
                                         {
                                             logging.AddXUnit(outputHelper);
                                         }
-                                        logging.SetMinimumLevel(LogLevel.Information);
+                                        logging.SetMinimumLevel(LogLevel.Debug);
                                         logging.AddFilter("Aspire", LogLevel.Critical);
                                         logging.AddFilter(builder.Environment.ApplicationName, LogLevel.Information);
                                     });
