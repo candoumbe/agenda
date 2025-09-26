@@ -62,7 +62,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
-    <PackageVersion Include="Polly" Version="8.6.3" />
+    <PackageVersion Include="Polly" Version="8.6.4" />
     <PackageVersion Include="Serialize.Linq" Version="4.0.167" />
     <PackageVersion Include="ReportGenerator" Version="5.4.16" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.14.0" />
