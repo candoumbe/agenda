@@ -76,7 +76,7 @@
     <PackageVersion Include="System.Text.Json" Version="9.0.9" />
     <PackageVersion Include="SystemTextJsonPatch" Version="4.2.0" />
     <PackageVersion Include="TestContainers.PostgreSql" Version="4.7.0" />
-    <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.12.2" />
+    <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.12.3" />
     <PackageVersion Include="Xunit.OpenCategories.V3" Version="2.3.0.12" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
     <PackageVersion Include="xunit.v3" Version="3.0.1" />
