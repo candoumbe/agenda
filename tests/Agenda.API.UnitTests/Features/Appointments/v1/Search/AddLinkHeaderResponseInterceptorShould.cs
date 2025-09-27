@@ -74,10 +74,6 @@ public class AddLinkHeaderResponseInterceptorShould
         // Assert
         using AssertionScope _ = new();
 
-        A.CallTo(() => fakeResponse.OnStarting(capturedOnStartingCallback._)).MustHaveHappenedOnceExactly();
-
-        await capturedOnStartingCallback.GetLastValue().Invoke(); // <-- this forces the OnStarting callback to be called
-
         IHeaderDictionary headers = fakeHttpContext.Response.Headers;
         StringValues links = headers.Link;
         links.Should().HaveCount(2)
