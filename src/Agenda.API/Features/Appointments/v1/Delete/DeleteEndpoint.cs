@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Agenda.Ids;
 using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
 using FastEndpoints;
@@ -12,7 +13,7 @@ namespace Agenda.API.Features.Appointments.v1.Delete;
 /// <summary>
 /// Deletes an appointment by its identifier
 /// </summary>
-public class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, NotFound>>
+public partial class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, NotFound>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
@@ -35,6 +36,7 @@ public class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, Not
     /// <inheritdoc />
     public override async Task<Results<NoContent, NotFound>> ExecuteAsync(DeleteByIdRequest req, CancellationToken ct)
     {
+        LogDeletingAppointmentWithIdId(Logger, req.Id);
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
 
         IRepository<Appointment> repository = unitOfWork.Repository<Appointment>();
@@ -56,4 +58,7 @@ public class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, Not
 
         return result;
     }
+
+    [LoggerMessage(LogLevel.Information, "Deleting appointment with id {Id}")]
+    static partial void LogDeletingAppointmentWithIdId(ILogger logger, AppointmentId id);
 }

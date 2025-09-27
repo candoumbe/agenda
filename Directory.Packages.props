@@ -23,7 +23,7 @@
     <PackageVersion Include="CodecovUploader" Version="0.8.0" />
     <PackageVersion Include="CorrelationId" Version="3.0.1" />
     <PackageVersion Include="coverlet.msbuild" Version="6.0.4" />
-    <PackageVersion Include="DataFilters.AspNetCore" Version="0.4.0" />
+    <PackageVersion Include="DataFilters.Expressions" Version="0.13.2" />
     <PackageVersion Include="Destructurama.ByIgnoring" Version="4.0.1" />
     <PackageVersion Include="EntityFrameworkCore.Sqlite.NodaTime" Version="9.2.1" />
     <PackageVersion Include="Extensions.Hosting.AsyncInitialization" Version="3.0.1" />
@@ -33,7 +33,6 @@
     <PackageVersion Include="FluentAssertions.Nodatime" Version="2.0.1" />
     <PackageVersion Include="FsCheck.Xunit.v3" Version="3.3.1" />
     <PackageVersion Include="JetBrains.Annotations" Version="2025.2.1" />
-    <PackageVersion Include="Xunit.DependencyInjection.Logging" Version="11.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.9" />
     <PackageVersion Include="Microsoft.AspNetCore.JsonPatch" Version="9.0.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.9" />
@@ -72,14 +71,15 @@
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="9.0.0" />
     <PackageVersion Include="StronglyTypedId" Version="1.0.0-beta08" PrivateAssets="all" ExcludeAssets="runtime" />
-    <PackageVersion Include="StronglyTypedId.Templates" Version="1.0.0-beta08" PrivateAssets="all" ExcludeAssets="runtime" />
+    <PackageVersion Include="StronglyTypedId.Templates" Version="1.0.0-beta08" PrivateAssets="all" ExcludeAssets="runtime;compile" />
     <PackageVersion Include="System.Text.Json" Version="9.0.9" />
     <PackageVersion Include="SystemTextJsonPatch" Version="4.2.0" />
     <PackageVersion Include="TestContainers.PostgreSql" Version="4.7.0" />
     <PackageVersion Include="TngTech.ArchUnitNET.xUnitV3" Version="0.12.3" />
+    <PackageVersion Include="xRetry.v3" Version="0.1.0-alpha2" />
+    <PackageVersion Include="Xunit.DependencyInjection.Logging" Version="11.0.0" />
     <PackageVersion Include="Xunit.OpenCategories.V3" Version="2.3.0.12" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
     <PackageVersion Include="xunit.v3" Version="3.0.1" />
-    <PackageVersion Include="xRetry.v3" Version="0.1.0-alpha2" />
   </ItemGroup>
 </Project>
