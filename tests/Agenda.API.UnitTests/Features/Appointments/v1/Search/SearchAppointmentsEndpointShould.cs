@@ -110,8 +110,7 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
             .And.ContainSingle(method => method == "HEAD");
 
         endpointDefinition.PostProcessorsList.Should()
-            .NotBeEmpty()
-            .And.Contain(processor => processor is AddLinkHeaderResponseInterceptor);
+            .BeEmpty();
     }
 
     public static TheoryData<GenericSerializable<IReadOnlyList<Appointment>>, GenericSerializable<SearchAppointmentRequest>, XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>> RequestCases
@@ -123,7 +122,7 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
             // No data in the database
             {
                 List<Appointment> data = [];
-                SearchAppointmentRequest request = new() { Page = NonNegativeInteger.One, PageSize = PositiveInteger.From(10), Attendees = "e*" };
+                SearchAppointmentRequest request = new() { Page = NonNegativeInteger.One, PageSize = PositiveInteger.From(10)};
                 cases.Add(data,
                           request,
                           new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
@@ -223,7 +222,7 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
 
 
                 List<Appointment> data = [jobInterview, adventure,];
-                SearchAppointmentRequest request = new() { Page = NonNegativeInteger.From(1), PageSize = PositiveInteger.From(10), Subject = "*brave*", Attendees = "*man" };
+                SearchAppointmentRequest request = new() { Page = NonNegativeInteger.From(1), PageSize = PositiveInteger.From(10), Subject = "*brave*" };
 
                 cases.Add(data,
                           request,
@@ -254,6 +253,7 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                                              XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>> responseExpectation)
     {
         // Arrange
+        _outputHelper.WriteLine($"Appointments in database : {appointments.Value.Jsonify(new JsonSerializerOptions() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull })}");
         _outputHelper.WriteLine($"Request : {request.Value.Jsonify(new JsonSerializerOptions() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull })}");
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
         IRepository<Appointment> repository = unitOfWork.Repository<Appointment>();

@@ -6,6 +6,7 @@ using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.Repositories;
 using Candoumbe.Forms;
+using Candoumbe.Types.Numerics;
 using DataFilters;
 using DataFilters.Casing;
 using DataFilters.Expressions;
@@ -77,12 +78,12 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             Attendees = app.Attendees.Select(attendee => new AttendeeDto { Id = attendee.Id, Name = attendee.Name, Email = attendee.Email, PhoneNumber = attendee.PhoneNumber })
         });
         Page<AppointmentDto> pageOfAppointments = await unitOfWork.Repository<Appointment>()
-                                                      .Where(selector,
-                                                             predicate,
-                                                             order,
-                                                             PageSize.From(request.PageSize),
-                                                             PageIndex.From(request.Page),
-                                                             cancellationToken: ct);
+                                                                  .Where(selector,
+                                                                         predicate,
+                                                                         order,
+                                                                         PageSize.From(request.PageSize),
+                                                                         PageIndex.From(request.Page),
+                                                                         cancellationToken: ct);
 
         IReadOnlyList<AppointmentInfo> entries =
         [
@@ -161,11 +162,6 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                 filters.Add($"{nameof(Appointment.Subject)}={subject}".ToFilter<Appointment>());
             }
 
-            if (!string.IsNullOrWhiteSpace(search.Attendees))
-            {
-                filters.Add($"""{nameof(Appointment.Attendees)}["{nameof(Attendee.Name)}"]={search.Attendees}""".ToFilter<Appointment>());
-            }
-
             return filters.Count switch
             {
                 1   => filters.Single(),
@@ -184,16 +180,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                 {
                     Href = _linkGenerator.GetPathByName(httpContext,
                                                       IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
-                                                      new
-                                                      {
-                                                          Page = localSearch.Page - 1,
-                                                          localSearch.PageSize,
-                                                          localSearch.Subject,
-                                                          localSearch.Attendees,
-                                                          localSearch.From,
-                                                          localSearch.To,
-                                                          localSearch.Sort
-                                                      }),
+                                                      new SearchAppointmentQuery(localSearch.Page - 1, localSearch.PageSize, localSearch.Subject, localSearch.From, localSearch.To, localSearch.Sort)),
                 },
                 _ => null
             };
@@ -206,16 +193,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                        {
                            Href = _linkGenerator.GetPathByName(httpContext,
                                                                      IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
-                                                                     new
-                                                                     {
-                                                                         Page = searchAppointmentRequest.Page + 1,
-                                                                         searchAppointmentRequest.PageSize,
-                                                                         searchAppointmentRequest.Subject,
-                                                                         searchAppointmentRequest.Attendees,
-                                                                         searchAppointmentRequest.From,
-                                                                         searchAppointmentRequest.To,
-                                                                         searchAppointmentRequest.Sort
-                                                                     }),
+                                                                     new SearchAppointmentQuery(searchAppointmentRequest.Page + 1, searchAppointmentRequest.PageSize, searchAppointmentRequest.Subject, searchAppointmentRequest.From, searchAppointmentRequest.To, searchAppointmentRequest.Sort)),
                        }
                        : null;
         }
@@ -231,7 +209,6 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                                                               Page = 1,
                                                               localSearch.PageSize,
                                                               localSearch.Subject,
-                                                              localSearch.Attendees,
                                                               localSearch.From,
                                                               localSearch.To,
                                                               localSearch.Sort
@@ -251,7 +228,6 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                                                         Page = (int)page.Total,
                                                         localSearch.PageSize,
                                                         localSearch.Subject,
-                                                        localSearch.Attendees,
                                                         localSearch.From,
                                                         localSearch.To,
                                                         localSearch.Sort
@@ -279,4 +255,37 @@ file record AttendeeDto
     public string Name { get; init; }
     public string Email { get; init; }
     public string PhoneNumber { get; init; }
+}
+
+file record SearchAppointmentQuery
+{
+    public SearchAppointmentQuery(NonNegativeInteger Page, PositiveInteger PageSize, string Subject, OffsetDateTime? From, OffsetDateTime? To, string Sort)
+    {
+        this.Page = Page;
+        this.PageSize = PageSize;
+        this.Subject = Subject;
+        this.From = From;
+        this.To = To;
+        this.Sort = Sort;
+    }
+
+    /// <inheritdoc />
+    public override string ToString() => $"{{ Page = {Page}, PageSize = {PageSize}, Subject = {Subject}, From = {From}, To = {To}, Sort = {Sort} }}";
+
+    public NonNegativeInteger Page { get; init; }
+    public PositiveInteger PageSize { get; init; }
+    public string Subject { get; init; }
+    public OffsetDateTime? From { get; init; }
+    public OffsetDateTime? To { get; init; }
+    public string Sort { get; init; }
+
+    public void Deconstruct(out NonNegativeInteger Page, out PositiveInteger PageSize, out string Subject, out OffsetDateTime? From, out OffsetDateTime? To, out string Sort)
+    {
+        Page = this.Page;
+        PageSize = this.PageSize;
+        Subject = this.Subject;
+        From = this.From;
+        To = this.To;
+        Sort = this.Sort;
+    }
 }
