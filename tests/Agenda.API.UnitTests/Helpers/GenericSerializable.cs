@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agenda.Ids;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
@@ -15,6 +16,9 @@ public class GenericSerializable<T> : IXunitSerializable
     public GenericSerializable()
     {
         _serializerSettings = new JsonSerializerOptions()
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            }
             .ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
         _serializerSettings.Converters.Add(new AppointmentId.AppointmentIdSystemTextJsonConverter());
         _serializerSettings.Converters.Add(new AttendeeId.AttendeeIdSystemTextJsonConverter());

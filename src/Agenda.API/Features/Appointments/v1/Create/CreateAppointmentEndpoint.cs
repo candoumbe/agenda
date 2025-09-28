@@ -82,21 +82,23 @@ public class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, CreatedAtR
             [
                 new Link
                 {
-                    Href = _linkGenerator.GetUriByName(HttpContext, nameof(GetAppointmentByIdEndpoint), new { newAppointment.Id }),
+                    Href = _linkGenerator.GetUriByName(HttpContext, IEndpoint.GetName<GetAppointmentByIdEndpoint>(verb: Http.GET), new { newAppointment.Id }),
                     Method = nameof(Get),
                     Relations = [LinkRelation.Self]
                 },
                 new Link
                 {
-                    Href = _linkGenerator.GetUriByName(HttpContext, nameof(DeleteEndpoint), new { newAppointment.Id }),
+                    Href = _linkGenerator.GetUriByName(HttpContext, IEndpoint.GetName<DeleteEndpoint>(), new { newAppointment.Id }),
                     Method = nameof(Delete),
                     Relations = ["delete"]
                 }
             ]
         };
 
-        Logger.LogInformation("Appointment created: {Appointment}", browsable);
+        Logger.LogTrace("Appointment created: {@Appointment}", browsable);
 
-        return TypedResults.CreatedAtRoute(browsable, GetAppointmentByIdEndpoint.RouteName, new { newAppointment.Id });
+        return TypedResults.CreatedAtRoute(browsable,
+                                           IEndpoint.GetName<GetAppointmentByIdEndpoint>(verb: Http.GET),
+                                           new { newAppointment.Id });
     }
 }

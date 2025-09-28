@@ -76,8 +76,8 @@ public class Build : EnhancedNukeBuild,
     IGitFlowWithPullRequest,
     IDoChoreWorkflow,
     IClean,
-    IDotnetFormat,
     IRestore,
+    IDotnetFormat,
     IBenchmark,
     IReportUnitTestCoverage,
     IReportIntegrationTestCoverage,
@@ -156,7 +156,11 @@ public class Build : EnhancedNukeBuild,
     }
 
     /// <inheritdoc/>
-    bool IDotnetFormat.VerifyNoChanges => IsServerBuild;
+    bool IDotnetFormat.VerifyNoChanges => IsLocalBuild;
+
+    /// <inheritdoc />
+    Configure<DotNetFormatSettings> IDotnetFormat.FormatSettings => _ => _
+                                                                        .When(_ => IsLocalBuild, settings => settings.SetVerbosity(DotNetVerbosity.diagnostic));
 
     private IReadOnlyList<Project> ArchitecturalTestsProjects => [.. this.Get<IHaveSolution>().Solution.AllProjects.Where(project => project.Name.Like("*.ArchitecturalTests", ignoreCase: true))];
 

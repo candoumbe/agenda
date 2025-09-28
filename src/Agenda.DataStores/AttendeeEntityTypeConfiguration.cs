@@ -19,6 +19,8 @@ public class AttendeeEntityTypeConfiguration : IEntityTypeConfiguration<Attendee
             .HasMaxLength(AgendaDataStore.NormalTextLength)
             .IsRequired();
 
+        builder.Property(x => x.Email);
+
         builder.Property(x => x.PhoneNumber)
             .HasMaxLength(AgendaDataStore.NormalTextLength)
             .IsRequired()

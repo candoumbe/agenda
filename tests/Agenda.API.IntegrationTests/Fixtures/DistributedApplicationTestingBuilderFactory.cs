@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Testing;
 using FluentAssertions.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Projects;
@@ -37,6 +39,8 @@ public static class DistributedApplicationTestingBuilderFactory
     {
         IDistributedApplicationTestingBuilder builder = await DistributedApplicationTestingBuilder.CreateAsync<Agenda_AppHost>(cancellationToken);
 
+
+        builder.Configuration.AddInMemoryCollection([new KeyValuePair<string, string>("RunningIntegrationTests", bool.TrueString)]);
         builder.WithRandomParameterValues();
         builder.WithRandomVolumeNames();
         // Containers should be re-created for each test.
@@ -56,7 +60,7 @@ public static class DistributedApplicationTestingBuilderFactory
                                         {
                                             logging.AddXUnit(outputHelper);
                                         }
-                                        logging.SetMinimumLevel(LogLevel.Information);
+                                        logging.SetMinimumLevel(LogLevel.Debug);
                                         logging.AddFilter("Aspire", LogLevel.Critical);
                                         logging.AddFilter(builder.Environment.ApplicationName, LogLevel.Information);
                                     });

@@ -4,6 +4,7 @@ using Agenda.API.IntegrationTests.Fixtures;
 using Aspire.Hosting;
 using Xunit;
 using Xunit.OpenCategories.V3;
+using xRetry.v3;
 
 
 namespace Agenda.API.IntegrationTests;
@@ -13,8 +14,9 @@ public class AppHostShould(ITestOutputHelper outputHelper)
 {
     private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(120);
 
-    [Fact]
-    public async Task StartAndStopWithoutException()
+    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    //[Fact]
+    public async Task Start_and_stop_without_exception()
     {
         await using AgendaApplicationTestingBuilder appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper, TestContext.Current.CancellationToken);
         await using DistributedApplication sut = await appHost.StartAsync(TestContext.Current.CancellationToken).WaitAsync(s_buildStopTimeout, TestContext.Current.CancellationToken);

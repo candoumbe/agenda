@@ -130,10 +130,10 @@ public class DeleteByIdEndpointShould
         // Arrange
         IReadOnlyList<Appointment> appointments = appointmentsInStore.Value;
 
-        A.CallTo(() => _fakeRepository.Any(An<Expression<Func<Appointment, bool>>>._, A<CancellationToken>._))
-            .ReturnsLazily((Expression<Func<Appointment, bool>> predicate, CancellationToken _) => appointments.Any(predicate.Compile()));
+        A.CallTo(() => _fakeRepository.Any(An<IFilterSpecification<Appointment>>._, A<CancellationToken>._))
+            .ReturnsLazily((IFilterSpecification<Appointment> predicate, CancellationToken _) => appointments.Any(predicate.Filter.Compile()));
 
-        A.CallTo(() => _fakeRepository.Delete(An<Expression<Func<Appointment, bool>>>._, A<CancellationToken>._))
+        A.CallTo(() => _fakeRepository.Delete(An<IFilterSpecification<Appointment>>._, A<CancellationToken>._))
             .DoesNothing();
 
         // Act

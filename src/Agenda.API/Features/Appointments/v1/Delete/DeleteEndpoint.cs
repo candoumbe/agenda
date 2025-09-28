@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Agenda.Ids;
 using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
 using FastEndpoints;
@@ -12,7 +13,7 @@ namespace Agenda.API.Features.Appointments.v1.Delete;
 /// <summary>
 /// Deletes an appointment by its identifier
 /// </summary>
-public class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, NotFound>>
+public partial class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, NotFound>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
@@ -29,21 +30,23 @@ public class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, Not
     public override void Configure()
     {
         Delete("/appointments/{id}");
-        Options(o => o.WithName(nameof(DeleteEndpoint)));
         AllowAnonymous();
     }
 
     /// <inheritdoc />
     public override async Task<Results<NoContent, NotFound>> ExecuteAsync(DeleteByIdRequest req, CancellationToken ct)
     {
+        LogDeletingAppointmentWithIdId(Logger, req.Id);
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
 
         IRepository<Appointment> repository = unitOfWork.Repository<Appointment>();
         Results<NoContent, NotFound> result;
 
-        if (await repository.Any(appointment => appointment.Id == req.Id, ct))
+        FilterSpecification<Appointment> filter = new(x => x.Id == req.Id);
+
+        if (await repository.Any(filter, ct))
         {
-            await repository.Delete(appointment => appointment.Id == req.Id, ct);
+            await repository.Delete(filter, ct);
             await unitOfWork.SaveChangesAsync(ct);
 
             result = TypedResults.NoContent();
@@ -55,4 +58,7 @@ public class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoContent, Not
 
         return result;
     }
+
+    [LoggerMessage(LogLevel.Information, "Deleting appointment with id {Id}")]
+    static partial void LogDeletingAppointmentWithIdId(ILogger logger, AppointmentId id);
 }

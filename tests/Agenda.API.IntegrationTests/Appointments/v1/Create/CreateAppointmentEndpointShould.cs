@@ -83,7 +83,7 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
             StartDate = startDate.InUtc().ToOffsetDateTime(),
             EndDate = endDate.InUtc().ToOffsetDateTime(),
             Location = s_faker.Address.City(),
-            Attendees = s_faker.Make(2, () => new AttendeeInfo { Name = s_faker.Name.FullName(), Email = s_faker.Internet.Email(), PhoneNumber = s_faker.Phone.PhoneNumber() }),
+            Attendees = [ ..s_faker.Make(2, () => new AttendeeInfo { Name = s_faker.Name.FullName(), Email = s_faker.Internet.Email(), PhoneNumber = s_faker.Phone.PhoneNumber() })],
             Subject = s_faker.Lorem.Sentence()
         };
 
