@@ -2,9 +2,9 @@ using System;
 using System.Threading.Tasks;
 using Agenda.API.IntegrationTests.Fixtures;
 using Aspire.Hosting;
+using xRetry.v3;
 using Xunit;
 using Xunit.OpenCategories.V3;
-using xRetry.v3;
 
 
 namespace Agenda.API.IntegrationTests;

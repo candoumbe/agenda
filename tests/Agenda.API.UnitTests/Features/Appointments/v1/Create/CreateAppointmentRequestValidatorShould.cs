@@ -5,6 +5,7 @@ using Agenda.API.Features.Appointments;
 using Agenda.API.Features.Appointments.v1.Create;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.API.UnitTests.Helpers;
+using Agenda.UnitTests.Helpers;
 using Bogus;
 using FastEndpoints;
 using FluentAssertions;

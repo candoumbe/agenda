@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\tests.props"/>
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NodaTime.Serialization.SystemTextJson" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="xunit.runner.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Agenda.Ids\Agenda.Ids.csproj" />
+  </ItemGroup>
+</Project>

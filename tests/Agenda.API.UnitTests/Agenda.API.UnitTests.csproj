@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Agenda.API\Agenda.API.csproj" />
+    <ProjectReference Include="..\Agenda.UnitTests.Helpers\Agenda.UnitTests.Helpers.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,6 +16,7 @@
 
   <ItemGroup>
     <Folder Include="Features\Appointments\" />
+    <Folder Include="Helpers\" />
   </ItemGroup>
 
 </Project>

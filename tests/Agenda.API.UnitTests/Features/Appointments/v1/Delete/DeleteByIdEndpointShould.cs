@@ -9,6 +9,7 @@ using Agenda.API.Features.Appointments.v1.Delete;
 using Agenda.API.UnitTests.Helpers;
 using Agenda.Ids;
 using Agenda.Objects;
+using Agenda.UnitTests.Helpers;
 using Bogus;
 using Candoumbe.DataAccess.Abstractions;
 using FakeItEasy;

@@ -256,35 +256,4 @@ file record AttendeeDto
     public string PhoneNumber { get; init; }
 }
 
-file record SearchAppointmentQuery
-{
-    public SearchAppointmentQuery(NonNegativeInteger Page, PositiveInteger PageSize, string Subject, OffsetDateTime? From, OffsetDateTime? To, string Sort)
-    {
-        this.Page = Page;
-        this.PageSize = PageSize;
-        this.Subject = Subject;
-        this.From = From;
-        this.To = To;
-        this.Sort = Sort;
-    }
-
-    /// <inheritdoc />
-    public override string ToString() => $"{{ Page = {Page}, PageSize = {PageSize}, Subject = {Subject}, From = {From}, To = {To}, Sort = {Sort} }}";
-
-    public NonNegativeInteger Page { get; init; }
-    public PositiveInteger PageSize { get; init; }
-    public string Subject { get; init; }
-    public OffsetDateTime? From { get; init; }
-    public OffsetDateTime? To { get; init; }
-    public string Sort { get; init; }
-
-    public void Deconstruct(out NonNegativeInteger Page, out PositiveInteger PageSize, out string Subject, out OffsetDateTime? From, out OffsetDateTime? To, out string Sort)
-    {
-        Page = this.Page;
-        PageSize = this.PageSize;
-        Subject = this.Subject;
-        From = this.From;
-        To = this.To;
-        Sort = this.Sort;
-    }
-}
+file record SearchAppointmentQuery(NonNegativeInteger Page, PositiveInteger PageSize, string Subject, OffsetDateTime? From, OffsetDateTime? To, string Sort);

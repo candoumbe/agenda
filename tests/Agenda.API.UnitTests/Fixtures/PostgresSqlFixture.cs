@@ -12,7 +12,7 @@ public class PostgresSqlFixture : IAsyncLifetime
 {
 
     private readonly PostgreSqlContainer _container;
-    private static Faker s_faker = new();
+    private static readonly Faker s_faker = new();
 
     /// <summary>
     /// Connection string to the postgres database.

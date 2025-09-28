@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Agenda.API.UnitTests.Helpers;
 using Agenda.Ids;
+using Agenda.UnitTests.Helpers;
 using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
@@ -73,7 +75,7 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
             .Throw<ArgumentNullException>($"{nameof(Appointment)}'s {nameof(Appointment.Subject)} cannot be changed to null");
     }
 
-    public static TheoryData<Appointment, Instant, AppointmentStatus> ComputeStatusCases
+    public static TheoryData<GenericSerializable<Appointment>, GenericSerializable<Instant>, AppointmentStatus> ComputeStatusCases
         => new()
         {
             {
@@ -104,8 +106,12 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
 
     [Theory]
     [MemberData(nameof(ComputeStatusCases))]
-    public void ComputeStatus(Appointment appointment, Instant now, AppointmentStatus expected)
+    public void ComputeStatus(GenericSerializable<Appointment> sut, GenericSerializable<Instant> nowGenerator, AppointmentStatus expected)
     {
+        // Arrange
+        Appointment appointment = sut;
+        Instant now = nowGenerator;
+
         outputHelper.WriteLine($"Appointment starts at {appointment.StartDate}");
         outputHelper.WriteLine($"Appointment ends at {appointment.EndDate}");
 
@@ -119,11 +125,11 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
             .Be(expected);
     }
 
-    public static TheoryData<Appointment, Attendee, Expression<Func<Appointment, bool>>> AddingAttendeesToAppointmentCases
+    public static TheoryData<GenericSerializable<Appointment>, GenericSerializable<Attendee>, XunitSerializableExpression<Appointment>> AddingAttendeesToAppointmentCases
     {
         get
         {
-            TheoryData<Appointment, Attendee, Expression<Func<Appointment, bool>>> cases = new();
+            TheoryData<GenericSerializable<Appointment>, GenericSerializable<Attendee>, XunitSerializableExpression<Appointment>> cases = new();
 
             // Add an attendee with explicit id
             {
@@ -134,11 +140,11 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
                                           12.April(2017).At(14.Hours()).AsUtc().ToInstant(),
                                           12.April(2017).At(17.Hours()).AsUtc().ToInstant()),
                           newAttendee,
-                          app => app.Attendees.Count == 1
-                                 && app.Attendees[0].Id == newAttendee.Id
-                                 && app.Attendees[0].Name == "John"
-                                 && app.Attendees[0].Email == ""
-                                 && app.Attendees[0].PhoneNumber == "0123456789");
+                          new XunitSerializableExpression<Appointment> { Value = app => app.Attendees.Count == 1
+                                                                               && app.Attendees[0].Id == newAttendee.Id
+                                                                               && app.Attendees[0].Name == "John"
+                                                                               && app.Attendees[0].Email == ""
+                                                                               && app.Attendees[0].PhoneNumber == "0123456789" });
             }
 
             // Adding an attendee to an existing appointment with an explicit id that's already used by another attendee
@@ -155,8 +161,8 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
 
                 cases.Add(appointment,
                           existingAttendee,
-                          app => app.Attendees.Count == 1
-                                 && app.Attendees[0].Id == existingAttendee.Id);
+                          new XunitSerializableExpression<Appointment>(){ Value = app => app.Attendees.Count == 1
+                                                                               && app.Attendees[0].Id == existingAttendee.Id });
             }
 
             return cases;
@@ -165,16 +171,20 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
 
     [Theory]
     [MemberData(nameof(AddingAttendeesToAppointmentCases))]
-    public void Given_an_appointment_with_no_attendees_When_adding_an_attendee_Then_the_appointment_has_expected_attendees(Appointment appointment,
-                                                                                                                           Attendee attendeeToAdd,
-                                                                                                                           Expression<Func<Appointment, bool>> appointmentExpectation)
+    public void Given_an_appointment_with_no_attendees_When_adding_an_attendee_Then_the_appointment_has_expected_attendees(GenericSerializable<Appointment> appointmentGenerator,
+                                                                                                                           GenericSerializable<Attendee> attendeeToAddGenerator,
+                                                                                                                           XunitSerializableExpression<Appointment> appointmentExpectation)
     {
+        // Arrange
+        Appointment appointment = appointmentGenerator;
+        Attendee attendeeToAdd = attendeeToAddGenerator;
+
         // Act
         appointment.AddAttendee(attendeeToAdd);
 
         // Assert
         appointment.Should()
-            .Match(appointmentExpectation);
+            .Match(appointmentExpectation.Value);
     }
 
     [Fact]
@@ -195,11 +205,11 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
             .Throw<ArgumentNullException>();
     }
 
-    public static TheoryData<Appointment, AttendeeId, Expression<Func<Appointment, bool>>> RemoveAttendeeFromAppointmentCases
+    public static TheoryData<GenericSerializable<Appointment>, AttendeeId, XunitSerializableExpression<Appointment>> RemoveAttendeeFromAppointmentCases
     {
         get
         {
-            TheoryData<Appointment, AttendeeId, Expression<Func<Appointment, bool>>> cases = new();
+            TheoryData<GenericSerializable<Appointment>, AttendeeId, XunitSerializableExpression<Appointment>> cases = new();
 
             {
                 Appointment appointment = new Appointment(AppointmentId.New(),
@@ -215,7 +225,7 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
 
                 cases.Add(appointment,
                           attendeeId,
-                          app => app.Attendees.Count == 0);
+                          new XunitSerializableExpression<Appointment>() { Value = app => app.Attendees.Count == 0});
             }
 
             {
@@ -231,8 +241,8 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
 
                 cases.Add(appointment,
                           AttendeeId.New(),
-                          app => app.Attendees.Count == 1
-                                 && app.Attendees[0].Id == attendeeId);
+                          new XunitSerializableExpression<Appointment>(){ Value = app => app.Attendees.Count == 1
+                                                                               && app.Attendees[0].Id == attendeeId});
             }
 
             return cases;
@@ -241,14 +251,17 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
 
     [Theory]
     [MemberData(nameof(RemoveAttendeeFromAppointmentCases))]
-    public void Given_an_appointment_with_attendees_When_removing_an_attendee_Then_the_appointment_has_expected_attendees(Appointment appointment,
+    public void Given_an_appointment_with_attendees_When_removing_an_attendee_Then_the_appointment_has_expected_attendees(GenericSerializable<Appointment> appointmentGenerator,
                                                                                                                           AttendeeId attendeeId,
-                                                                                                                          Expression<Func<Appointment, bool>> appointmentExpectation)
+                                                                                                                          XunitSerializableExpression<Appointment> appointmentExpectation)
     {
+        // Arrange
+        Appointment appointment = appointmentGenerator;
+
         // Act
         appointment.RemoveAttendee(attendeeId);
 
         // Assert
-        appointment.Should().Match(appointmentExpectation);
+        appointment.Should().Match(appointmentExpectation.Value);
     }
 }

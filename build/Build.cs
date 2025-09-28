@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using Candoumbe.Pipelines.Components;
 using Candoumbe.Pipelines.Components.Formatting;
@@ -22,52 +23,52 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Serilog.Log;
 
 [GitHubActions(
-                  "integration",
-                  GitHubActionsImage.UbuntuLatest,
-                  AutoGenerate = false,
-                  FetchDepth = 0,
-                  OnPushBranchesIgnore = [IHaveMainBranch.MainBranchName],
-                  PublishArtifacts = true,
-                  InvokedTargets = [nameof(Tests), nameof(IPushNugetPackages.Publish), nameof(IPack.Pack)],
-                  CacheKeyFiles = ["global.json", "src/**/*.csproj"],
-                  ImportSecrets =
-                  [
-                      nameof(IPushNugetPackages.NuGetApiKey),
-                      nameof(IReportCoverage.CodecovToken),
-                      nameof(IMutationTest.StrykerDashboardApiKey)
-                  ],
-                  OnPullRequestExcludePaths =
-                  [
-                      "docs/*",
-                      "README.md",
-                      "CHANGELOG.md",
-                      "LICENSE"
-                  ]
-              )]
+    "integration",
+    GitHubActionsImage.UbuntuLatest,
+    AutoGenerate = false,
+    FetchDepth = 0,
+    OnPushBranchesIgnore = [IHaveMainBranch.MainBranchName],
+    PublishArtifacts = true,
+    InvokedTargets = [nameof(Tests), nameof(IPushNugetPackages.Publish), nameof(IPack.Pack)],
+    CacheKeyFiles = ["global.json", "src/**/*.csproj"],
+    ImportSecrets =
+    [
+        nameof(IPushNugetPackages.NuGetApiKey),
+        nameof(IReportCoverage.CodecovToken),
+        nameof(IMutationTest.StrykerDashboardApiKey)
+    ],
+    OnPullRequestExcludePaths =
+    [
+        "docs/*",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE"
+    ]
+)]
 [GitHubActions(
-                  "delivery",
-                  GitHubActionsImage.UbuntuLatest,
-                  FetchDepth = 0,
-                  AutoGenerate = false,
-                  OnPushBranches = [IHaveMainBranch.MainBranchName, IGitFlow.ReleaseBranch + "/*"],
-                  InvokedTargets = [nameof(Tests), nameof(IPushNugetPackages.Publish), nameof(ICreateGithubRelease.AddGithubRelease)],
-                  EnableGitHubToken = true,
-                  CacheKeyFiles = ["global.json", "src/**/*.csproj"],
-                  PublishArtifacts = true,
-                  ImportSecrets =
-                  [
-                      nameof(IPushNugetPackages.NuGetApiKey),
-                      nameof(IReportCoverage.CodecovToken),
-                      nameof(IMutationTest.StrykerDashboardApiKey)
-                  ],
-                  OnPullRequestExcludePaths =
-                  [
-                      "docs/*",
-                      "README.md",
-                      "CHANGELOG.md",
-                      "LICENSE"
-                  ]
-              )]
+    "delivery",
+    GitHubActionsImage.UbuntuLatest,
+    FetchDepth = 0,
+    AutoGenerate = false,
+    OnPushBranches = [IHaveMainBranch.MainBranchName, IGitFlow.ReleaseBranch + "/*"],
+    InvokedTargets = [nameof(Tests), nameof(IPushNugetPackages.Publish), nameof(ICreateGithubRelease.AddGithubRelease)],
+    EnableGitHubToken = true,
+    CacheKeyFiles = ["global.json", "src/**/*.csproj"],
+    PublishArtifacts = true,
+    ImportSecrets =
+    [
+        nameof(IPushNugetPackages.NuGetApiKey),
+        nameof(IReportCoverage.CodecovToken),
+        nameof(IMutationTest.StrykerDashboardApiKey)
+    ],
+    OnPullRequestExcludePaths =
+    [
+        "docs/*",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE"
+    ]
+)]
 [DotNetVerbosityMapping]
 public class Build : EnhancedNukeBuild,
     IHaveGitVersion,
@@ -78,6 +79,7 @@ public class Build : EnhancedNukeBuild,
     IClean,
     IRestore,
     IDotnetFormat,
+    IMutationTest,
     IBenchmark,
     IReportUnitTestCoverage,
     IReportIntegrationTestCoverage,
@@ -237,4 +239,18 @@ public class Build : EnhancedNukeBuild,
                                            this.Get<IUnitTest>().UnitTests,
                                            this.Get<IIntegrationTest>().IntegrationTests)
                                .Description("Runs all tests");
+
+
+    /// <summary>
+    /// Projects to be targeted by mutation tests.
+    /// </summary>
+    private static readonly string[] s_projects = ["Agenda.Ids", "Agenda.Objects", "Agenda.API"];
+
+    /// <inheritdoc />
+    IEnumerable<MutationProjectConfiguration> IMutationTest.MutationTestsProjects =>
+    [
+        ..s_projects.Select(projectName => new MutationProjectConfiguration(sourceProject: Solution.AllProjects.Single(csproj => csproj.Name == projectName),
+                                                                           testProjects: Solution.AllProjects.Where(csproj => string.Equals(csproj.Name, $"{projectName}.UnitTests")),
+                                                                           configurationFile: this.Get<IHaveTestDirectory>().TestDirectory / $"{projectName}.UnitTests" / "stryker-config.json"))
+    ];
 }

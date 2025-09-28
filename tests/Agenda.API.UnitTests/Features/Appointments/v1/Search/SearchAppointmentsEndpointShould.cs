@@ -12,6 +12,7 @@ using Agenda.API.UnitTests.Helpers;
 using Agenda.DataStores;
 using Agenda.Ids;
 using Agenda.Objects;
+using Agenda.UnitTests.Helpers;
 using Bogus;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;

@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Agenda.Objects\Agenda.Objects.csproj" />
+    <ProjectReference Include="..\Agenda.UnitTests.Helpers\Agenda.UnitTests.Helpers.csproj" />
   </ItemGroup>
 
 </Project>
