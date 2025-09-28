@@ -3,6 +3,7 @@ using System.Text.Json;
 using Agenda.API.Features.Appointments.v1.Create;
 using Agenda.API.UnitTests.Helpers;
 using Agenda.Ids;
+using Agenda.UnitTests.Helpers;
 using Bogus;
 using FakeItEasy;
 using FastEndpoints;

@@ -5,7 +5,7 @@ using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Xunit.Sdk;
 
-namespace Agenda.API.UnitTests.Helpers;
+namespace Agenda.UnitTests.Helpers;
 
 public class GenericSerializable<T> : IXunitSerializable
 {

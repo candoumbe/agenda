@@ -9,6 +9,7 @@ using Agenda.API.Features.Appointments.v1.Search;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.API.UnitTests.Helpers;
 using Agenda.Ids;
+using Agenda.UnitTests.Helpers;
 using Bogus;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.Forms;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Agenda.Ids;
+using Agenda.UnitTests.Helpers;
 using Bogus;
 using FluentAssertions;
 using FluentAssertions.Extensions;
@@ -195,11 +196,11 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
             .Throw<ArgumentNullException>();
     }
 
-    public static TheoryData<Appointment, AttendeeId, Expression<Func<Appointment, bool>>> RemoveAttendeeFromAppointmentCases
+    public static TheoryData<GenericSerializable<Appointment>, AttendeeId, Expression<Func<Appointment, bool>>> RemoveAttendeeFromAppointmentCases
     {
         get
         {
-            TheoryData<Appointment, AttendeeId, Expression<Func<Appointment, bool>>> cases = new();
+            TheoryData<GenericSerializable<Appointment>, AttendeeId, Expression<Func<Appointment, bool>>> cases = new();
 
             {
                 Appointment appointment = new Appointment(AppointmentId.New(),
@@ -241,10 +242,13 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
 
     [Theory]
     [MemberData(nameof(RemoveAttendeeFromAppointmentCases))]
-    public void Given_an_appointment_with_attendees_When_removing_an_attendee_Then_the_appointment_has_expected_attendees(Appointment appointment,
+    public void Given_an_appointment_with_attendees_When_removing_an_attendee_Then_the_appointment_has_expected_attendees(GenericSerializable<Appointment> sut,
                                                                                                                           AttendeeId attendeeId,
                                                                                                                           Expression<Func<Appointment, bool>> appointmentExpectation)
     {
+        // Arrange
+        Appointment appointment = sut;
+
         // Act
         appointment.RemoveAttendee(attendeeId);
 
