@@ -232,7 +232,9 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                                                             && pageOfAppointments.Count == 1
                                                             && pageOfAppointments.Items != null
                                                             && pageOfAppointments.Items.Exactly(1)
-                                                            && pageOfAppointments.Items.All(a => a.Resource.Id == adventure.Id)
+                                                            && pageOfAppointments.Items.Once(a => a.Resource.Id == adventure.Id
+                                                                                                  && a.Resource.Subject.Contains("brave")
+                                                                                                  && a.Resource.Attendees.Count == adventure.Attendees.Count)
                                                             && pageOfAppointments.Page == 1
                                                             && pageOfAppointments.Links != null
                                                             && pageOfAppointments.Links.First != null
