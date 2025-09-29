@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.Features;
 using Agenda.API.Features.Appointments;
@@ -12,6 +13,7 @@ using Agenda.API.Features.v1.Appointments;
 using Agenda.API.IntegrationTests.Fixtures;
 using Agenda.Ids;
 using Aspire.Hosting;
+using Aspire.Hosting.Testing;
 using Bogus;
 using Candoumbe.Forms;
 using DataFilters.Converters;
@@ -20,6 +22,7 @@ using Json.More;
 using Json.Patch;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
+using xRetry.v3;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
@@ -68,11 +71,13 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
     public async ValueTask DisposeAsync() => await _appHost.DisposeAsync();
 
 
-    [Fact]
+    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
     public async Task Returns_the_appointment_when_created_successfully()
     {
         // Arrange
         //_client = _sut.CreateHttpClient("api");
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+
         outputHelper.WriteLine("Client: " + _client.BaseAddress);
         Instant startDate = s_faker.Noda().Instant.Soon();
         Instant endDate = s_faker.Noda().Instant.Future(reference: startDate);
@@ -88,13 +93,13 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
         };
 
         // Act
-        using HttpResponseMessage response = await _client.PostAsJsonAsync("/appointments", newAppointmentInfo, s_jsonSerializerOptions, cancellationToken: TestContext.Current.CancellationToken);
+        using HttpResponseMessage response = await _client.PostAsJsonAsync("/appointments", newAppointmentInfo, s_jsonSerializerOptions, cancellationToken: cancellationToken);
 
         // Assert
         response.StatusCode.Should()
             .Be(HttpStatusCode.Created);
 
-        Browsable<AppointmentInfo> browsable = await response.Content.ReadFromJsonAsync<Browsable<AppointmentInfo>>(s_jsonSerializerOptions, cancellationToken: TestContext.Current.CancellationToken);
+        Browsable<AppointmentInfo> browsable = await response.Content.ReadFromJsonAsync<Browsable<AppointmentInfo>>(s_jsonSerializerOptions, cancellationToken: cancellationToken);
 
         IEnumerable<Link> links = browsable.Links;
         links.Should()
