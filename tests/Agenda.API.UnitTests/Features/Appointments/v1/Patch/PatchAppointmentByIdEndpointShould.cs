@@ -3,45 +3,66 @@ using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.Features.Appointments.v1.Update;
 using Agenda.Ids;
+using Agenda.Objects;
 using FastEndpoints;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http.HttpResults;
+using NodaTime;
+using SystemTextJsonPatch.Operations;
 using Xunit;
 
-namespace Agenda.API.UnitTests.Features.Appointments.v1.Patch
+namespace Agenda.API.UnitTests.Features.Appointments.v1.Patch;
+
+public class PatchAppointmentByIdEndpointShould
 {
-    public class PatchAppointmentByIdEndpointShould
+    private readonly PatchAppointmentByIdEndpoint _sut = Factory.Create<PatchAppointmentByIdEndpoint>();
+
+    [Fact]
+    public void Have_expected_route()
     {
-        private readonly PatchAppointmentByIdEndpoint _sut = Factory.Create<PatchAppointmentByIdEndpoint>();
+        // Assert
+        string[] routes = _sut.Definition.Routes;
+        routes.Should()
+            .HaveCount(1)
+            .And
+            .ContainSingle("/appointments/{id}");
 
-        [Fact]
-        public void Have_expected_route()
+        string[] methods = _sut.Definition.Verbs;
+        methods.Should().HaveCount(1).And.ContainSingle("PATCH");
+    }
+
+    [Fact]
+    public async Task Return_NoContent()
+    {
+        PatchRequest<AppointmentId, PatchAppointmentRequest> request = new()
         {
-            // Assert
-            string[] routes = _sut.Definition.Routes;
-            routes.Should()
-                .HaveCount(1)
-                .And
-                .ContainSingle("/appointments/{id}");
+            Id = new AppointmentId(),
+            Operations = []
+        };
 
-            string[] methods = _sut.Definition.Verbs;
-            methods.Should().HaveCount(1).And.ContainSingle("PATCH");
-        }
+        // Act
+        Func<Task> patch = async () => _ = await _sut.ExecuteAsync(request, CancellationToken.None);
 
-        [Fact]
-        public async Task Return_NoContent()
+        // Assert
+        await patch.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task Return_NotFound_When_appointment_does_not_exist()
+    {
+        Instant newStartDate = Instant.FromUtc(2024, 1, 1, 14, 0);
+        PatchRequest<AppointmentId, PatchAppointmentRequest> request = new()
         {
-            PatchRequest<AppointmentId, PatchAppointmentRequest> request = new()
-            {
-                Id = new AppointmentId(),
-                Operations = new()
-            };
+            Id = AppointmentId.New(),
+            Operations = [
+                new Operation<PatchAppointmentRequest>(nameof(OperationType.Replace), $"/{nameof(Appointment.StartDate)}",  newStartDate.ToString())
+            ]
+        };
 
-            // Act
-            Func<Task> patch = async () => _ = await _sut.ExecuteAsync(request, CancellationToken.None);
+        // Act
+        Results<NoContent, NotFound, ProblemDetails> response = await _sut.ExecuteAsync(request, CancellationToken.None);
 
-            // Assert
-            await patch.Should().NotThrowAsync();
-
-        }
+        // Assert
+        response.Result.Should().BeOfType<NotFound>();
     }
 }

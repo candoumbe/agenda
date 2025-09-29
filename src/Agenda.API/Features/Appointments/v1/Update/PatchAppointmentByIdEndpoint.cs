@@ -13,7 +13,7 @@ namespace Agenda.API.Features.Appointments.v1.Update;
 /// <summary>
 /// Updates an appointment based on a PATCH document
 /// </summary>
-public class PatchAppointmentByIdEndpoint : Endpoint<PatchRequest<AppointmentId ,PatchAppointmentRequest>, Results<NoContent, ProblemDetails>>
+public class PatchAppointmentByIdEndpoint : Endpoint<PatchRequest<AppointmentId ,PatchAppointmentRequest>, Results<NoContent, NotFound, ProblemDetails>>
 {
     /// <inheritdoc />
     public override void Configure()
@@ -26,6 +26,6 @@ public class PatchAppointmentByIdEndpoint : Endpoint<PatchRequest<AppointmentId 
     }
 
     /// <inheritdoc />
-    public override async Task<Results<NoContent, ProblemDetails>> ExecuteAsync(PatchRequest<AppointmentId, PatchAppointmentRequest> req, CancellationToken ct)
-        => TypedResults.NoContent();
+    public override async Task<Results<NoContent,NotFound,  ProblemDetails>> ExecuteAsync(PatchRequest<AppointmentId, PatchAppointmentRequest> req, CancellationToken ct)
+        => TypedResults.NotFound();
 }
