@@ -78,8 +78,7 @@ public class PatchAppointmentByIdEndpointShould : IClassFixture<PostgresSqlFixtu
             TheoryData<GenericSerializable<Appointment>, GenericSerializable<PatchRequest<AppointmentId, PatchAppointmentRequest>>, XunitSerializableExpression<Appointment>> cases = new();
             {
                 Appointment appointment = new(AppointmentId.New(),
-
-                    "Initial subject",
+                    s_faker.Lorem.Sentence(),
                     s_faker.Address.FullAddress(),
                     Instant.FromUtc(2024, 1, 1, 12, 0),
                     Instant.FromUtc(2024, 1, 1, 13, 0));
@@ -99,7 +98,7 @@ public class PatchAppointmentByIdEndpointShould : IClassFixture<PostgresSqlFixtu
             {
                 Appointment appointment = new(
                     AppointmentId.New(),
-                    "Initial subject",
+                    s_faker.Lorem.Sentence(),
                     s_faker.Address.FullAddress(),
                     Instant.FromUtc(2024, 1, 1, 12, 0),
                     Instant.FromUtc(2024, 1, 1, 13, 0));
@@ -122,7 +121,7 @@ public class PatchAppointmentByIdEndpointShould : IClassFixture<PostgresSqlFixtu
             {
                 Appointment appointment = new(
                     AppointmentId.New(),
-                    "Initial subject",
+                    s_faker.Lorem.Sentence(),
                     s_faker.Address.FullAddress(),
                     Instant.FromUtc(2024, 1, 1, 12, 0),
                     Instant.FromUtc(2024, 1, 1, 13, 0));
@@ -152,7 +151,7 @@ public class PatchAppointmentByIdEndpointShould : IClassFixture<PostgresSqlFixtu
             {
                 Appointment appointment = new(
                     AppointmentId.New(),
-                    "Initial subject",
+                    s_faker.Lorem.Sentence(),
                     s_faker.Address.FullAddress(),
                     Instant.FromUtc(2024, 1, 1, 12, 0),
                     Instant.FromUtc(2024, 1, 1, 13, 0));
@@ -180,7 +179,7 @@ public class PatchAppointmentByIdEndpointShould : IClassFixture<PostgresSqlFixtu
             {
                 Appointment appointment = new(
                     AppointmentId.New(),
-                    "Initial subject",
+                    s_faker.Lorem.Sentence(),
                     s_faker.Address.FullAddress(),
                     Instant.FromUtc(2024, 1, 1, 12, 0),
                     Instant.FromUtc(2024, 1, 1, 13, 0));
@@ -195,7 +194,6 @@ public class PatchAppointmentByIdEndpointShould : IClassFixture<PostgresSqlFixtu
                         new Operation<PatchAppointmentRequest>(nameof(OperationType.Test), $"/{nameof(Appointment.Id)}", appointment.Id.ToString())
                     ]
                 };
-
 
                 cases.Add(appointment,
                     request,

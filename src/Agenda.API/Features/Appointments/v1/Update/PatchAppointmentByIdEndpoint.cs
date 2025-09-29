@@ -49,20 +49,29 @@ public class PatchAppointmentByIdEndpoint : Endpoint<PatchRequest<AppointmentId,
                 maybeLocationOperation.MatchSome(newLocationOperation => existingAppointment.RelocateTo(newLocationOperation.From));
 
                 Ultimately.Option<Operation<PatchAppointmentRequest>> maybeStartDateOperation = req.Operations.SingleOrNone(op => op.Path!.Equals($"/{nameof(PatchAppointmentRequest.StartDate)}", StringComparison.OrdinalIgnoreCase));
-                maybeStartDateOperation.MatchSome(newStartDateOperation =>
-                {
-                    DateTimeZone dateTimeZone = _currentRequestMetadataInfoProvider.GetCurrentDateTimeZone();
-                    ZonedDateTime newStartDate = ZonedDateTime.FromDateTimeOffset(DateTimeOffset.Parse(newStartDateOperation.From!));
-                    existingAppointment.Reschedule(newStartDate, existingAppointment.EndDate.InZone(dateTimeZone));
-                });
-
                 Ultimately.Option<Operation<PatchAppointmentRequest>> maybeEndDateOperation = req.Operations.SingleOrNone(op => op.Path!.Equals($"/{nameof(PatchAppointmentRequest.EndDate)}", StringComparison.OrdinalIgnoreCase));
-                maybeEndDateOperation.MatchSome(newEndDateOperation =>
-                {
-                    DateTimeZone dateTimeZone = _currentRequestMetadataInfoProvider.GetCurrentDateTimeZone();
-                    ZonedDateTime newEndDate = ZonedDateTime.FromDateTimeOffset(DateTimeOffset.Parse(newEndDateOperation.From!));
-                    existingAppointment.Reschedule(existingAppointment.StartDate.InZone(dateTimeZone), newEndDate);
-                });
+                maybeStartDateOperation.Match(
+                    newStartDateOperation =>
+                    {
+                        ZonedDateTime newStartDate = ZonedDateTime.FromDateTimeOffset(DateTimeOffset.Parse(newStartDateOperation.From!));
+                        maybeEndDateOperation.Match(
+                            newEndDateOperation =>
+                            {
+                                ZonedDateTime newEndDate = ZonedDateTime.FromDateTimeOffset(DateTimeOffset.Parse(newEndDateOperation.From!));
+                                existingAppointment.Reschedule(newStartDate, newEndDate);
+                            },
+                            _ => existingAppointment.Reschedule(newStartDate, existingAppointment.EndDate.InZone(newStartDate.Zone)));
+                    },
+                    _ =>
+                    {
+                        maybeEndDateOperation.MatchSome(newEndDateOperation =>
+                        {
+                            DateTimeZone dateTimeZone = _currentRequestMetadataInfoProvider.GetCurrentDateTimeZone();
+                            ZonedDateTime newEndDate = ZonedDateTime.FromDateTimeOffset(DateTimeOffset.Parse(newEndDateOperation.From!));
+                            existingAppointment.Reschedule(existingAppointment.StartDate.InZone(dateTimeZone), newEndDate);
+                        });
+                    });
+
 
                 await unitOfWork.SaveChangesAsync(ct);
 
