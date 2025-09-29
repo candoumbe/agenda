@@ -49,7 +49,7 @@ public class PatchAppointmentByIdEndpointShould: IClassFixture<PostgresSqlFixtur
 
 
     [Fact]
-    public void Have_expected_route()
+    public void Have_expected_definition()
     {
         // Assert
         string[] routes = _sut.Definition.Routes;
@@ -60,6 +60,8 @@ public class PatchAppointmentByIdEndpointShould: IClassFixture<PostgresSqlFixtur
 
         string[] methods = _sut.Definition.Verbs;
         methods.Should().HaveCount(1).And.ContainSingle("PATCH");
+
+        _sut.Definition.ValidatorType.Should().Be<PatchAppointmentInfoRequestValidator>();
     }
 
     [Fact]
