@@ -1,16 +1,11 @@
-﻿using System;
-using System.Data;
-using System.Threading;
-using System.Threading.Tasks;
-using Agenda.Ids;
+﻿using Agenda.Ids;
 using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
 using FastEndpoints;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Optional;
-using SystemTextJsonPatch;
 using SystemTextJsonPatch.Operations;
+using Ultimately.Collections;
 
 namespace Agenda.API.Features.Appointments.v1.Update;
 
@@ -44,8 +39,11 @@ public class PatchAppointmentByIdEndpoint : Endpoint<PatchRequest<AppointmentId,
 
         return await maybeAppointment.Match<Task<Results<NoContent, NotFound, ProblemDetails>>>(some: async (existingAppointment) =>
             {
-                Operation subjectOperation = req.Operations.Single(op => op.Path!.Equals("/subject", StringComparison.OrdinalIgnoreCase));
-                existingAppointment.ChangeSubjectTo(subjectOperation.From);
+                Ultimately.Option<Operation<PatchAppointmentRequest>> maybeSubjectOperation = req.Operations.SingleOrNone(op => op.Path!.Equals($"/{nameof(Appointment.Subject)}", StringComparison.OrdinalIgnoreCase));
+                maybeSubjectOperation.MatchSome(newSubjectOperation => existingAppointment.ChangeSubjectTo(newSubjectOperation.From));
+
+                Ultimately.Option<Operation<PatchAppointmentRequest>> maybeLocationOperation = req.Operations.SingleOrNone(op => op.Path!.Equals($"/{nameof(Appointment.Location)}", StringComparison.OrdinalIgnoreCase));
+                maybeLocationOperation.MatchSome(newLocationOperation => existingAppointment.RelocateTo(newLocationOperation.From));
 
                 await unitOfWork.SaveChangesAsync(ct);
 

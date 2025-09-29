@@ -6,6 +6,7 @@ using Agenda.API.UnitTests.Fixtures;
 using Agenda.DataStores;
 using Agenda.Ids;
 using Agenda.Objects;
+using Bogus;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;
 using FakeItEasy;
@@ -25,6 +26,7 @@ public class PatchAppointmentByIdEndpointShould: IClassFixture<PostgresSqlFixtur
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly ITestOutputHelper _outputHelper;
     private readonly IClock _clock;
+    private static readonly Faker s_faker = new();
 
     public PatchAppointmentByIdEndpointShould(ITestOutputHelper outputHelper, PostgresSqlFixture fixture)
     {
@@ -65,12 +67,12 @@ public class PatchAppointmentByIdEndpointShould: IClassFixture<PostgresSqlFixtur
     }
 
     [Fact]
-    public async Task Return_NoContent_when_existing_appointment_was_successfully_updated()
+    public async Task Return_NoContent_when_existing_appointment_subject_was_successfully_updated()
     {
         Appointment appointment = new(
             AppointmentId.New(),
             "Initial subject",
-            "Location",
+            s_faker.Address.FullAddress(),
             Instant.FromUtc(2024, 1, 1, 12, 0),
             Instant.FromUtc(2024, 1, 1, 13, 0));
 
@@ -100,6 +102,47 @@ public class PatchAppointmentByIdEndpointShould: IClassFixture<PostgresSqlFixtur
         Appointment updatedAppointment = await verifyUnitOfWork.Repository<Appointment>().Single(new FilterSpecification<Appointment>(a => a.Id == appointment.Id), ct);
         updatedAppointment.Subject.Should().Be("New subject");
     }
+
+    [Fact]
+    public async Task Return_NoContent_when_existing_appointment_location__was_successfully_updated()
+    {
+        Appointment appointment = new(
+            AppointmentId.New(),
+            "Initial subject",
+            s_faker.Address.FullAddress(),
+            Instant.FromUtc(2024, 1, 1, 12, 0),
+            Instant.FromUtc(2024, 1, 1, 13, 0));
+
+        CancellationToken ct = TestContext.Current.CancellationToken;
+
+        string newLocation = s_faker.Address.FullAddress();
+
+        using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
+        await unitOfWork.Repository<Appointment>().Create(appointment, ct);
+        await unitOfWork.SaveChangesAsync(ct);
+
+        PatchRequest<AppointmentId, PatchAppointmentRequest> request = new()
+        {
+            Id = appointment.Id,
+            Operations =
+            [
+                new Operation<PatchAppointmentRequest>(nameof(OperationType.Replace), $"/{nameof(Appointment.Location)}",  newLocation),
+                new Operation<PatchAppointmentRequest>(nameof(OperationType.Test), $"/{nameof(Appointment.Id)}",  appointment.Id.ToString())
+            ]
+        };
+
+        // Act
+        Results<NoContent, NotFound, ProblemDetails> response= await _sut.ExecuteAsync(request, CancellationToken.None);
+
+        // Assert
+        response.Result.Should().BeOfType<NoContent>();
+
+        using IUnitOfWork verifyUnitOfWork = _unitOfWorkFactory.NewUnitOfWork();
+        Appointment updatedAppointment = await verifyUnitOfWork.Repository<Appointment>().Single(new FilterSpecification<Appointment>(a => a.Id == appointment.Id), ct);
+        updatedAppointment.Location.Should().Be(newLocation);
+    }
+
+
 
     [Fact]
     public async Task Return_NotFound_When_appointment_does_not_exist()

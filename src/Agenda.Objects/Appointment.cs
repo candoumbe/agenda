@@ -17,7 +17,7 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// <summary>
     /// Location of the appointment
     /// </summary>
-    public string Location { get; }
+    public string Location { get; private set; }
 
     /// <summary>
     /// Subject of the <see cref="Appointment"/>
@@ -137,4 +137,11 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
             (_, > 0) => AppointmentStatus.Ended,
             _        => AppointmentStatus.OnGoing
         };
+
+    /// <summary>
+    /// Relocates the <see cref="Appointment"/> to the specified <paramref name="newLocation"/>.
+    /// </summary>
+    /// <param name="newLocation">The new location</param>
+    /// <exception cref="NotImplementedException"></exception>
+    public void RelocateTo(string newLocation) => Location = newLocation;
 }
