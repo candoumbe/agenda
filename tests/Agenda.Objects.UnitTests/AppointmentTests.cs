@@ -264,4 +264,23 @@ public class AppointmentTests(ITestOutputHelper outputHelper)
         // Assert
         appointment.Should().Match(appointmentExpectation.Value);
     }
+
+
+    [Property]
+    public void Given_an_appointment_When_relocating_to_a_new_location_Then_the_appointment_location_is_updated(string newLocation)
+    {
+        // Arrange
+        Appointment appointment = new(AppointmentId.New(),
+                                      "Daily meeting",
+                                      "My office",
+                                      12.April(2017).At(14.Hours()).AsUtc().ToInstant(),
+                                      12.April(2017).At(17.Hours()).AsUtc().ToInstant());
+
+        // Act
+        appointment.RelocateTo(newLocation);
+
+        // Assert
+        appointment.Location.Should().Be(newLocation);
+
+    }
 }

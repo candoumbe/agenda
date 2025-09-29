@@ -141,7 +141,6 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// <summary>
     /// Relocates the <see cref="Appointment"/> to the specified <paramref name="newLocation"/>.
     /// </summary>
-    /// <param name="newLocation">The new location</param>
-    /// <exception cref="NotImplementedException"></exception>
+    /// <param name="newLocation">The new location.</param>
     public void RelocateTo(string newLocation) => Location = newLocation;
 }
