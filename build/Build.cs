@@ -196,6 +196,7 @@ public class Build : EnhancedNukeBuild,
 
     public Target PublishApi => _ => _.Description("Publish image of the API")
                                     .DependsOn<IPushNugetPackages>()
+                                    .TriggeredBy<IPushNugetPackages>()
                                     .After(Tests)
                                     .TryAfter<IPack>()
                                     .Consumes(this.Get<ICompile>().Compile)
