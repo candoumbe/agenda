@@ -15,7 +15,6 @@ public class AppHostShould(ITestOutputHelper outputHelper)
     private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(120);
 
     [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
-    //[Fact]
     public async Task Start_and_stop_without_exception()
     {
         await using AgendaApplicationTestingBuilder appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper, TestContext.Current.CancellationToken);
