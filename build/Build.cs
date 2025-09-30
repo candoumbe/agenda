@@ -215,7 +215,7 @@ public class Build : EnhancedNukeBuild,
                                                   if (IsServerBuild)
                                                   {
                                                       DockerLogin(loginConfig => loginConfig.SetUsername(this.Get<IHaveGitRepository>().GitRepository.GetGitHubOwner())
-                                                                      .SetPassword(this.Get<IHaveGitHubRepository>().GitHubToken));
+                                                                      .AddProcessAdditionalArguments("--password-stdin"));
                                                   }
 
                                                   DotNetPublish(settings => settings.SetProject(project)
