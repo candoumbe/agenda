@@ -194,9 +194,10 @@ public class Build : EnhancedNukeBuild,
                                   this.Get<IHaveGitHubRepository>().GitHubToken)
     ];
 
-    public Target PublishApi => _ => _.Inherit<IPack>()
-                                    .Description("Publish image of the API")
+    public Target PublishApi => _ => _.Description("Publish image of the API")
+                                    .TryTriggeredBy<IPushNugetPackages>()
                                     .After(Tests)
+                                    .TryAfter<IPack>()
                                     .Consumes(this.Get<ICompile>().Compile)
                                     .Produces(this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "*.tar.gz")
                                     .Executes(() =>
