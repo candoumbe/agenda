@@ -51,7 +51,7 @@ using static Serilog.Log;
     GitHubActionsImage.UbuntuLatest,
     FetchDepth = 0,
     AutoGenerate = false,
-    OnPushBranches = [IHaveMainBranch.MainBranchName, IGitFlow.ReleaseBranch + "/*"],
+    OnPushBranches = [ IHaveMainBranch.MainBranchName ],
     InvokedTargets = [nameof(Tests), nameof(IPushNugetPackages.Publish), nameof(ICreateGithubRelease.AddGithubRelease)],
     EnableGitHubToken = true,
     CacheKeyFiles = ["global.json", "src/**/*.csproj"],
