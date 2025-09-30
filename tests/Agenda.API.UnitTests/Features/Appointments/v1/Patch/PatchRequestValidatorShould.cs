@@ -26,7 +26,7 @@ public class PatchRequestValidatorShould(ITestOutputHelper outputHelper)
             new PatchRequest<AppointmentId, PatchAppointmentRequest>()
             {
                 Id = new AppointmentId(),
-                Operations = new List<Operation<PatchAppointmentRequest>>()
+                Operations = []
             },
             new XunitSerializableExpression<ValidationResult>
             {
@@ -52,13 +52,13 @@ public class PatchRequestValidatorShould(ITestOutputHelper outputHelper)
             new PatchRequest<AppointmentId, PatchAppointmentRequest>()
             {
                 Id = new AppointmentId(),
-                Operations = new List<Operation<PatchAppointmentRequest>>
-                {
+                Operations =
+                [
                     new Operation<PatchAppointmentRequest>(nameof(OperationType.Add),
-                                                           $"/{nameof(PatchAppointmentRequest.Subject)}",
-                                                           from: null,
-                                                           value: "New subject")
-                }
+                        $"/{nameof(PatchAppointmentRequest.Subject)}",
+                        from: null,
+                        value: "New subject")
+                ]
             },
             new XunitSerializableExpression<ValidationResult>
             {
