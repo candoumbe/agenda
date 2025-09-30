@@ -210,6 +210,7 @@ public class Build : EnhancedNukeBuild,
                                                   string filename = $"{imageName}-{version}.tar.gz";
                                                   Project project = this.Get<IHaveSolution>().Solution.AllProjects.Single(project => project.Name == "Agenda.API");
                                                   AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / filename;
+
                                                   Information("Publishing {ImageName} (version {Version}) to {ContainerFullPath}", project.Name, version, containerFullPath);
 
                                                   // if (IsServerBuild)
@@ -235,6 +236,17 @@ public class Build : EnhancedNukeBuild,
                                                                     .SetProcessAdditionalArguments([
                                                                         "/t:PublishContainer",
                                                                         "--tl"]));
+
+                                                  Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
+
+                                                  if (IsServerBuild)
+                                                  {
+                                                      DockerPush(settings => settings
+                                                          .CombineWith(Registries,
+                                                              (pushSettings, registry) => pushSettings.SetName($"{registry.Uri}/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/{imageName}:{version}")));
+                                                  }
+
+
                                               });
 
 
