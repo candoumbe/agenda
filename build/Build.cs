@@ -128,8 +128,8 @@ public class Build : EnhancedNukeBuild,
     IEnumerable<PushNugetPackageConfiguration> IPushNugetPackages.PublishConfigurations =>
     [
         new GitHubPushNugetConfiguration(githubToken: this.Get<IHaveGitHubRepository>().GitHubToken,
-                                         source: new Uri($"https://nukpg.github.com/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/index.json"),
-                                         () => this.Get<ICreateGithubRelease>()?.GitHubToken is not null)
+                                         source: new Uri($"https://nuget.pkg.github.com/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/index.json"),
+                                         canBeUsed:() => this.Get<ICreateGithubRelease>()?.GitHubToken is not null)
     ];
 
     /// <inheritdoc />
