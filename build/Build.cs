@@ -212,11 +212,11 @@ public class Build : EnhancedNukeBuild,
                                                   AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / filename;
                                                   Information("Publishing {ImageName} (version {Version}) to {ContainerFullPath}", project.Name, version, containerFullPath);
 
-                                                  if (IsServerBuild)
-                                                  {
-                                                      DockerLogin(loginConfig => loginConfig.SetUsername(this.Get<IHaveGitRepository>().GitRepository.GetGitHubOwner())
-                                                                      .AddProcessAdditionalArguments("--password-stdin"));
-                                                  }
+                                                  // if (IsServerBuild)
+                                                  // {
+                                                  //     DockerLogin(loginConfig => loginConfig.SetUsername(this.Get<IHaveGitRepository>().GitRepository.GetGitHubOwner())
+                                                  //                     .AddProcessAdditionalArguments("--password-stdin"));
+                                                  // }
 
                                                   DotNetPublish(settings => settings.SetProject(project)
                                                                     .SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
