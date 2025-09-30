@@ -213,31 +213,28 @@ public class Build : EnhancedNukeBuild,
 
                                                   Information("Publishing {ImageName} (version {Version}) to {ContainerFullPath}", project.Name, version, containerFullPath);
 
-                                                  // if (IsServerBuild)
-                                                  // {
-                                                  //     DockerLogin(loginConfig => loginConfig.SetUsername(this.Get<IHaveGitRepository>().GitRepository.GetGitHubOwner())
-                                                  //                     .AddProcessAdditionalArguments("--password-stdin"));
-                                                  // }
+                                                  IDictionary<string, object> publishProperties = new Dictionary<string, object>
+                                                  {
+                                                      ["ContainerImageName"] = imageName,
+                                                      ["ContainerImageTag"] = gitVersion.SemVer,
+                                                      ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
+                                                  };
+
+                                                  if (IsServerBuild)
+                                                  {
+                                                      publishProperties["ContainerRegistry"] = "ghcr.io";
+                                                  }
 
                                                   DotNetPublish(settings => settings.SetProject(project)
                                                                     .SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
-                                                                    // .SetNoRestore(InvokedTargets.Contains(this.Get<IRestore>().Restore) && SucceededTargets.Contains(this.Get<IRestore>().Restore))
-                                                                    // .SetNoBuild(InvokedTargets.Contains(this.Get<ICompile>().Compile) && SucceededTargets.Contains(this.Get<ICompile>().Compile))
                                                                     .EnableSelfContained()
-                                                                    .When(IsServerBuild, target => target.SetProperty("ContainerRegistry", "ghcr.io"))
-                                                                    .SetProperties(new Dictionary<string, object>
-                                                                    {
-                                                                        ["ContainerArchiveOutputPath"] = containerFullPath,
-                                                                        ["ContainerImageName"] = imageName,
-                                                                        ["ContainerImageTag"] = gitVersion.SemVer,
-                                                                        //["PublishRepositoryUrl"] = true,
-                                                                        ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
-                                                                    })
+                                                                    .SetProperties(publishProperties)
                                                                     .SetProcessAdditionalArguments([
                                                                         "/t:PublishContainer",
                                                                         "--tl"]));
 
                                                   Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
+
 
                                                   if (IsServerBuild)
                                                   {
