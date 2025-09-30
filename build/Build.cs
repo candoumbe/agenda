@@ -29,6 +29,7 @@ using static Serilog.Log;
     FetchDepth = 0,
     OnPushBranchesIgnore = [IHaveMainBranch.MainBranchName],
     PublishArtifacts = true,
+    EnableGitHubToken = true,
     InvokedTargets = [nameof(Tests), nameof(IPushNugetPackages.Publish), nameof(IPack.Pack)],
     CacheKeyFiles = ["global.json", "src/**/*.csproj"],
     ImportSecrets =
