@@ -271,11 +271,8 @@ public class Build : EnhancedNukeBuild,
 
                                                       if (IsServerBuild)
                                                       {
-                                                          DockerImagePush(settings => settings
-                                                              .CombineWith(Registries,
-                                                                  (pushSettings, registry) => pushSettings
-                                                                      .SetName($"{registry.Uri}/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/{imageName}")
-                                                                      .SetAllTags(true)));
+                                                          DockerImagePush(settings => settings.SetName(imageName)
+                                                              .SetAllTags(true));
                                                       }
                                                   }
                                               });
