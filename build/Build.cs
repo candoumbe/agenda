@@ -236,13 +236,10 @@ public class Build : EnhancedNukeBuild,
 
                                                   Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
 
-
-
-
                                                   if (IsServerBuild)
                                                   {
                                                       DockerLoad(settings => settings.SetInput(containerFullPath));
-                                                      List<string> tags = [version];
+                                                      List<string> tags = [version, $"{gitVersion.Major}", $"{gitVersion.Major}.{gitVersion.Minor}"];
                                                       if (gitVersion.BranchName == IHaveMainBranch.MainBranchName || gitVersion.BranchName.StartsWith("release/", StringComparison.InvariantCultureIgnoreCase))
                                                       {
                                                           tags.Add("latest");
