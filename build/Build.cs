@@ -236,11 +236,17 @@ public class Build : EnhancedNukeBuild,
                                                   Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
 
 
+
+                                                  IReadOnlyCollection<Output> outputLines = DockerLoad(settings => settings.SetInput(containerFullPath));
+
                                                   if (IsServerBuild)
                                                   {
-                                                      DockerPush(settings => settings
+
+                                                      DockerImagePush(settings => settings
                                                           .CombineWith(Registries,
-                                                              (pushSettings, registry) => pushSettings.SetName($"{registry.Uri}/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/{imageName}:{version}")));
+                                                              (pushSettings, registry) => pushSettings
+                                                                  .SetName($"{registry.Uri}/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/{imageName}:{version}")
+                                                                  .SetAllTags(true)));
                                                   }
 
 
