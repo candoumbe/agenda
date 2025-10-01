@@ -208,20 +208,21 @@ public class Build : EnhancedNukeBuild,
                                                   GitVersion gitVersion = this.Get<IHaveGitVersion>().GitVersion;
                                                   string version = gitVersion.FullSemVer;
                                                   const string imageName = "agenda.api";
+
                                                   string filename = $"{imageName}-{version}.tar.gz";
                                                   Project project = this.Get<IHaveSolution>().Solution.AllProjects.Single(project => project.Name == "Agenda.API");
 
                                                   Registries.ForEach(registry =>
                                                   {
-
                                                       AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish"/ registry.Name / filename;
 
                                                       Information("Publishing {ImageName} (version {Version}) to {ContainerFullPath}", project.Name, version, containerFullPath);
 
+                                                      string imageNameWithRegistry = $"{registry.Uri}/{imageName}";
                                                       IDictionary<string, object> publishProperties = new Dictionary<string, object>
                                                       {
                                                           ["ContainerArchiveOutputPath"] = containerFullPath,
-                                                          ["ContainerImageName"] = $"{registry.Uri}/{imageName}",
+                                                          ["ContainerImageName"] = imageNameWithRegistry,
                                                           ["ContainerImageTag"] = gitVersion.SemVer,
                                                           ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
                                                       };
@@ -267,12 +268,12 @@ public class Build : EnhancedNukeBuild,
                                                           tags.Add("latest");
                                                       }
 
-                                                      DockerImageTag(settings => settings.SetSourceImage($"{imageName}:{version}")
-                                                          .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageName}:{tag}")));
+                                                      DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{version}")
+                                                          .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
 
                                                       if (IsServerBuild)
                                                       {
-                                                          DockerImagePush(settings => settings.SetName(imageName)
+                                                          DockerImagePush(settings => settings.SetName(imageNameWithRegistry)
                                                               .SetAllTags(true));
                                                       }
                                                   });
