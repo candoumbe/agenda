@@ -218,7 +218,7 @@ public class Build : EnhancedNukeBuild,
 
                                                       Information("Publishing {ImageName} (version {Version}) to {ContainerFullPath}", project.Name, version, containerFullPath);
 
-                                                      string imageNameWithRegistry = $"{registry.Uri}/{imageName}";
+                                                      string imageNameWithRegistry = $"{registry.Uri}/{this.Get<IHaveGitRepository>().GitRepository.GetGitHubOwner()}/{imageName}";
                                                       IDictionary<string, object> publishProperties = new Dictionary<string, object>
                                                       {
                                                           ["ContainerArchiveOutputPath"] = containerFullPath,
