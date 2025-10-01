@@ -215,6 +215,7 @@ public class Build : EnhancedNukeBuild,
 
                                                   IDictionary<string, object> publishProperties = new Dictionary<string, object>
                                                   {
+                                                      ["ContainerArchiveOutputPath"] = containerFullPath,
                                                       ["ContainerImageName"] = imageName,
                                                       ["ContainerImageTag"] = gitVersion.SemVer,
                                                       ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
@@ -237,15 +238,22 @@ public class Build : EnhancedNukeBuild,
 
 
 
-                                                  IReadOnlyCollection<Output> outputLines = DockerLoad(settings => settings.SetInput(containerFullPath));
 
                                                   if (IsServerBuild)
                                                   {
+                                                      DockerLoad(settings => settings.SetInput(containerFullPath));
+                                                      List<string> tags = [version];
+                                                      if (gitVersion.BranchName == IHaveMainBranch.MainBranchName || gitVersion.BranchName.StartsWith("release/", StringComparison.InvariantCultureIgnoreCase))
+                                                      {
+                                                          tags.Add("latest");
+                                                      }
 
+                                                      DockerImageTag(settings => settings.SetSourceImage($"{imageName}:{version}")
+                                                          .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageName}:{tag}")));
                                                       DockerImagePush(settings => settings
                                                           .CombineWith(Registries,
                                                               (pushSettings, registry) => pushSettings
-                                                                  .SetName($"{registry.Uri}/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/{imageName}:{version}")
+                                                                  .SetName($"{registry.Uri}/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/{imageName}")
                                                                   .SetAllTags(true)));
                                                   }
 
