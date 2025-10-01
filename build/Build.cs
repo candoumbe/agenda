@@ -245,7 +245,7 @@ public class Build : EnhancedNukeBuild,
                                                           tags.Add("latest");
                                                       }
 
-                                                      DockerImageTag(settings => settings.SetSourceImage($"{imageName}:{version}")
+                                                      DockerImageTag(settings => settings.SetSourceImage($"{imageName}")
                                                           .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageName}:{tag}")));
                                                       DockerImagePush(settings => settings
                                                           .CombineWith(Registries,
