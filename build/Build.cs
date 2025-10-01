@@ -210,36 +210,39 @@ public class Build : EnhancedNukeBuild,
                                                   const string imageName = "agenda.api";
                                                   string filename = $"{imageName}-{version}.tar.gz";
                                                   Project project = this.Get<IHaveSolution>().Solution.AllProjects.Single(project => project.Name == "Agenda.API");
-                                                  AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / filename;
 
-                                                  Information("Publishing {ImageName} (version {Version}) to {ContainerFullPath}", project.Name, version, containerFullPath);
-
-                                                  IDictionary<string, object> publishProperties = new Dictionary<string, object>
+                                                  Registries.ForEach(registry =>
                                                   {
-                                                      ["ContainerArchiveOutputPath"] = containerFullPath,
-                                                      ["ContainerImageName"] = imageName,
-                                                      ["ContainerImageTag"] = gitVersion.SemVer,
-                                                      ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
-                                                  };
 
-                                                  if (IsServerBuild)
-                                                  {
-                                                      publishProperties["ContainerRegistry"] = "ghcr.io";
-                                                  }
+                                                      AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish"/ registry.Name / filename;
 
-                                                  DotNetPublish(settings => settings.SetProject(project)
-                                                                    .SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
-                                                                    .EnableSelfContained()
-                                                                    .SetProperties(publishProperties)
-                                                                    .SetProcessAdditionalArguments([
-                                                                        "/t:PublishContainer",
-                                                                        "--tl"]));
+                                                      Information("Publishing {ImageName} (version {Version}) to {ContainerFullPath}", project.Name, version, containerFullPath);
 
-                                                  Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
+                                                      IDictionary<string, object> publishProperties = new Dictionary<string, object>
+                                                      {
+                                                          ["ContainerArchiveOutputPath"] = containerFullPath,
+                                                          ["ContainerImageName"] = $"{registry.Uri}/{imageName}",
+                                                          ["ContainerImageTag"] = gitVersion.SemVer,
+                                                          ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
+                                                      };
 
-                                                  if (IsServerBuild)
-                                                  {
+                                                      if (IsServerBuild) {
+                                                          publishProperties["ContainerRegistry"] = "ghcr.io";
+                                                      }
+
+                                                      DotNetPublish(settings => settings.SetProject(project)
+                                                                        .SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
+                                                                        .EnableSelfContained()
+                                                                        .SetProperties(publishProperties)
+                                                                        .SetProcessAdditionalArguments([
+                                                                            "/t:PublishContainer",
+                                                                            "--tl"]));
+
+                                                      Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
+
+                                                      Information("Building docker image");
                                                       DockerLoad(settings => settings.SetInput(containerFullPath));
+
                                                       List<string> tags = [
                                                           version,
                                                           $"{gitVersion.Major}",
@@ -251,9 +254,7 @@ public class Build : EnhancedNukeBuild,
 
                                                       if(this.As<IHaveGitRepository>().GitRepository?.IsOnReleaseBranch() is true)
                                                       {
-                                                          tags.Add(gitVersion.BranchName.Slugify());
-                                                          tags.Add("rc");
-                                                          tags.Add("rc-latest");
+                                                          tags.Add($"{gitVersion.MajorMinorPatch}-rc");
                                                       }
                                                       else if (this.As<IHaveGitRepository>().GitRepository?.IsOnHotfixBranch() is true || this.As<IHaveGitRepository>().GitRepository?.IsOnFeatureBranch() is true)
                                                       {
@@ -274,7 +275,8 @@ public class Build : EnhancedNukeBuild,
                                                           DockerImagePush(settings => settings.SetName(imageName)
                                                               .SetAllTags(true));
                                                       }
-                                                  }
+                                                  });
+
                                               });
 
 
