@@ -9,6 +9,7 @@ using Candoumbe.Pipelines.Components.NuGet;
 using Candoumbe.Pipelines.Components.Workflows;
 using Nuke.Common;
 using Nuke.Common.CI.GitHubActions;
+using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
@@ -236,11 +237,30 @@ public class Build : EnhancedNukeBuild,
 
                                                   Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
 
-                                                  // if (IsServerBuild)
-                                                  // {
+                                                  if (IsServerBuild)
+                                                  {
                                                       DockerLoad(settings => settings.SetInput(containerFullPath));
-                                                      List<string> tags = [version, $"{gitVersion.Major}", $"{gitVersion.Major}.{gitVersion.Minor}"];
-                                                      if (gitVersion.BranchName == IHaveMainBranch.MainBranchName || gitVersion.BranchName.StartsWith("release/", StringComparison.InvariantCultureIgnoreCase))
+                                                      List<string> tags = [
+                                                          version,
+                                                          $"{gitVersion.Major}",
+                                                          $"{gitVersion.Major}-latest",
+                                                          $"{gitVersion.Major}.{gitVersion.Minor}",
+                                                          $"{gitVersion.Major}.{gitVersion.Minor}-latest",
+
+                                                      ];
+
+                                                      if(this.As<IHaveGitRepository>().GitRepository?.IsOnReleaseBranch() is true)
+                                                      {
+                                                          tags.Add(gitVersion.BranchName.Slugify());
+                                                          tags.Add("rc");
+                                                          tags.Add("rc-latest");
+                                                      }
+                                                      else if (this.As<IHaveGitRepository>().GitRepository?.IsOnHotfixBranch() is true || this.As<IHaveGitRepository>().GitRepository?.IsOnFeatureBranch() is true)
+                                                      {
+                                                          tags.Add(gitVersion.BranchName.Slugify());
+                                                      }
+
+                                                      if (gitVersion.BranchName == IHaveMainBranch.MainBranchName)
                                                       {
                                                           tags.Add("stable");
                                                           tags.Add("latest");
@@ -248,12 +268,16 @@ public class Build : EnhancedNukeBuild,
 
                                                       DockerImageTag(settings => settings.SetSourceImage($"{imageName}:{version}")
                                                           .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageName}:{tag}")));
-                                                      DockerImagePush(settings => settings
-                                                          .CombineWith(Registries,
-                                                              (pushSettings, registry) => pushSettings
-                                                                  .SetName($"{registry.Uri}/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/{imageName}")
-                                                                  .SetAllTags(true)));
-                                                  // }
+
+                                                      if (IsServerBuild)
+                                                      {
+                                                          DockerImagePush(settings => settings
+                                                              .CombineWith(Registries,
+                                                                  (pushSettings, registry) => pushSettings
+                                                                      .SetName($"{registry.Uri}/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/{imageName}")
+                                                                      .SetAllTags(true)));
+                                                      }
+                                                  }
                                               });
 
 
