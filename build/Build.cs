@@ -236,12 +236,13 @@ public class Build : EnhancedNukeBuild,
 
                                                   Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
 
-                                                  if (IsServerBuild)
-                                                  {
+                                                  // if (IsServerBuild)
+                                                  // {
                                                       DockerLoad(settings => settings.SetInput(containerFullPath));
                                                       List<string> tags = [version, $"{gitVersion.Major}", $"{gitVersion.Major}.{gitVersion.Minor}"];
                                                       if (gitVersion.BranchName == IHaveMainBranch.MainBranchName || gitVersion.BranchName.StartsWith("release/", StringComparison.InvariantCultureIgnoreCase))
                                                       {
+                                                          tags.Add("stable");
                                                           tags.Add("latest");
                                                       }
 
@@ -252,9 +253,7 @@ public class Build : EnhancedNukeBuild,
                                                               (pushSettings, registry) => pushSettings
                                                                   .SetName($"{registry.Uri}/{this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()}/{imageName}")
                                                                   .SetAllTags(true)));
-                                                  }
-
-
+                                                  // }
                                               });
 
 
