@@ -274,8 +274,8 @@ public class Build : EnhancedNukeBuild,
 
                         Verbose("Logged into {RegistryUri} successfully", registry.Uri);
 
-                        DockerImagePush(settings => settings.SetName(imageNameWithRegistry)
-                            .SetAllTags(true));
+                        DockerImagePush(settings =>
+                            settings.CombineWith(tags, (pushSettings, tag) => pushSettings.SetName($"{imageNameWithRegistry}:{tag}")));
 
                         Information("Image {ImageName} pushed successfully", imageNameWithRegistry);
                     // }
