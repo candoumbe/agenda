@@ -93,8 +93,6 @@ public class Build : EnhancedNukeBuild,
     /// <inheritdoc />
     Solution IHaveSolution.Solution => Solution;
 
-    [PathVariable] private readonly Tool Cat;
-
     public static int Main() => Execute<Build>(x => ((ICompile)x).Compile);
 
     ///<inheritdoc/>
