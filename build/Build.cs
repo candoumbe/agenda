@@ -268,13 +268,11 @@ public class Build : EnhancedNukeBuild,
 
                         Verbose("Logging into {RegistryUri}", registry.Uri);
 
-                        Guid temporaryFileName = Guid.CreateVersion7();
+                        DockerLogin(settings => settings.SetUsername(this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner())
+                            .SetPassword(registry.Password)
+                            .SetServer(registry.Uri));
 
-                        AbsolutePath temporaryFile = (TemporaryDirectory / temporaryFileName.ToString("N")).WriteAllText(this.Get<IHaveGitHubRepository>().GitHubToken);
-                        Cat($"{temporaryFile} | podman login ghcr.io -u {this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()} --password-stdin");
                         Verbose("Logged into {RegistryUri} successfully", registry.Uri);
-
-                        temporaryFile.DeleteFile();
 
                         DockerImagePush(settings => settings.SetName(imageNameWithRegistry)
                             .SetAllTags(true));
