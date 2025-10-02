@@ -261,8 +261,8 @@ public class Build : EnhancedNukeBuild,
 
                     Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
 
-                    // if (IsServerBuild)
-                    // {
+                    if (IsServerBuild)
+                    {
                         Information("Pushing image {ImageName} to {RegistryName} ({RegistryUri}) with tags: {Tags}",
                             imageNameWithRegistry, registry.Name, registry.Uri, string.Join(", ", tags));
 
@@ -278,7 +278,7 @@ public class Build : EnhancedNukeBuild,
                             settings.CombineWith(tags, (pushSettings, tag) => pushSettings.SetName($"{imageNameWithRegistry}:{tag}")));
 
                         Information("Image {ImageName} pushed successfully", imageNameWithRegistry);
-                    // }
+                    }
                 });
 
             });
