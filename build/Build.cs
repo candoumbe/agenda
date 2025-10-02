@@ -290,7 +290,7 @@ public class Build : EnhancedNukeBuild,
             {
                 tags.Add($"{version}-rc");
             }
-            else if (repository.IsOnHotfixBranch() || repository.IsOnFeatureBranch() is true)
+            else if (repository.IsOnHotfixBranch() || repository.IsOnFeatureBranch())
             {
                 tags.Add(repository.Branch.Slugify());
             }
