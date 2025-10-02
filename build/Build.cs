@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using Candoumbe.Pipelines.Components;
 using Candoumbe.Pipelines.Components.Formatting;
@@ -18,11 +17,8 @@ using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitHub;
 using Nuke.Common.Tools.GitVersion;
-using Nuke.Common.Utilities;
-using Octokit;
 using static Nuke.Common.Tools.Docker.DockerTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
-using static Nuke.Common.Tools.GitHub.GitHubTasks;
 using static Serilog.Log;
 using Project = Nuke.Common.ProjectModel.Project;
 
@@ -97,7 +93,7 @@ public class Build : EnhancedNukeBuild,
     /// <inheritdoc />
     Solution IHaveSolution.Solution => Solution;
 
-    [PathVariable] private readonly Tool Bash;
+    [PathVariable] private readonly Tool Cat;
 
     public static int Main() => Execute<Build>(x => ((ICompile)x).Compile);
 
@@ -275,7 +271,7 @@ public class Build : EnhancedNukeBuild,
                         Guid temporaryFileName = Guid.CreateVersion7();
 
                         AbsolutePath temporaryFile = (TemporaryDirectory / temporaryFileName.ToString("N")).WriteAllText(this.Get<IHaveGitHubRepository>().GitHubToken);
-                        Bash($"cat {temporaryFile} | podman login ghcr.io -u {this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()} --password-stdin");
+                        Cat($"{temporaryFile} | podman login ghcr.io -u {this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner()} --password-stdin");
                         Verbose("Logged into {RegistryUri} successfully", registry.Uri);
 
                         temporaryFile.DeleteFile();
