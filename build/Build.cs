@@ -196,7 +196,7 @@ public class Build : EnhancedNukeBuild,
     internal IReadOnlyList<RegistryConfiguration> Registries =>
     [
         new RegistryConfiguration("GitHub Container Registry",
-                                  "https://ghcr.io",
+                                  "ghcr.io",
                                   this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner(),
                                   this.Get<IHaveGitHubRepository>().GitHubToken)
     ];
@@ -234,10 +234,6 @@ public class Build : EnhancedNukeBuild,
                         ["ContainerImageTag"] = gitVersion.SemVer,
                         ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
                     };
-
-                    if (IsServerBuild) {
-                        publishProperties["ContainerRegistry"] = "ghcr.io";
-                    }
 
                     DotNetPublish(settings => settings.SetProject(project)
                         .SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
