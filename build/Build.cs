@@ -6,6 +6,7 @@ using Candoumbe.Pipelines.Components.Formatting;
 using Candoumbe.Pipelines.Components.GitHub;
 using Candoumbe.Pipelines.Components.NuGet;
 using Candoumbe.Pipelines.Components.Workflows;
+using Candoumbe.Types.Numerics;
 using Nuke.Common;
 using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.Git;
@@ -163,7 +164,8 @@ public class Build : EnhancedNukeBuild,
 
     /// <inheritdoc />
     Configure<DotNetFormatSettings> IDotnetFormat.FormatSettings => _ => _
-                                                                        .When(_ => IsLocalBuild, settings => settings.SetVerbosity(DotNetVerbosity.diagnostic));
+                                                                        .When(_ => IsLocalBuild,
+                                                                            settings => settings.SetVerbosity(DotNetVerbosity.diagnostic));
 
     private IReadOnlyList<Project> ArchitecturalTestsProjects => [.. this.Get<IHaveSolution>().Solution.AllProjects.Where(project => project.Name.Like("*.ArchitecturalTests", ignoreCase: true))];
 
@@ -244,14 +246,7 @@ public class Build : EnhancedNukeBuild,
 
                     Verbose("Image {ImageName} loaded successfully", imageNameWithRegistry);
 
-                    List<string> tags = [
-                        version,
-                        $"{gitVersion.Major}",
-                        $"{gitVersion.Major}-latest",
-                        $"{gitVersion.Major}.{gitVersion.Minor}",
-                        $"{gitVersion.Major}.{gitVersion.Minor}-latest",
-                        .. GenerateDockerTagsForBranch(this.Get<IHaveGitHubRepository>().GitRepository, version)
-                    ];
+                    IReadOnlyList<string> tags =  GenerateDockerTagsForBranch(this.Get<IHaveGitHubRepository>().GitRepository, gitVersion);
                     Verbose("Tagging image {ImageName} with tags: {Tags}", imageNameWithRegistry, string.Join(", ", tags));
 
                     DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{version}")
@@ -281,22 +276,35 @@ public class Build : EnhancedNukeBuild,
 
             });
 
-        IReadOnlyList<string> GenerateDockerTagsForBranch(GitRepository repository, string version)
+        IReadOnlyList<string> GenerateDockerTagsForBranch(GitRepository repository, GitVersion version)
         {
             List<string> tags = [];
+
             if(repository.IsOnReleaseBranch())
             {
-                tags.Add($"{version}-rc");
+                tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
+                tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
             }
-            else if (repository.IsOnHotfixBranch() || repository.IsOnFeatureBranch())
+            else if (repository.IsOnHotfixBranch() || repository.IsOnFeatureBranch() || (repository.Branch?.StartsWith("chore/*", StringComparison.OrdinalIgnoreCase) ?? false))
             {
                 tags.Add(repository.Branch.Slugify());
             }
-
-            if (repository.IsOnMainOrMasterBranch())
+            else if (repository.IsOnDevelopBranch())
             {
-                tags.Add("stable");
-                tags.Add("latest");
+                tags.Add($"{version.Major}-{version.EscapedBranchName}");
+                tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
+                tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
+                tags.Add($"{version.Major}.{version.Minor}{version.EscapedBranchName}");
+                tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
+            }
+            else if (repository.IsOnMainOrMasterBranch())
+            {
+                tags.Add($"{version.Major}");
+                tags.Add($"{version.Major}-latest");
+                tags.Add($"{version.Major}.{version.Minor}");
+                tags.Add($"{version.Major}.{version.Minor}-latest");
+                tags.Add($"{version.MajorMinorPatch}");
+                tags.Add($"{version.MajorMinorPatch}-latest");
             }
 
             return tags;

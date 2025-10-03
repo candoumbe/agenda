@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Candoumbe.Pipelines" />
+    <PackageReference Include="Candoumbe.Types.Numerics" />
     <PackageReference Include="ReportGenerator" />
     <PackageReference Include="CodecovUploader" />
     <PackageDownload Include="GitVersion.Tool" Version="[6.1.0]" />
