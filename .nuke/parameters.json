@@ -1,0 +1,6 @@
+{
+  "$schema": "build.schema.json",
+  "Solution": "Agenda.sln",
+  "Formatters": ["Analyzers", "Style"],
+  "ChoreBranchPrefix": "chore"
+}

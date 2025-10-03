@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Agenda.DataStores": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:55818;http://localhost:55819"
+    }
+  }
+}

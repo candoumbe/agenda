@@ -1,32 +1,12 @@
-﻿namespace Agenda.Ids
-{
-    using MedEasy.Ids;
-    using MedEasy.Ids.Converters;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using StronglyTypedIds;
 
-    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+namespace Agenda.Ids;
 
-    using System;
-    using System.Text.Json.Serialization;
-
-    [JsonConverter(typeof(StronglyTypedIdJsonConverter<AttendeeId, Guid>))]
-    public record AttendeeId(Guid Value) : StronglyTypedId<Guid>(Value)
-    {
-
-        public static AttendeeId New() => new(Guid.NewGuid());
-
-        public static AttendeeId Empty => new(Guid.Empty);
-
-        public override string ToString() => base.ToString();
-
-        public class EfValueConverter : ValueConverter<AttendeeId, Guid>
-        {
-            public EfValueConverter(ConverterMappingHints mappingHints = null) : base(
-                id => id.Value,
-                value => new AttendeeId(value),
-                mappingHints
-            )
-            { }
-        }
-    }
-
-}
+/// <summary>
+/// A strongly typed attendee identifier.
+/// </summary>
+[StronglyTypedId("guid-v7", "guid-efcore")]
+public partial struct AttendeeId;

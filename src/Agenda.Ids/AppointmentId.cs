@@ -1,32 +1,13 @@
-﻿namespace Agenda.Ids
-{
+﻿using System;
+using System.Text.Json;
+using StronglyTypedIds;
 
-    using MedEasy.Ids;
-    using MedEasy.Ids.Converters;
 
-    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+namespace Agenda.Ids;
 
-    using System;
-    using System.Text.Json.Serialization;
-
-    [JsonConverter(typeof(StronglyTypedIdJsonConverter<AppointmentId, Guid>))]
-    public record AppointmentId(Guid Value) : StronglyTypedId<Guid>(Value)
-    {
-        public static AppointmentId New() => new(Guid.NewGuid());
-
-        public static AppointmentId Empty => new(Guid.Empty);
-
-        public override string ToString() => base.ToString();
-
-        public class EfValueConverter : ValueConverter<AppointmentId, Guid>
-        {
-            public EfValueConverter(ConverterMappingHints mappingHints = null) : base(
-                id => id.Value,
-                value => new AppointmentId(value),
-                mappingHints
-            )
-            { }
-        }
-    }
-
-}
+/// <summary>
+/// A strongly typed appointment identifier.
+/// </summary>
+[StronglyTypedId("guid-v7", "guid-efcore")]
+// ReSharper disable once StructCanBeMadeReadOnly
+public partial struct AppointmentId;

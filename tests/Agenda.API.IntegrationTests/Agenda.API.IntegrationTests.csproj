@@ -1,23 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="..\..\..\..\..\integration-tests.props" />
+  <Import Project="..\..\tests.props" />
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="xunit.runner.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <PackageReference Include="Aspire.Hosting.Testing" />
+    <PackageReference Include="MartinCostello.Logging.XUnit.v3"/>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NodaTime.Serialization.JsonNet" Version="3.0.0" />
+    <ProjectReference Include="..\..\src\Agenda.API\Agenda.API.csproj" />
+    <ProjectReference Include="..\..\src\Agenda.AppHost\Agenda.AppHost.csproj" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\test\services\MedEasy.IntegrationTests.Core\MedEasy.IntegrationTests.Core.csproj" />
-    <ProjectReference Include="..\..\Agenda.API\Agenda.API.csproj" />
-  </ItemGroup>
-
 </Project>

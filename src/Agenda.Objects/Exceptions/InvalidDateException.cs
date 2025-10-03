@@ -1,15 +1,22 @@
-﻿namespace Agenda.Objects.Exceptions
+﻿
+using System;
+
+namespace Agenda.Objects.Exceptions;
+/// <summary>
+/// Exception thrown when passing invalid start/end date when creating/modifying an appointment
+/// </summary>
+public class InvalidDateException : Exception
 {
-    using System;
-
-    /// <summary>
-    /// Exception thrown when passing invalid start/end date when creating/modifying an appointment
-    /// </summary>
-    public class InvalidDateException : Exception
+    public InvalidDateException(string message) : base(message)
     {
-        public InvalidDateException(string message) : base(message)
-        {
 
-        }
+    }
+
+    public InvalidDateException()
+    {
+    }
+
+    public InvalidDateException(string message, Exception innerException) : base(message, innerException)
+    {
     }
 }

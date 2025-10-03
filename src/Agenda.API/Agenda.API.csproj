@@ -1,32 +1,51 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <Import Project="..\..\..\..\core-api.props" />
+  <Import Project="..\..\core.props" />
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Agenda.API.xml</DocumentationFile>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerfileContext>..\..\..\..</DockerfileContext>
-    <DockerComposeProjectPath>..\..\..\..\docker-compose.dcproj</DockerComposeProjectPath>
+    <TargetFramework>net9.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <UserSecretsId>85b415e8-a1a6-407e-afe1-b881cb57bcaa</UserSecretsId>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PublishSingleFile>true</PublishSingleFile>
+    <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
+
   <ItemGroup>
-    <Folder Include="wwwroot\" />
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="CorrelationId" />
+    <PackageReference Include="Candoumbe.Forms" />
+    <PackageReference Include="Candoumbe.Types.Numerics" />
+    <PackageReference Include="DataFilters.Expressions" />
+    <PackageReference Include="Destructurama.ByIgnoring" />
+    <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" />
+    <PackageReference Include="FastEndpoints" />
+    <PackageReference Include="FastEndpoints.Swagger" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="NodaTime.Serialization.SystemTextJson" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" />
+    <PackageReference Include="Polly" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.Seq" />
+    <PackageReference Include="Serilog.Enrichers.CorrelationId" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
+    <PackageReference Include="SystemTextJsonPatch" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\tools\MedEasy.CQRS.Core\MedEasy.CQRS.Core.csproj" />
-    <ProjectReference Include="..\..\..\tools\MedEasy.DAL.EFStore\MedEasy.DAL.EFStore.csproj" />
-    <ProjectReference Include="..\..\..\tools\MedEasy.DAL\MedEasy.DAL.csproj" />
-    <ProjectReference Include="..\..\..\tools\MedEasy.Validators\MedEasy.Validators.csproj" />
-    <ProjectReference Include="..\..\MedEasy.Attributes\MedEasy.Attributes.csproj" />
-    <ProjectReference Include="..\..\MedEasy.Core\MedEasy.Core.csproj" />
-    <ProjectReference Include="..\Agenda.CQRS\Agenda.CQRS.csproj" />
     <ProjectReference Include="..\Agenda.DataStores.Postgres\Agenda.DataStores.Postgres.csproj" />
     <ProjectReference Include="..\Agenda.DataStores.Sqlite\Agenda.DataStores.Sqlite.csproj" />
-    <ProjectReference Include="..\Agenda.Mapping\Agenda.Mapping.csproj" />
-    <ProjectReference Include="..\Agenda.Models\Agenda.Models.csproj" />
-    <ProjectReference Include="..\Agenda.Validators\Agenda.Validators.csproj" />
+    <ProjectReference Include="..\Agenda.ServiceDefaults\Agenda.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>

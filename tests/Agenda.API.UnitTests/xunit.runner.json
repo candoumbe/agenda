@@ -1,5 +1,10 @@
 {
+  "$schema": "https://xunit.net/schema/current/xunit.runner.json",
   "methodDisplay": "method",
   "methodDisplayOptions": "all",
-  "shadowCopy": false
+  "shadowCopy": false,
+  "preEnumerateTheories": true,
+  "showLiveOutput": true,
+  "diagnosticMessages": true,
+  "printMaxObjectDepth": 10
 }
