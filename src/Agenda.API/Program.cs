@@ -5,8 +5,10 @@ using Agenda.API;
 using Agenda.API.TypeMappers;
 using Agenda.DataStores;
 using Agenda.Ids;
+using Asp.Versioning;
 using Candoumbe.Types.Numerics;
 using FastEndpoints;
+using FastEndpoints.AspVersioning;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
@@ -54,10 +56,15 @@ builder.Services
                                                     };
                          options.SerializerSettings = optionsSerializerSettings;
                      });
-builder.Services.AddFastEndpoints(options =>
-                      {
-                          options.IncludeAbstractValidators = false;
-                      });
+builder.Services.AddFastEndpoints(options => options.IncludeAbstractValidators = false)
+                .AddVersioning(options =>
+                {
+                    options.DefaultApiVersion = new ApiVersion(1, 0);
+                    options.AssumeDefaultVersionWhenUnspecified = true;
+                    options.ReportApiVersions = true;
+                    options.ApiVersionReader = new HeaderApiVersionReader("api-version");
+                    options.UnsupportedApiVersionStatusCode = Status400BadRequest;
+                }) ;
 
 WebApplication app = builder.Build();
 

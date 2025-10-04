@@ -23,6 +23,7 @@
     <PackageReference Include="Destructurama.ByIgnoring" />
     <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" />
     <PackageReference Include="FastEndpoints" />
+    <PackageReference Include="FastEndpoints.AspVersioning" />
     <PackageReference Include="FastEndpoints.Swagger" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" PrivateAssets="all" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

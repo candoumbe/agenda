@@ -29,6 +29,7 @@
     <PackageVersion Include="Extensions.Hosting.AsyncInitialization" Version="3.0.1" />
     <PackageVersion Include="FakeItEasy" Version="8.3.0" />
     <PackageVersion Include="FastEndpoints" Version="7.0.1" />
+    <PackageVersion Include="FastEndpoints.AspVersioning" Version="7.0.1" />
     <PackageVersion Include="FastEndpoints.Swagger" Version="7.0.1" />
     <PackageVersion Include="FluentAssertions.Nodatime" Version="2.0.1" />
     <PackageVersion Include="FsCheck.Xunit.v3" Version="3.3.1" />
