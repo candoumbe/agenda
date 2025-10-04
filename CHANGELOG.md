@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🧹 Housekeeping
+- Added task issue template
+- Updated bug issue template
+
 ## [0.1.0] / 2025-10-03
 ### 🚀 New features
 - Initial release of the Agenda module
