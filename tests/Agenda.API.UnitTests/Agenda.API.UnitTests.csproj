@@ -15,7 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Appointments\" />
     <Folder Include="Helpers\" />
   </ItemGroup>
 
