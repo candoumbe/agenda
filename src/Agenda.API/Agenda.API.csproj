@@ -35,6 +35,7 @@
     </PackageReference>
     <PackageReference Include="NodaTime.Serialization.SystemTextJson" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" />
+    <PackageReference Include="Paramore.Brighter.MessagingGateway.RMQ" />
     <PackageReference Include="Polly" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Sinks.Console" />
