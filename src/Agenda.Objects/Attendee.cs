@@ -53,7 +53,9 @@ public partial class Attendee : AuditableEntity<AttendeeId, Attendee>
 
     private readonly IList<Appointment> _appointments;
 
-    [JsonIgnore]
+    /// <summary>
+    /// Appointments of the participant.
+    /// </summary>
     public IEnumerable<Appointment> Appointments => _appointments;
 
 
