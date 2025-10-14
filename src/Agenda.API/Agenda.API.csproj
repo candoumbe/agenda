@@ -48,6 +48,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Agenda.DataStores.Postgres\Agenda.DataStores.Postgres.csproj" />
     <ProjectReference Include="..\Agenda.DataStores.Sqlite\Agenda.DataStores.Sqlite.csproj" />
+    <ProjectReference Include="..\Agenda.Events\Agenda.Events.csproj" />
     <ProjectReference Include="..\Agenda.ServiceDefaults\Agenda.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>
