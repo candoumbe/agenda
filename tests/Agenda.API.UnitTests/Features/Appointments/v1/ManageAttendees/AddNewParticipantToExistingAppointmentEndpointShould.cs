@@ -91,90 +91,22 @@ public class AddNewParticipantToExistingAppointmentEndpointShould
             .ContainSingle("POST");
     }
 
-
-    public static TheoryData<GenericSerializable<IReadOnlyList<Appointment>>, GenericSerializable<AddNewParticipantToExistingAppointmentRequest>, XunitSerializableExpression<Results<NoContent, Conflict, NotFound>>, string> RequestCases
-    {
-        get
-        {
-            TheoryData<GenericSerializable<IReadOnlyList<Appointment>>, GenericSerializable<AddNewParticipantToExistingAppointmentRequest>, XunitSerializableExpression<Results<NoContent, Conflict, NotFound>>, string> cases = new()
-            {
-                // No data in the database
-                {
-                    Array.Empty<Appointment>(),
-                    new AddNewParticipantToExistingAppointmentRequest()
-                    {
-                        Id = AppointmentId.New(),
-                        Participant = new AttendeeInfo
-                        {
-                            Id = AttendeeId.New(),
-                            Name = s_faker.Name.FullName(),
-                            Email = s_faker.Internet.Email(),
-                            PhoneNumber = s_faker.Phone.PhoneNumber()
-                        }
-                    },
-                    new XunitSerializableExpression<Results<NoContent, Conflict, NotFound>> { Value = result => result.Result is NotFound },
-                    "no appointment in the database"
-                },
-
-            };
-
-            // Data in the database and request id match an existing appointment, but request attendee id does not match an existing attendee
-            {
-                Appointment appointment = s_appointmentFaker.Generate();
-                appointment.AddAttendee(new Attendee(AttendeeId.New(), s_faker.Name.FullName(), s_faker.Internet.Email(), s_faker.Phone.PhoneNumber()));
-
-                cases.Add(new GenericSerializable<IReadOnlyList<Appointment>> { Value = [appointment] },
-                          new AddNewParticipantToExistingAppointmentRequest()
-                          {
-                              Id = appointment.Id,
-                              Participant = new AttendeeInfo
-                              {
-                                  Id = AttendeeId.New(),
-                                  Name = s_faker.Name.FullName(),
-                                  Email = s_faker.Internet.Email(),
-                                  PhoneNumber = s_faker.Phone.PhoneNumber()
-                              }
-                          },
-                          new XunitSerializableExpression<Results<NoContent, Conflict, NotFound>> { Value = result => result.Result is NoContent },
-                          "request id match an existing appointment and  the new participant's id does not match an existing participant in that appointment");
-            }
-
-            // Data in the database and request id match an existing appointment but request attendee id does not match an existing attendee
-            {
-                Appointment appointment = s_appointmentFaker.Generate();
-                Attendee attendee = new (AttendeeId.New(), s_faker.Name.FullName(), s_faker.Internet.Email(), s_faker.Phone.PhoneNumber());
-                appointment.AddAttendee(attendee);
-
-                cases.Add(new GenericSerializable<IReadOnlyList<Appointment>> { Value = [appointment] },
-                    new AddNewParticipantToExistingAppointmentRequest
-                    {
-                        Id = appointment.Id,
-                        Participant = new AttendeeInfo
-                        {
-                            Id = attendee.Id,
-                            Name = s_faker.Name.FullName(),
-                            Email = s_faker.Internet.Email(),
-                            PhoneNumber = s_faker.Phone.PhoneNumber()
-                        }
-                    },
-                    new XunitSerializableExpression<Results<NoContent, Conflict, NotFound>> { Value = result => result.Result is Conflict },
-                    "request id match an existing appointment but new participant's id match an existing attendee in that appointment");
-            }
-
-
-            return cases;
-        }
-    }
-
-    [Theory]
-    [MemberData(nameof(RequestCases))]
-    public async Task Return_expected_response_When_datastore_is_in_specified_state(GenericSerializable<IReadOnlyList<Appointment>> appointmentsInStore,
-                                                                                    GenericSerializable<AddNewParticipantToExistingAppointmentRequest> request,
-                                                                                    XunitSerializableExpression<Results<NoContent, Conflict, NotFound>> responseExpectation,
-                                                                                    string reason)
+    [Fact]
+    public async Task Return_NotFound_When_no_appointment_in_the_database()
     {
         // Arrange
-        IReadOnlyList<Appointment> appointments = appointmentsInStore.Value;
+        IReadOnlyList<Appointment> appointments = Array.Empty<Appointment>();
+        AddNewParticipantToExistingAppointmentRequest request = new()
+        {
+            Id = AppointmentId.New(),
+            Participant = new AttendeeInfo
+            {
+                Id = AttendeeId.New(),
+                Name = s_faker.Name.FullName(),
+                Email = s_faker.Internet.Email(),
+                PhoneNumber = s_faker.Phone.PhoneNumber()
+            }
+        };
 
         A.CallTo(() => _fakeRepository.SingleOrDefault(An<IFilterSpecification<Appointment>>._, A<CancellationToken>._))
             .ReturnsLazily((IFilterSpecification<Appointment> predicate, CancellationToken _) => appointments.SingleOrDefault(predicate.Filter.Compile()).SomeNotNull());
@@ -183,13 +115,127 @@ public class AddNewParticipantToExistingAppointmentEndpointShould
         Results<NoContent, Conflict, NotFound> response = await _sut.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
-        response.Should().Match(responseExpectation.Value, reason);
+        response.Result.Should().BeOfType<NotFound>();
 
         A.CallTo(() => _fakeRepository.SingleOrDefault(An<IFilterSpecification<Appointment>>._, A<CancellationToken>._))
             .MustHaveHappenedOnceExactly();
 
         A.CallTo(() => _fakeUnitOfWork.SaveChangesAsync(A<CancellationToken>._))
-            .MustHaveHappened(response is { Result: NoContent } ? 1 : 0, Times.Exactly);
+            .MustNotHaveHappened();
+    }
 
+    [Fact]
+    public async Task Return_NoContent_When_request_id_match_an_existing_appointment_and_the_new_participant_id_does_not_match_an_existing_participant()
+    {
+        // Arrange
+        Appointment appointment = s_appointmentFaker.Generate();
+        appointment.AddAttendee(new Attendee(AttendeeId.New(), s_faker.Name.FullName(), s_faker.Internet.Email(), s_faker.Phone.PhoneNumber()));
+
+        IReadOnlyList<Appointment> appointments = [appointment];
+        AddNewParticipantToExistingAppointmentRequest request = new()
+        {
+            Id = appointment.Id,
+            Participant = new AttendeeInfo
+            {
+                Id = AttendeeId.New(),
+                Name = s_faker.Name.FullName(),
+                Email = s_faker.Internet.Email(),
+                PhoneNumber = s_faker.Phone.PhoneNumber()
+            }
+        };
+
+        A.CallTo(() => _fakeRepository.SingleOrDefault(An<IFilterSpecification<Appointment>>._, A<CancellationToken>._))
+            .ReturnsLazily((IFilterSpecification<Appointment> predicate, CancellationToken _) => appointments.SingleOrDefault(predicate.Filter.Compile()).SomeNotNull());
+
+        // Act
+        Results<NoContent, Conflict, NotFound> response = await _sut.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.Result.Should().BeOfType<NoContent>();
+
+        A.CallTo(() => _fakeRepository.SingleOrDefault(An<IFilterSpecification<Appointment>>._, A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+
+        A.CallTo(() => _fakeUnitOfWork.SaveChangesAsync(A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+
+        appointment.Attendees.Should()
+                   .HaveCount(2);
+    }
+
+    [Fact]
+    public async Task Return_NoContent_When_request_id_match_an_existing_appointment_and_there_was_no_participant()
+    {
+        // Arrange
+        Appointment appointment = s_appointmentFaker.Generate();
+
+        IReadOnlyList<Appointment> appointments = [appointment];
+        AddNewParticipantToExistingAppointmentRequest request = new()
+        {
+            Id = appointment.Id,
+            Participant = new AttendeeInfo
+            {
+                Id = AttendeeId.New(),
+                Name = s_faker.Name.FullName(),
+                Email = s_faker.Internet.Email(),
+                PhoneNumber = s_faker.Phone.PhoneNumber()
+            }
+        };
+
+        A.CallTo(() => _fakeRepository.SingleOrDefault(An<IFilterSpecification<Appointment>>._, A<CancellationToken>._))
+            .ReturnsLazily((IFilterSpecification<Appointment> predicate, CancellationToken _) => appointments.SingleOrDefault(predicate.Filter.Compile()).SomeNotNull());
+
+        // Act
+        Results<NoContent, Conflict, NotFound> response = await _sut.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.Result.Should().BeOfType<NoContent>();
+
+        A.CallTo(() => _fakeRepository.SingleOrDefault(An<IFilterSpecification<Appointment>>._, A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+
+        A.CallTo(() => _fakeUnitOfWork.SaveChangesAsync(A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+
+        appointment.Attendees.Should()
+            .HaveCount(1)
+            .And.ContainSingle(attendee => attendee.Id == request.Participant.Id);
+    }
+
+    [Fact]
+    public async Task Return_Conflict_When_request_id_match_an_existing_appointment_but_new_participant_id_match_an_existing_attendee()
+    {
+        // Arrange
+        Appointment appointment = s_appointmentFaker.Generate();
+        Attendee attendee = new(AttendeeId.New(), s_faker.Name.FullName(), s_faker.Internet.Email(), s_faker.Phone.PhoneNumber());
+        appointment.AddAttendee(attendee);
+
+        IReadOnlyList<Appointment> appointments = [appointment];
+        AddNewParticipantToExistingAppointmentRequest request = new()
+        {
+            Id = appointment.Id,
+            Participant = new AttendeeInfo
+            {
+                Id = attendee.Id,
+                Name = s_faker.Name.FullName(),
+                Email = s_faker.Internet.Email(),
+                PhoneNumber = s_faker.Phone.PhoneNumber()
+            }
+        };
+
+        A.CallTo(() => _fakeRepository.SingleOrDefault(An<IFilterSpecification<Appointment>>._, A<CancellationToken>._))
+            .ReturnsLazily((IFilterSpecification<Appointment> predicate, CancellationToken _) => appointments.SingleOrDefault(predicate.Filter.Compile()).SomeNotNull());
+
+        // Act
+        Results<NoContent, Conflict, NotFound> response = await _sut.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.Result.Should().BeOfType<Conflict>();
+
+        A.CallTo(() => _fakeRepository.SingleOrDefault(An<IFilterSpecification<Appointment>>._, A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+
+        A.CallTo(() => _fakeUnitOfWork.SaveChangesAsync(A<CancellationToken>._))
+            .MustNotHaveHappened();
     }
 }

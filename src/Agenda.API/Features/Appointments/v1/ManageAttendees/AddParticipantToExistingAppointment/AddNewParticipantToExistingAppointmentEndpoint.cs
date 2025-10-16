@@ -42,7 +42,7 @@ public class AddNewParticipantToExistingAppointmentEndpoint : Endpoint<AddNewPar
                 Results<NoContent, Conflict, NotFound> result;
                 if (existingAppointment.Attendees.All(a => a.Id != req.Participant.Id))
                 {
-                    existingAppointment.RemoveAttendee(req.Participant.Id);
+                    existingAppointment.AddAttendee(new Attendee(req.Participant.Id, req.Participant.Name, req.Participant.Email, req.Participant.PhoneNumber));
                     await unitOfWork.SaveChangesAsync(ct);
 
                     result = TypedResults.NoContent();
