@@ -8,40 +8,32 @@ namespace Agenda.Events;
 /// <summary>
 /// Event raised when an appointment is scheduled.
 /// </summary>
-public class AppointmentScheduled : Event
+/// <summary>
+/// Builds a new <see cref="AppointmentScheduled"/> instance.
+/// </summary>
+/// <param name="appointmentId">Unique identifier of the appointment</param>
+/// <param name="subject"></param>
+/// <param name="location"></param>
+/// <param name="participants"></param>
+public class AppointmentScheduled(AppointmentId appointmentId, string subject, string location, IReadOnlyList<Attendee> participants)  : Event(Guid.NewGuid())
 {
     /// <summary>
-    /// Builds a new <see cref="AppointmentScheduled"/> instance.
+    /// Unique identifier of the appointment.
     /// </summary>
-    /// <param name="appointmentId">Unique identifier of the appointment</param>
-    /// <param name="subject"></param>
-    /// <param name="location"></param>
-    /// <param name="participants"></param>
-    public AppointmentScheduled(AppointmentId appointmentId, string subject, string location, IReadOnlyList<Attendee> participants) : base(Guid.NewGuid())
-    {
-        AppointmentId = appointmentId;
-        Subject = subject;
-        Location = location;
-        Participants = participants;
-    }
-
-    /// <summary>
-    /// Id of the appointment.
-    /// </summary>
-    public AppointmentId AppointmentId { get; init; }
+    public AppointmentId AppointmentId { get; } = appointmentId;
 
     /// <summary>
     /// Subject of the appointment.
     /// </summary>
-    public string Subject { get; init; }
+    public string Subject { get; } = subject ?? throw new ArgumentNullException(nameof(subject));
 
     /// <summary>
     /// Location of the appointment.
     /// </summary>
-    public string Location { get; init; }
+    public string Location { get; } = location ?? throw new ArgumentNullException(nameof(location));
 
     /// <summary>
     /// Participants of the appointment.
     /// </summary>
-    public IReadOnlyList<Attendee> Participants { get; init; }
+    public IReadOnlyList<Attendee> Participants { get; } = participants ?? throw new ArgumentNullException(nameof(participants));
 }

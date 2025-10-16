@@ -12,8 +12,10 @@ using FastEndpoints.AspVersioning;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
+using Paramore.Brighter.Extensions.DependencyInjection;
 using Serilog;
 using SystemTextJsonPatch.Operations;
 using static Microsoft.AspNetCore.Http.StatusCodes;
@@ -33,11 +35,14 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddCustomizedDependencyInjection();
 builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
-                                            configureDbContextOptions: optionsBuilder =>
-                                                                       {
-                                                                           optionsBuilder.UseNpgsql(o => o.UseNodaTime()
-                                                                                                        .MigrationsAssembly("Agenda.DataStores.Postgres"));
-                                                                       });
+    configureDbContextOptions: optionsBuilder =>
+    {
+        optionsBuilder.UseNpgsql(o => o.UseNodaTime()
+            .MigrationsAssembly("Agenda.DataStores.Postgres"));
+    });
+builder.Services.AddBrighter()
+                .AutoFromAssemblies()
+                .AddProducers(_ => {});
 builder.Services.AddDataStores();
 builder.Services.AddSerilog();
 builder.Services.Configure<JsonOptions>(c => optionsSerializerSettings.Invoke(c.SerializerOptions));
@@ -65,6 +70,7 @@ builder.Services.AddFastEndpoints(options => options.IncludeAbstractValidators =
                     options.ApiVersionReader = new HeaderApiVersionReader("api-version");
                     options.UnsupportedApiVersionStatusCode = Status400BadRequest;
                 }) ;
+
 
 WebApplication app = builder.Build();
 
