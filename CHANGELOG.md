@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🚀 New features
 #### API
 - Added `DELETE /appointments/{id}/attendees/{id}` endpoint ([#338](https://github.com/candoumbe/agenda/issues/338))
+- Added `POST /appointments/{id}/attendees` endpoint ([#337](https://github.com/candoumbe/agenda/issues/337))
+
 ### 🧹 Housekeeping
 
 - Configured renovate to group `Paramore.Brighter.*` NuGet packages
