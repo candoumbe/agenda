@@ -76,7 +76,7 @@ public class AddNewParticipantToExistingAppointmentEndpointShould
         using AssertionScope _ = new ();
 
         typeof(AddNewParticipantToExistingAppointmentEndpoint).Should()
-            .BeAssignableTo<Endpoint<AddNewParticipantToExistingAppointmentRequest, Results<NoContent, NotFound>>>();
+            .BeAssignableTo<Endpoint<AddNewParticipantToExistingAppointmentRequest, Results<NoContent, Conflict, NotFound>>>();
 
         EndpointDefinition definition = _sut.Definition;
 
