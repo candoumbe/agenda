@@ -92,7 +92,7 @@ public class AddNewParticipantToExistingAppointmentEndpointShould
     }
 
     [Fact]
-    public async Task Return_NotFound_When_no_appointment_in_the_database()
+    public async ValueTask Return_NotFound_When_no_appointment_in_the_database()
     {
         // Arrange
         IReadOnlyList<Appointment> appointments = Array.Empty<Appointment>();
@@ -125,7 +125,7 @@ public class AddNewParticipantToExistingAppointmentEndpointShould
     }
 
     [Fact]
-    public async Task Return_NoContent_When_request_id_match_an_existing_appointment_and_the_new_participant_id_does_not_match_an_existing_participant()
+    public async ValueTask Return_NoContent_When_request_id_match_an_existing_appointment_and_the_new_participant_id_does_not_match_an_existing_participant()
     {
         // Arrange
         Appointment appointment = s_appointmentFaker.Generate();
@@ -164,7 +164,7 @@ public class AddNewParticipantToExistingAppointmentEndpointShould
     }
 
     [Fact]
-    public async Task Return_NoContent_When_request_id_match_an_existing_appointment_and_there_was_no_participant()
+    public async ValueTask Return_NoContent_When_request_id_match_an_existing_appointment_and_there_was_no_participant()
     {
         // Arrange
         Appointment appointment = s_appointmentFaker.Generate();
@@ -203,7 +203,7 @@ public class AddNewParticipantToExistingAppointmentEndpointShould
     }
 
     [Fact]
-    public async Task Return_Conflict_When_request_id_match_an_existing_appointment_but_new_participant_id_match_an_existing_attendee()
+    public async ValueTask Return_Conflict_When_request_id_match_an_existing_appointment_but_new_participant_id_match_an_existing_attendee()
     {
         // Arrange
         Appointment appointment = s_appointmentFaker.Generate();
