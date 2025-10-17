@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using FastEndpoints;
 
@@ -9,6 +10,7 @@ namespace Agenda.API.Features.Appointments.v1.Create;
 [JsonSerializable(typeof(NewAppointmentInfo))]
 [JsonSerializable(typeof(Browsable<AppointmentInfo>))]
 [JsonSerializable(typeof(ProblemDetails))]
+[ExcludeFromCodeCoverage]
 public partial class CreateAppointmentSerializerContext : JsonSerializerContext
 {
 
