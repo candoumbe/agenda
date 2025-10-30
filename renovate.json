@@ -4,5 +4,29 @@
   ],
   "assignees": [ "candoumbe" ],
   "addLabels": [ "package-update" ],
-  "automerge": true
+  "automerge": true,
+  "packageRules": [
+    {
+      "matchCurrentVersion": ">=3.1.0",
+      "matchDatasources": [
+        "nuget"
+      ],
+      "matchPackageNames": [
+        "xunit.v3"
+      ],
+      "replacementName": "xunit.v3.mtp-v2",
+      "replacementVersion": "3.1.1-pre.9"
+    },
+    {
+      "matchCurrentVersion": ">=3.1.0",
+      "matchDatasources": [
+        "nuget"
+      ],
+      "matchPackageNames": [
+        "xunit.v3.core"
+      ],
+      "replacementName": "xunit.v3.core.mtp-v2",
+      "replacementVersion": "3.1.1-pre.9"
+    }
+  ]
 }
