@@ -64,7 +64,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.13.0" />
     <PackageVersion Include="Polly" Version="8.6.4" />
     <PackageVersion Include="Serialize.Linq" Version="4.0.167" />
-    <PackageVersion Include="ReportGenerator" Version="5.4.18" />
+    <PackageVersion Include="ReportGenerator" Version="5.5.0" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.14.1" />
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageVersion Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
