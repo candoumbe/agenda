@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added task issue template
 - Updated bug issue template
 - Added Codecov configuration file
+- Updated `xRetry` to `1.0.0-rc2`
+- Updated `xunit.v3` to `3.2.0`
 
 ## [0.1.0] / 2025-10-03
 ### 🚀 New features
