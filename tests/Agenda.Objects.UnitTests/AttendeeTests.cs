@@ -1,7 +1,7 @@
 using System;
 using Agenda.Ids;
+using AwesomeAssertions;
 using Bogus;
-using FluentAssertions;
 using Xunit;
 using Xunit.OpenCategories.V3;
 

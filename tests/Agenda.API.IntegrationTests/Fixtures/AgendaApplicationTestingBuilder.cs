@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
-using FluentAssertions.Extensions;
 using Xunit;
 
 namespace Agenda.API.IntegrationTests.Fixtures;
