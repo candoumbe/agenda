@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using FluentAssertions;
+using AwesomeAssertions;
 using Xunit.OpenCategories.V3;
 
 namespace Agenda.Ids.UnitTests;

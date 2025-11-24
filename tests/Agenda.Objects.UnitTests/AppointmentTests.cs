@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using Agenda.API.UnitTests.Helpers;
 using Agenda.Ids;
 using Agenda.UnitTests.Helpers;
+using AwesomeAssertions;
+using AwesomeAssertions.Extensions;
 using Bogus;
-using FluentAssertions;
-using FluentAssertions.Extensions;
 using FsCheck.Xunit;
 using NodaTime;
 using NodaTime.Extensions;

@@ -1,5 +1,5 @@
 using System;
-using FluentAssertions;
+using AwesomeAssertions;
 using FsCheck.Xunit;
 using Xunit.OpenCategories.V3;
 
