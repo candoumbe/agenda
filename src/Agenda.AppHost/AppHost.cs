@@ -1,8 +1,5 @@
-using Aspire.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Projects;
-
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
@@ -31,7 +28,6 @@ var api = builder.AddProject<Agenda_API>("api")
     .WithReference(postgres)
     .WaitForCompletion(migrationService)
     .PublishAsDockerFile();
-
 builder.Build().Run();
 
 
