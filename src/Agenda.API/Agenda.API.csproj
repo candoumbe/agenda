@@ -38,9 +38,8 @@
     <PackageReference Include="Paramore.Brighter.AspNetCore" />
     <PackageReference Include="Paramore.Brighter.Extensions.DependencyInjection" />
     <PackageReference Include="Paramore.Brighter.MessagingGateway.RMQ.Async" />
-    <PackageReference Include="Paramore.Brighter.ServiceActivator.DependencyInjection" />
+    <PackageReference Include="Paramore.Brighter.ServiceActivator.Extensions.DependencyInjection" />
     <PackageReference Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" />
-    <PackageReference Include="Polly" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.Seq" />

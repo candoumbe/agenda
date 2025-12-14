@@ -172,7 +172,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                 .WithAnyArguments()
                 .Returns(s_faker.Internet.Url());
 
-            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentScheduled>.Ignored, A.Dummy<bool>(), A<CancellationToken>._))
+            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentScheduled>.Ignored, A<RequestContext>.Ignored, A<Dictionary<string, object>>.Ignored, A.Dummy<bool>(), A<CancellationToken>._))
                 .ReturnsLazily((AppointmentScheduled evt, bool _, CancellationToken _) => evt.Id);
 
             // Act
@@ -196,7 +196,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                 .And.Contain(link => link.Relations.Once(rel => rel == LinkRelation.Self))
                 .And.Contain(link => link.Relations.Once(rel => string.Equals(rel, "delete", StringComparison.OrdinalIgnoreCase)));
 
-            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentScheduled>.Ignored, A.Dummy<bool>(), A<CancellationToken>._))
+            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentScheduled>._, A<RequestContext>._, A<Dictionary<string, object>>._, A.Dummy<bool>(), A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
 
         }

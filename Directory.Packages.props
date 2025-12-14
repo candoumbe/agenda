@@ -65,12 +65,12 @@
     <PackageVersion Include="Paramore.Brighter.MessagingGateway.RMQ" Version="9.9.12" />
     <PackageVersion Include="Paramore.Brighter" Version="10.0.1" />
     <PackageVersion Include="Paramore.Brighter.AspNetCore" Version="1.0.13" />
-    <PackageVersion Include="Paramore.Brighter.Extensions.DependencyInjection" Version="10.0.1" />
-    <PackageVersion Include="Paramore.Brighter.MessagingGateway.RMQ.Async" Version="10.0.1" />
+    <PackageVersion Include="Paramore.Brighter.Extensions.DependencyInjection" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.MessagingGateway.RMQ.Async" Version="10.0.4" />
     <PackageVersion Include="Paramore.Brighter.PostgreSql" Version="10.0.1" />
-    <PackageVersion Include="Paramore.Brighter.PostgreSql.EntityFrameworkCore" Version="10.0.1" />
-    <PackageVersion Include="Paramore.Brighter.ServiceActivator.DependencyInjection" Version="10.0.1" />
-    <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" Version="10.0.1" />
+    <PackageVersion Include="Paramore.Brighter.PostgreSql.EntityFrameworkCore" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.DependencyInjection" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" Version="10.0.4" />
     <PackageVersion Include="Serialize.Linq" Version="4.0.167" />
     <PackageVersion Include="ReportGenerator" Version="5.5.0" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.14.1" />
