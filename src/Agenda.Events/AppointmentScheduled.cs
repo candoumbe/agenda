@@ -15,7 +15,12 @@ namespace Agenda.Events;
 /// <param name="subject"></param>
 /// <param name="location"></param>
 /// <param name="participants"></param>
-public class AppointmentScheduled(AppointmentId appointmentId, string subject, string location, IReadOnlyList<Attendee> participants)  : Event(Guid.NewGuid())
+public class AppointmentScheduled(AppointmentId appointmentId, string subject, string location, IReadOnlyList<Attendee> participants)
+#if NET10_0_OR_GREATER
+    : Event(Guid.CreateVersion7())
+# else
+    : Event(Guid.NewGuid())
+#endif
 {
     /// <summary>
     /// Unique identifier of the appointment.

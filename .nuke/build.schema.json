@@ -25,6 +25,7 @@
       "type": "string",
       "enum": [
         "AddGithubRelease",
+        "AddMigration",
         "ArchitecturalTests",
         "Benchmarks",
         "Changelog",
@@ -41,6 +42,7 @@
         "Publish",
         "PublishApi",
         "Release",
+        "RemoveMigration",
         "ReportIntegrationTestCoverage",
         "ReportUnitTestCoverage",
         "Restore",

@@ -1,14 +1,19 @@
-﻿using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Agenda.DataStores;
+﻿using Agenda.DataStores;
+using Agenda.Events;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;
+using Candoumbe.Types.Numerics;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
+using Paramore.Brighter;
+using Paramore.Brighter.Extensions.DependencyInjection;
+using Paramore.Brighter.MessagingGateway.RMQ.Async;
+using Paramore.Brighter.Observability;
+using Paramore.Brighter.Outbox.Hosting;
+using Paramore.Brighter.Outbox.PostgreSql;
+using Paramore.Brighter.PostgreSql;
+using Paramore.Brighter.PostgreSql.EntityFrameworkCore;
+using RabbitMQ.Client;
 
 namespace Agenda.API;
 
@@ -18,68 +23,115 @@ namespace Agenda.API;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds required dependencies to access API datastores
+    /// Extension method used to configure dependency injection container.
     /// </summary>
-    /// <param name="services"></param>
-    public static void AddDataStores(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        using IServiceScope scope = services.BuildServiceProvider().CreateScope();
-
-        services.AddTransient(serviceProvider =>
+        /// <summary>
+        /// Adds required dependencies to access API datastores.
+        /// </summary>
+        public void AddDataStores()
         {
-            DbContextOptions<AgendaDataStore> dbContextOptions = serviceProvider.GetRequiredService<DbContextOptions<AgendaDataStore>>();
-            IClock clock = serviceProvider.GetRequiredService<IClock>();
-            return new AgendaDataStore(dbContextOptions, clock);
-        });
+            using IServiceScope scope = services.BuildServiceProvider().CreateScope();
 
-        services.AddSingleton<IUnitOfWorkFactory, EntityFrameworkUnitOfWorkFactory<AgendaDataStore>>(serviceProvider =>
+            services.AddTransient(serviceProvider =>
+            {
+                DbContextOptions<AgendaDataStore> dbContextOptions = serviceProvider.GetRequiredService<DbContextOptions<AgendaDataStore>>();
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+                return new AgendaDataStore(dbContextOptions, clock);
+            });
+
+            services.AddSingleton<IUnitOfWorkFactory, EntityFrameworkUnitOfWorkFactory<AgendaDataStore>>(serviceProvider =>
+            {
+                DbContextOptions<AgendaDataStore> dbContextOptions = serviceProvider.GetRequiredService<DbContextOptions<AgendaDataStore>>();
+
+                IClock clock = serviceProvider.GetRequiredService<IClock>();
+                return new EntityFrameworkUnitOfWorkFactory<AgendaDataStore>(dbContextOptions, options => new AgendaDataStore(options, clock), new AgendaRepositoryFactory());
+            });
+        }
+
+        /// <summary>
+        /// Adds supports for Options
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public IServiceCollection AddCustomOptions(IConfiguration configuration)
         {
-            DbContextOptions<AgendaDataStore> dbContextOptions = serviceProvider.GetRequiredService<DbContextOptions<AgendaDataStore>>();
+            services.AddOptions();
+            services.Configure<AgendaApiOptions>(options =>
+            {
+                options.PaginationOptions = new PaginationOptions()
+                {
+                    DefaultPageSize = PositiveInteger.From(configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.PaginationOptions.DefaultPageSize)}", 30)),
+                    MaxPageSize = PositiveInteger.From(configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.PaginationOptions.DefaultPageSize)}", 100))
+                };
+                options.MessagingOptions = new MessagingOptions() { OutboxTablename = configuration.GetValue<string>($"ApiOptions:{nameof(AgendaApiOptions.MessagingOptions.OutboxTablename)}") };
+            });
 
-            IClock clock = serviceProvider.GetRequiredService<IClock>();
-            return new EntityFrameworkUnitOfWorkFactory<AgendaDataStore>(dbContextOptions, options => new AgendaDataStore(options, clock), new AgendaRepositoryFactory());
-        });
+            services.Configure<JwtOptions>(options =>
+            {
+                options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
+                options.Audience = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}");
+                options.Key = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}");
+            });
 
-        return;
+            return services;
+        }
 
-    }
-
-    /// <summary>
-    /// Adds supports for Options
-    /// </summary>
-    /// <param name="services"></param>
-    /// <param name="configuration"></param>
-    /// <returns></returns>
-    public static IServiceCollection AddCustomOptions(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddOptions();
-        services.Configure<AgendaApiOptions>(options =>
+        /// <summary>
+        /// Configure dependency injection container
+        /// </summary>
+        /// <remarks>
+        /// Adds the
+        /// </remarks>
+        public void AddCustomizedDependencyInjection()
         {
-            options.DefaultPageSize = configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.DefaultPageSize)}", 30);
-            options.MaxPageSize = configuration.GetValue($"ApiOptions:{nameof(AgendaApiOptions.DefaultPageSize)}", 100);
-        });
+            services.AddSingleton<IClock>(SystemClock.Instance);
+            services.AddHttpContextAccessor();
+            services.AddTransient<CurrentRequestMetadataInfoProvider>();
+        }
 
-        services.Configure<JwtOptions>(options =>
+        /// <summary>
+        /// Adds support for Brighter.
+        /// </summary>
+        /// <param name="configuration">The configuration to use</param>
+        /// <param name="environment">The environment onto which the setup is performed</param>
+        public void AddCustomBrighter(IConfiguration configuration, IHostEnvironment environment)
         {
-            options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
-            options.Audience = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}");
-            options.Key = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}");
-        });
+            string databaseConnectionString = configuration.GetConnectionString("postgres")!;
+            MessagingOptions messagingOptions = configuration.GetSection($"ApiOptions:{nameof(AgendaApiOptions.MessagingOptions)}").Get<MessagingOptions>();
+            RelationalDatabaseConfiguration outboxConfiguration = new (databaseConnectionString, outBoxTableName: "outbox");
 
-        return services;
-    }
+            services.AddSingleton<IAmARelationalDatabaseConfiguration>(outboxConfiguration);
 
-    /// <summary>
-    /// Configure dependency injection container
-    /// </summary>
-    /// <param name="services"></param>
-    /// <remarks>
-    /// Adds the
-    /// </remarks>
-    public static void AddCustomizedDependencyInjection(this IServiceCollection services)
-    {
-        services.AddSingleton<IClock>(SystemClock.Instance);
-        services.AddHttpContextAccessor();
-        services.AddTransient<CurrentRequestMetadataInfoProvider>();
+            services.AddBrighter()
+                .AddProducers(producers =>
+                {
+                    RmqMessagingGatewayConnection rmqMessagingGatewayConnection = new ()
+                    {
+                        AmpqUri = new AmqpUriSpecification(new Uri(configuration.GetConnectionString("messaging")!)),
+                        PersistMessages = true,
+                        Name = $"agenda.{environment.EnvironmentName}.outgoing",
+                        Exchange = new Exchange($"agenda.{environment.EnvironmentName}.events", type: ExchangeType.Topic),
+                    };
+                    List<RmqPublication> publications =
+                    [
+                        new RmqPublication<AppointmentScheduled>()
+                        {
+                            Topic = "agenda.appointments.scheduled",
+                            MakeChannels = OnMissingChannel.Create,
+                            WaitForConfirmsTimeOutInMilliseconds = 1000,
+                            Subject = "appointment/scheduled",
+
+
+                        }
+                    ];
+                    producers.ProducerRegistry = new RmqProducerRegistryFactory(rmqMessagingGatewayConnection, publications).Create();
+                    producers.Outbox = new PostgreSqlOutbox(outboxConfiguration);
+                    producers.ConnectionProvider = typeof(PostgreSqlConnectionProvider);
+                    producers.TransactionProvider = typeof(PostgreSqlEntityFrameworkTransactionProvider<AgendaDataStore>);
+                })
+                .UseOutboxSweeper();
+        }
     }
 }

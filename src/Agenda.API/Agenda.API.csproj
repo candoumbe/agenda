@@ -3,7 +3,7 @@
   <Import Project="..\..\core.props" />
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <UserSecretsId>85b415e8-a1a6-407e-afe1-b881cb57bcaa</UserSecretsId>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -38,6 +38,9 @@
     <PackageReference Include="Paramore.Brighter.AspNetCore" />
     <PackageReference Include="Paramore.Brighter.Extensions.DependencyInjection" />
     <PackageReference Include="Paramore.Brighter.MessagingGateway.RMQ.Async" />
+    <PackageReference Include="Paramore.Brighter.Outbox.Hosting" />
+    <PackageReference Include="Paramore.Brighter.Outbox.PostgreSql" />
+    <PackageReference Include="Paramore.Brighter.PostgreSql.EntityFrameworkCore" />
     <PackageReference Include="Paramore.Brighter.ServiceActivator.Extensions.DependencyInjection" />
     <PackageReference Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" />
     <PackageReference Include="Serilog.AspNetCore" />

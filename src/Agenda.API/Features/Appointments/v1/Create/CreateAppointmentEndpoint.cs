@@ -21,7 +21,7 @@ namespace Agenda.API.Features.Appointments.v1.Create;
 /// <summary>
 /// Creates new appointment
 /// </summary>
-public class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, CreatedAtRoute<Browsable<AppointmentInfo>>>
+public partial class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, CreatedAtRoute<Browsable<AppointmentInfo>>>
 {
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly LinkGenerator _linkGenerator;
@@ -115,10 +115,13 @@ public class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, CreatedAtR
             ]
         };
 
-        Logger.LogTrace("Appointment created: {@Appointment}", browsable);
+        LogAppointmentCreated(Logger, browsable);
 
         return TypedResults.CreatedAtRoute(browsable,
                                            IEndpoint.GetName<GetAppointmentByIdEndpoint>(verb: Http.GET),
                                            new { newAppointment.Id });
     }
+
+    [LoggerMessage(LogLevel.Trace, "Appointment created: {appointment}")]
+    static partial void LogAppointmentCreated(ILogger logger, Browsable<AppointmentInfo> appointment);
 }

@@ -17,6 +17,9 @@ if (! isRunningIntegrationTests)
             .WithPgWeb(containerName: "pg-web");
 }
 
+var messaging = builder.AddRabbitMQ("messaging")
+    .WithManagementPlugin();
+
 var migrationService = builder.AddProject<Agenda_Migrator>("migrations")
     .WithReference(postgres)
     .WaitFor(postgres);
@@ -26,6 +29,8 @@ var api = builder.AddProject<Agenda_API>("api")
     .WithHttpEndpoint(name: "unsecured")
     .WithHttpsEndpoint(name: "secured")
     .WithReference(postgres)
+    .WithReference(messaging)
+    .WaitFor(messaging)
     .WaitForCompletion(migrationService)
     .PublishAsDockerFile();
 builder.Build().Run();
