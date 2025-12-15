@@ -6,6 +6,8 @@ using Candoumbe.DataAccess.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 using NodaTime;
+using Paramore.Brighter;
+using Paramore.Brighter.Observability;
 
 namespace Agenda.DataStores;
 /// <summary>
@@ -40,4 +42,5 @@ public class AgendaDataStore : DataStore<AgendaDataStore>
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppointmentEntityTypeConfiguration).Assembly);
     }
+
 }

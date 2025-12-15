@@ -1,10 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Paramore.Brighter.Outbox.PostgreSql" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Agenda.DataStores\Agenda.DataStores.csproj" />
   </ItemGroup>

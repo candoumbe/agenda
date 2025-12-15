@@ -8,6 +8,7 @@ using Agenda.API.Features.Appointments.v1.Create;
 using Agenda.API.Features.Appointments.v1.Search;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.API.UnitTests.Helpers;
+using Agenda.Events;
 using Agenda.Ids;
 using Agenda.UnitTests.Helpers;
 using AwesomeAssertions;
@@ -19,6 +20,7 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Routing;
+using Paramore.Brighter;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
@@ -33,6 +35,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
         private static readonly Faker s_faker;
         private static readonly Faker<AttendeeInfo> s_attendeeFaker;
         private readonly CreateAppointmentEndpoint _sut;
+        private readonly IAmACommandProcessor _commandProcessor;
 
         static CreateAppointementEndpointShould()
         {
@@ -50,7 +53,11 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
             _unitOfWorkFactory = A.Fake<IUnitOfWorkFactory>();
             _linkGenerator = A.Fake<LinkGenerator>();
             _currentRequestMetadataInfoProvider = A.Fake<CurrentRequestMetadataInfoProvider>();
-            _sut = Factory.Create<CreateAppointmentEndpoint>(_unitOfWorkFactory, _linkGenerator, _currentRequestMetadataInfoProvider);
+            _commandProcessor = A.Fake<IAmACommandProcessor>(x => x.Strict());
+            _sut = Factory.Create<CreateAppointmentEndpoint>(_unitOfWorkFactory,
+                                                             _linkGenerator,
+                                                             _currentRequestMetadataInfoProvider,
+                                                             _commandProcessor);
         }
 
         public static TheoryData<GenericSerializable<NewAppointmentInfo>, XunitSerializableExpression<AppointmentInfo>> CreateAppointmentWithValidRequestCases
@@ -165,6 +172,8 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                 .WithAnyArguments()
                 .Returns(s_faker.Internet.Url());
 
+            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentScheduled>._, A<RequestContext>._, A<Dictionary<string, object>>._, A<bool>._, A<CancellationToken>._))
+                .ReturnsLazily((AppointmentScheduled evt, RequestContext _, Dictionary<string, object> _,  bool _, CancellationToken _) => evt.Id);
 
             // Act
             CreatedAtRoute<Browsable<AppointmentInfo>> response = await _sut.ExecuteAsync(req, CancellationToken.None);
@@ -186,6 +195,10 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                 .And.OnlyContain(link => link.Relations.AtLeastOnce())
                 .And.Contain(link => link.Relations.Once(rel => rel == LinkRelation.Self))
                 .And.Contain(link => link.Relations.Once(rel => string.Equals(rel, "delete", StringComparison.OrdinalIgnoreCase)));
+
+            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentScheduled>._, A<RequestContext>._, A<Dictionary<string, object>>._, A<bool>._, A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
+
         }
     }
 }

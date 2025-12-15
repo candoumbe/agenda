@@ -57,6 +57,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agenda.ServiceDefaults", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agenda.UnitTests.Helpers", "tests\Agenda.UnitTests.Helpers\Agenda.UnitTests.Helpers.csproj", "{F04F7870-F3FD-4006-929F-A3A59571FFB6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agenda.Events", "src\Agenda.Events\Agenda.Events.csproj", "{38841A63-3DEB-42CE-B9FB-35B15E8CFEB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -125,6 +127,10 @@ Global
 		{F04F7870-F3FD-4006-929F-A3A59571FFB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F04F7870-F3FD-4006-929F-A3A59571FFB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F04F7870-F3FD-4006-929F-A3A59571FFB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38841A63-3DEB-42CE-B9FB-35B15E8CFEB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38841A63-3DEB-42CE-B9FB-35B15E8CFEB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38841A63-3DEB-42CE-B9FB-35B15E8CFEB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38841A63-3DEB-42CE-B9FB-35B15E8CFEB3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -146,6 +152,7 @@ Global
 		{0956D803-3713-461C-A8ED-7DB9A5D6E451} = {E8A114DC-D530-4672-A490-C2635B44D8F7}
 		{8B66A63E-F060-41ED-8DD8-4A750BEA09AC} = {E8A114DC-D530-4672-A490-C2635B44D8F7}
 		{F04F7870-F3FD-4006-929F-A3A59571FFB6} = {EC7A834E-7043-49D6-B714-A8FE8A6361FF}
+		{38841A63-3DEB-42CE-B9FB-35B15E8CFEB3} = {E8A114DC-D530-4672-A490-C2635B44D8F7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {02C1DC64-CE35-43E3-BC55-5891DCC5FCB9}

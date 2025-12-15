@@ -6,7 +6,6 @@ using Candoumbe.Pipelines.Components.Formatting;
 using Candoumbe.Pipelines.Components.GitHub;
 using Candoumbe.Pipelines.Components.NuGet;
 using Candoumbe.Pipelines.Components.Workflows;
-using Candoumbe.Types.Numerics;
 using Nuke.Common;
 using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.Git;
@@ -16,10 +15,13 @@ using Nuke.Common.Tooling;
 using Nuke.Common.Tools.Codecov;
 using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.DotNet;
+using Nuke.Common.Tools.EntityFramework;
 using Nuke.Common.Tools.GitHub;
 using Nuke.Common.Tools.GitVersion;
 using static Nuke.Common.Tools.Docker.DockerTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
+using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
+using static Nuke.Common.Utilities.ConsoleUtility;
 using static Serilog.Log;
 using Project = Nuke.Common.ProjectModel.Project;
 
@@ -81,12 +83,12 @@ public class Build : EnhancedNukeBuild,
     IClean,
     IRestore,
     IDotnetFormat,
-    IMutationTest,
     IBenchmark,
     IReportUnitTestCoverage,
     IReportIntegrationTestCoverage,
     IPushNugetPackages,
-    ICreateGithubRelease
+    ICreateGithubRelease,
+    ICanRegenerateGitHubWorkflows
 {
 
     [Solution] [Required] public readonly Solution Solution;
@@ -317,17 +319,91 @@ public class Build : EnhancedNukeBuild,
                                            this.Get<IIntegrationTest>().IntegrationTests)
                                .Description("Runs all tests");
 
+        public Target AddMigration => _ => _.Description("Add a new migration to the database")
+        .OnlyWhenStatic(() => IsLocalBuild)
+        .Executes(() =>
+        {
+            string migrationName = PromptForInput("New migration name (leave empty to cancel the operation): ", string.Empty);
+            if (string.IsNullOrWhiteSpace(migrationName))
+            {
+                return;
+            }
+            string provider = PromptForChoice("Database provider : ", [ ("Postgres",  "Postgres database engine" ), ("Sqlite", "SQLite database engine")]);
+            if (string.IsNullOrWhiteSpace(provider))
+            {
+                return;
+            }
 
-    /// <summary>
-    /// Projects to be targeted by mutation tests.
-    /// </summary>
-    private static readonly string[] s_projects = ["Agenda.Ids", "Agenda.Objects", "Agenda.API"];
+            const string migrationDirectoryName = "Migrations";
+            const string contextName = "Agenda.DataStores.AgendaDataStore";
 
-    /// <inheritdoc />
-    IEnumerable<MutationProjectConfiguration> IMutationTest.MutationTestsProjects =>
-    [
-        ..s_projects.Select(projectName => new MutationProjectConfiguration(sourceProject: Solution.AllProjects.Single(csproj => csproj.Name == projectName),
-                                                                           testProjects: Solution.AllProjects.Where(csproj => string.Equals(csproj.Name, $"{projectName}.UnitTests")),
-                                                                           configurationFile: this.Get<IHaveTestDirectory>().TestDirectory / $"{projectName}.UnitTests" / "stryker-config.json"))
-    ];
+
+            if(PromptForChoice($"Adding migration '{migrationName}' for provider '{provider}'. Confirm ?",
+                   [ (ConsoleKey.Y, "Confirm the operation"),
+                       (ConsoleKey.N, "Cancel the operation")]) == ConsoleKey.N)
+            {
+                Information("Operation cancelled by the user.");
+                return;
+            }
+
+            string connectionString = provider switch
+            {
+                "Postgres" => "Host=localhost;Port=5432;Database=agenda;Username=postgres;Password=!",
+                "Sqlite" => "Data Source=agenda.db",
+                _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, "Unsupported provider")
+            };
+
+            EntityFrameworkMigrationsAdd(s => s.SetStartupProject(ApiProject)
+                .SetName(migrationName)
+                .SetContext(contextName)
+                .SetFramework("net10.0")
+                .SetProject(this.Get<IHaveSourceDirectory>().SourceDirectory / $"Agenda.DataStores.{provider}" / $"Agenda.DataStores.{provider}.csproj")
+                .SetStartupProject(ApiProject)
+                .SetOutputDirectory(migrationDirectoryName)
+                .SetProcessAdditionalArguments($"""
+                                                -- --provider {provider.ToLowerInvariant()} --ConnectionStrings:agenda "{connectionString}"
+                                                """));
+
+            Information("Migration '{MigrationName}' added successfully.", migrationName);
+
+
+        });
+
+    public Target RemoveMigration => _ => _.Description("Remove latest migration")
+        .OnlyWhenStatic(() => IsLocalBuild)
+        .Executes(() =>
+        {
+            string provider = PromptForChoice("Database provider : ", [ ("Postgres",  "Postgres database engine" ), ("Sqlite", "SQLite database engine")]);
+            if (string.IsNullOrWhiteSpace(provider))
+            {
+                return;
+            }
+
+            const string contextName = "Agenda.DataStores.AgendaStore";
+
+            if(PromptForChoice($"Removing latest migration for provider '{provider}'. Confirm ?",
+                   [ (ConsoleKey.Y, "Confirm the operation"),
+                       (ConsoleKey.N, "Cancel the operation")]) == ConsoleKey.N)
+            {
+                Information("Operation cancelled by the user.");
+                return;
+            }
+
+            string connectionString = provider switch
+            {
+                "Postgres" => "Host=localhost;Port=5432;Database=agenda;Username=postgres;Password=!",
+                "Sqlite" => "Data Source=agenda.db",
+                _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, "Unsupported provider")
+            };
+
+            EntityFrameworkMigrationsRemove(s => s.SetStartupProject(ApiProject)
+                .SetContext(contextName)
+                .SetProject(this.Get<IHaveSourceDirectory>().SourceDirectory / $"Agenda.DataStores.{provider}" / $"Agenda.DataStores.{provider}.csproj")
+                .SetStartupProject(ApiProject)
+                .SetProcessAdditionalArguments($"""
+                                                -- --provider {provider.ToLowerInvariant()} --ConnectionStrings:Agenda "{connectionString}"
+                                                """));
+
+            Information("Latest migration removed successfully.");
+        });
 }

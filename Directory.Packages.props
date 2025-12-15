@@ -6,12 +6,13 @@
     <RepositoryUrl>https://github.com/candoumbe/agenda</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.0.1" />
-    <PackageVersion Include="Aspire.Hosting.MongoDB" Version="13.0.1" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.0.1" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.0.1" />
-    <PackageVersion Include="Aspire.Npgsql" Version="13.0.1" />
-    <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.0.1" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.0.2" />
+    <PackageVersion Include="Aspire.Hosting.MongoDB" Version="13.0.2" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.0.2" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.0.2" />
+    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.0.2" />
+    <PackageVersion Include="Aspire.Npgsql" Version="13.0.2" />
+    <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.0.2" />
     <PackageVersion Include="AwesomeAssertions" Version="9.3.0" />
     <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="Candoumbe.DataAccess" Version="0.1.0-beta.356" />
@@ -38,12 +39,12 @@
     <PackageVersion Include="Microsoft.AspNetCore.JsonPatch" Version="9.0.11" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.11" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="9.0.11" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.11" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.Testing" Version="9.10.0" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.11" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="9.10.0" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="9.5.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
@@ -55,14 +56,24 @@
     <PackageVersion Include="NodaTime.Serialization.JsonNet" Version="3.2.0" />
     <PackageVersion Include="NodaTime.Serialization.SystemTextJson" Version="1.3.0" />
     <PackageVersion Include="NodaTime.Testing" Version="3.2.2" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="9.0.4" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="10.0.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.14.0" />
-    <PackageVersion Include="Polly" Version="8.6.5" />
+    <PackageVersion Include="Paramore.Brighter" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.MessagingGateway.RMQ" Version="9.9.12" />
+    <PackageVersion Include="Paramore.Brighter.AspNetCore" Version="1.0.13" />
+    <PackageVersion Include="Paramore.Brighter.Extensions.DependencyInjection" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.MessagingGateway.RMQ.Async" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.Outbox.Hosting" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.Outbox.PostgreSql" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.PostgreSql" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.PostgreSql.EntityFrameworkCore" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.DependencyInjection" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" Version="10.0.4" />
     <PackageVersion Include="Serialize.Linq" Version="4.0.167" />
     <PackageVersion Include="ReportGenerator" Version="5.5.0" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.14.1" />

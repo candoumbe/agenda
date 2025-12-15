@@ -3,7 +3,7 @@
   <Import Project="..\..\core.props" />
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <UserSecretsId>85b415e8-a1a6-407e-afe1-b881cb57bcaa</UserSecretsId>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -35,7 +35,14 @@
     </PackageReference>
     <PackageReference Include="NodaTime.Serialization.SystemTextJson" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" />
-    <PackageReference Include="Polly" />
+    <PackageReference Include="Paramore.Brighter.AspNetCore" />
+    <PackageReference Include="Paramore.Brighter.Extensions.DependencyInjection" />
+    <PackageReference Include="Paramore.Brighter.MessagingGateway.RMQ.Async" />
+    <PackageReference Include="Paramore.Brighter.Outbox.Hosting" />
+    <PackageReference Include="Paramore.Brighter.Outbox.PostgreSql" />
+    <PackageReference Include="Paramore.Brighter.PostgreSql.EntityFrameworkCore" />
+    <PackageReference Include="Paramore.Brighter.ServiceActivator.Extensions.DependencyInjection" />
+    <PackageReference Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.Seq" />
@@ -47,6 +54,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Agenda.DataStores.Postgres\Agenda.DataStores.Postgres.csproj" />
     <ProjectReference Include="..\Agenda.DataStores.Sqlite\Agenda.DataStores.Sqlite.csproj" />
+    <ProjectReference Include="..\Agenda.Events\Agenda.Events.csproj" />
     <ProjectReference Include="..\Agenda.ServiceDefaults\Agenda.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>

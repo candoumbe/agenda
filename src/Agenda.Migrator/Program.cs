@@ -1,8 +1,6 @@
 using Agenda.DataStores;
 using Agenda.Migrator;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using NodaTime;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
