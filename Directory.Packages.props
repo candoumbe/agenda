@@ -75,7 +75,7 @@
     <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.DependencyInjection" Version="10.0.4" />
     <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" Version="10.0.4" />
     <PackageVersion Include="Serialize.Linq" Version="4.0.167" />
-    <PackageVersion Include="ReportGenerator" Version="5.5.0" />
+    <PackageVersion Include="ReportGenerator" Version="5.5.1" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
