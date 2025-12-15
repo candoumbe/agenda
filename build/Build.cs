@@ -83,12 +83,12 @@ public class Build : EnhancedNukeBuild,
     IClean,
     IRestore,
     IDotnetFormat,
-    IMutationTest,
     IBenchmark,
     IReportUnitTestCoverage,
     IReportIntegrationTestCoverage,
     IPushNugetPackages,
-    ICreateGithubRelease
+    ICreateGithubRelease,
+    ICanRegenerateGitHubWorkflows
 {
 
     [Solution] [Required] public readonly Solution Solution;
@@ -405,21 +405,5 @@ public class Build : EnhancedNukeBuild,
                                                 """));
 
             Information("Latest migration removed successfully.");
-
-
         });
-
-
-    /// <summary>
-    /// Projects to be targeted by mutation tests.
-    /// </summary>
-    private static readonly string[] s_projects = ["Agenda.Ids", "Agenda.Objects", "Agenda.API"];
-
-    /// <inheritdoc />
-    IEnumerable<MutationProjectConfiguration> IMutationTest.MutationTestsProjects =>
-    [
-        ..s_projects.Select(projectName => new MutationProjectConfiguration(sourceProject: Solution.AllProjects.Single(csproj => csproj.Name == projectName),
-                                                                           testProjects: Solution.AllProjects.Where(csproj => string.Equals(csproj.Name, $"{projectName}.UnitTests")),
-                                                                           configurationFile: this.Get<IHaveTestDirectory>().TestDirectory / $"{projectName}.UnitTests" / "stryker-config.json"))
-    ];
 }
