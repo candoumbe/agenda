@@ -1,4 +1,7 @@
+using Aspire.Hosting.JavaScript;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Projects;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
@@ -25,14 +28,23 @@ var migrationService = builder.AddProject<Agenda_Migrator>("migrations")
     .WaitFor(postgres);
 
 var api = builder.AddProject<Agenda_API>("api")
-    //.WithReplicas(2)
-    .WithHttpEndpoint(name: "unsecured")
-    .WithHttpsEndpoint(name: "secured")
+    .WithDeveloperCertificateTrust(trust: true)
+    .WithExternalHttpEndpoints()
     .WithReference(postgres)
     .WithReference(messaging)
     .WaitFor(messaging)
     .WaitForCompletion(migrationService)
     .PublishAsDockerFile();
+
+builder.AddJavaScriptApp("frontend", "../Agenda.Frontend", "watch")
+    .WithDeveloperCertificateTrust(trust: true)
+    .WithReference(api)
+    .WaitFor(api)
+    // Demande à Aspire d’allouer un port et de le passer à l’app via la variable d’env PORT
+    .WithHttpEndpoint(env: "PORT")
+    .WithExternalHttpEndpoints()
+    .PublishAsDockerFile();
+
 builder.Build().Run();
 
 
