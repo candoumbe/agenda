@@ -36,13 +36,11 @@ var api = builder.AddProject<Agenda_API>("api")
     .WaitForCompletion(migrationService)
     .PublishAsDockerFile();
 
-builder.AddJavaScriptApp("frontend", "../Agenda.Frontend", "watch")
-    .WithDeveloperCertificateTrust(trust: true)
-    .WithReference(api)
-    .WaitFor(api)
-    // Demande à Aspire d’allouer un port et de le passer à l’app via la variable d’env PORT
+builder.AddExecutable("frontend", "npm", "../Agenda.Frontend", args = ["run", "start"])
     .WithHttpEndpoint(env: "PORT")
     .WithExternalHttpEndpoints()
+    .WithReference(api)
+    .WaitFor(api)
     .PublishAsDockerFile();
 
 builder.Build().Run();
