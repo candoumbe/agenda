@@ -1,0 +1,20 @@
+<table>
+  <thead>
+  <tr>
+    <th>Id</th>
+    <th>Subject</th>
+    <th>Start</th>
+    <th>End</th>
+  </tr>
+  </thead>
+  <tbody>
+    @for (appointment of appointments; track $index) {
+      <tr id="{{appointment.id}}">
+        <td>{{ appointment.id }}</td>
+        <td>{{ appointment.subject }}</td>
+        <td>{{ appointment.startDate | date }}</td>
+        <td>{{ appointment.endDate | date }}</td>
+      </tr>
+    }
+  </tbody>
+</table>
