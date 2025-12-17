@@ -18,9 +18,11 @@ using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.EntityFramework;
 using Nuke.Common.Tools.GitHub;
 using Nuke.Common.Tools.GitVersion;
+using Nuke.Common.Tools.Npm;
 using static Nuke.Common.Tools.Docker.DockerTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.EntityFramework.EntityFrameworkTasks;
+using static Nuke.Common.Tools.Npm.NpmTasks;
 using static Nuke.Common.Utilities.ConsoleUtility;
 using static Serilog.Log;
 using Project = Nuke.Common.ProjectModel.Project;
@@ -111,6 +113,11 @@ public class Build : EnhancedNukeBuild,
     ///<inheritdoc/>
     AbsolutePath IHaveTestDirectory.TestDirectory => RootDirectory / "tests";
 
+    /// <summary>
+    /// Path to the frontend directory.
+    /// </summary>
+    AbsolutePath FrontendDirectory => this.Get<IHaveSourceDirectory>().SourceDirectory / "Agenda.Frontend";
+
     ///<inheritdoc/>
     IEnumerable<Project> IUnitTest.UnitTestsProjects => this.Get<IHaveSolution>().Solution.GetAllProjects("*.UnitTests");
 
@@ -199,6 +206,26 @@ public class Build : EnhancedNukeBuild,
                                   this.Get<IHaveGitHubRepository>().GitHubToken)
     ];
 
+
+    public Target RestoreFrontend => _ => _.Description("Restore frontend dependencies")
+        .TryTriggeredBy<IRestore>()
+        .TryBefore<ICompile>()
+        .Executes(() => NpmInstall(settings => settings.SetProcessWorkingDirectory(FrontendDirectory)));
+
+    public Target BuildFrontend => _ => _.Description("Builds the frontend")
+        .TryTriggeredBy<ICompile>()
+        .TryBefore<IUnitTest>()
+        .Executes(() => NpmRun(settings => settings.SetProcessWorkingDirectory(FrontendDirectory)
+                                                             .SetCommand("build")));
+
+    public Target TestFrontend => _ => _.Description("Run frontend tests")
+        .TryTriggeredBy<IUnitTest>()
+        .TryBefore<IReportUnitTestCoverage>()
+        .Executes(() => NpmRun(settings => settings.SetProcessWorkingDirectory(FrontendDirectory)
+                                                             .SetProcessAdditionalArguments("--watch false")
+                                                             .SetCommand("test")));
+
+
     public Target PublishApi => _ =>
     {
         return _.Description("Publish image of the API")
@@ -237,9 +264,7 @@ public class Build : EnhancedNukeBuild,
                         .SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
                         .EnableSelfContained()
                         .SetProperties(publishProperties)
-                        .SetProcessAdditionalArguments([
-                            "/t:PublishContainer",
-                            "--tl"]));
+                        .SetProcessAdditionalArguments(["/t:PublishContainer","--tl"]));
 
                     Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
 
@@ -314,6 +339,7 @@ public class Build : EnhancedNukeBuild,
     };
 
 
+
     public Target Tests => _ => _.Triggers(ArchitecturalTests,
                                            this.Get<IUnitTest>().UnitTests,
                                            this.Get<IIntegrationTest>().IntegrationTests)
@@ -336,7 +362,6 @@ public class Build : EnhancedNukeBuild,
 
             const string migrationDirectoryName = "Migrations";
             const string contextName = "Agenda.DataStores.AgendaDataStore";
-
 
             if(PromptForChoice($"Adding migration '{migrationName}' for provider '{provider}'. Confirm ?",
                    [ (ConsoleKey.Y, "Confirm the operation"),

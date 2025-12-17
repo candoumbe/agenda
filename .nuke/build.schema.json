@@ -28,6 +28,7 @@
         "AddMigration",
         "ArchitecturalTests",
         "Benchmarks",
+        "BuildFrontend",
         "Changelog",
         "Chore",
         "Clean",
@@ -46,6 +47,8 @@
         "ReportIntegrationTestCoverage",
         "ReportUnitTestCoverage",
         "Restore",
+        "RestoreFrontend",
+        "TestFrontend",
         "Tests",
         "UnitTests"
       ]
