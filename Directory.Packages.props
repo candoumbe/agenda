@@ -73,7 +73,7 @@
     <PackageVersion Include="Paramore.Brighter.PostgreSql" Version="10.0.5" />
     <PackageVersion Include="Paramore.Brighter.PostgreSql.EntityFrameworkCore" Version="10.0.4" />
     <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.DependencyInjection" Version="10.0.4" />
-    <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" Version="10.0.4" />
+    <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" Version="10.0.5" />
     <PackageVersion Include="Serialize.Linq" Version="4.0.167" />
     <PackageVersion Include="ReportGenerator" Version="5.5.1" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
