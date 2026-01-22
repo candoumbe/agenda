@@ -1,7 +1,4 @@
-using Aspire.Hosting.JavaScript;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Projects;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
@@ -39,12 +36,12 @@ var api = builder.AddProject<Agenda_API>("api")
 string runScriptName = builder.ExecutionContext.IsRunMode ? "start:dev" : "start";
 
 builder.AddJavaScriptApp("frontend", "../Agenda.Frontend", runScriptName)
-    .WithDeveloperCertificateTrust(trust: true)
-    .WithReference(api)
-    .WaitFor(api)
-    // Demande à Aspire d’allouer un port et de le passer à l’app via la variable d’env PORT
-    .WithHttpEndpoint(env: "PORT")
-    .WithExternalHttpEndpoints()
+       .WithDeveloperCertificateTrust(trust: true)
+       .WithReference(api)
+       .WaitFor(api)
+        // Demande à Aspire d’allouer un port et de le passer à l’app via la variable d’env PORT
+       .WithHttpEndpoint(env: "PORT")
+       .WithExternalHttpEndpoints()
     .PublishAsDockerFile();
 
 builder.Build().Run();
