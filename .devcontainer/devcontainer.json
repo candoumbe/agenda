@@ -31,11 +31,11 @@
       }
     }
   },
-  "containerEnv": {
-    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
-    "DOTNET_NOLOGO": "1",
-    "DOCKER_HOST": "unix:///tmp/podman.sock"
-  },
+  "runArgs": [
+    "--env-file",
+    "${localWorkspaceFolder}/.devcontainer/.env"
+  ],
+  
   "forwardPorts": [
     4200,
     8080,
