@@ -482,3 +482,4 @@ $RECYCLE.BIN/
 
 # Stryker output
 StrykerOutput/
+.devcontainer/.env
