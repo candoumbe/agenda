@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# This script is run during the "Create" phase of the dev container lifecycle, which occurs after the container is built 
+# but before it is started. It is used to perform any setup tasks that need to be done once per container creation,
+# such as installing additional tools or configuring the environment.
+
+sudo apt-get update && sudo apt-get install -y podman podman-docker
+
+echo "[create] Installing Aspire CLI"
+curl -sSL https://aspire.dev/install.sh | bash
+echo "[create] Aspire CLI installation complete"
