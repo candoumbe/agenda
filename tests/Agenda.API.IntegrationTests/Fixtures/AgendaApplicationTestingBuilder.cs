@@ -11,6 +11,7 @@ namespace Agenda.API.IntegrationTests.Fixtures;
 public class AgendaApplicationTestingBuilder : IAsyncLifetime
 {
     private readonly IDistributedApplicationTestingBuilder _sutBuilder;
+    private readonly string _previousRunningIntegrationTestsValue;
     private DistributedApplication _app;
     /// <summary>
     /// HTTP client for the API.
@@ -32,9 +33,11 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// Creates a new instance of the <see cref="AgendaApplicationTestingBuilder"/> class.
     /// </summary>
     /// <param name="builder">The builder that will be used to create the infrastructure of the application under test.</param>
-    public AgendaApplicationTestingBuilder(IDistributedApplicationTestingBuilder builder)
+    /// <param name="previousRunningIntegrationTestsValue">The previous value of the <c>RunningIntegrationTests</c> environment variable to restore on dispose.</param>
+    public AgendaApplicationTestingBuilder(IDistributedApplicationTestingBuilder builder, string previousRunningIntegrationTestsValue = null)
     {
         _sutBuilder = builder;
+        _previousRunningIntegrationTestsValue = previousRunningIntegrationTestsValue;
     }
 
     /// <summary>
@@ -75,6 +78,10 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         }
 
         await _sutBuilder.DisposeAsync();
+
+        // Restore the RunningIntegrationTests environment variable to its previous value
+        // to avoid leaking global state into other tests in the same process.
+        Environment.SetEnvironmentVariable("RunningIntegrationTests", _previousRunningIntegrationTestsValue);
     }
 
     private async Task<bool> TryGracefulStopAsync()
