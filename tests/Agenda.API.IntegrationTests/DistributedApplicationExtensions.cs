@@ -151,30 +151,32 @@ public static class DistributedApplicationExtensions
         foreach ((IResource resource, ContainerMountAnnotation volume) in allResourceVolumes)
         {
             string source = volume.Source;
-            string randomizedName;
+            string newSource;
 
             if (!string.IsNullOrWhiteSpace(source))
             {
                 bool isShared = sourceUsages.TryGetValue(source, out int usageCount) && usageCount > 1;
                 if (isShared)
                 {
-                    if (!renamedSharedVolumes.TryGetValue(source, out randomizedName))
+                    if (!renamedSharedVolumes.TryGetValue(source, out newSource))
                     {
-                        randomizedName = $"{source}-{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
-                        renamedSharedVolumes[source] = randomizedName;
+                        newSource = $"{source}-{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
+                        renamedSharedVolumes[source] = newSource;
                     }
                 }
                 else
                 {
-                    randomizedName = $"{source}-{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
+                    // Non-shared named volumes become anonymous so Docker removes them automatically.
+                    newSource = null;
                 }
             }
             else
             {
-                randomizedName = $"{resource.Name}-{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
+                // Already anonymous; keep as anonymous.
+                newSource = null;
             }
 
-            ContainerMountAnnotation newMount = new ContainerMountAnnotation(randomizedName, volume.Target, ContainerMountType.Volume, volume.IsReadOnly);
+            ContainerMountAnnotation newMount = new ContainerMountAnnotation(newSource, volume.Target, ContainerMountType.Volume, volume.IsReadOnly);
             resource.Annotations.Remove(volume);
             resource.Annotations.Add(newMount);
         }
