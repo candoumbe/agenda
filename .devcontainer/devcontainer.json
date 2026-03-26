@@ -27,8 +27,7 @@
         "microsoft-aspire.aspire-vscode"
       ],
     "settings": {
-        "dotnet.defaultSolution": "Agenda.sln",
-        "dev.containers.dockerPath": "podman"
+        "dotnet.defaultSolution": "Agenda.sln"
       }
     }
   },
