@@ -7,10 +7,18 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "[post-start] Verifying Docker daemon availability"
-if ! docker info >/dev/null 2>&1; then
-  echo "[post-start] Docker daemon is not ready"
-  exit 1
-fi
+MAX_DOCKER_WAIT_SECONDS=60
+SLEEP_BETWEEN_DOCKER_CHECKS=2
+DOCKER_DEADLINE=$(( $(date +%s) + MAX_DOCKER_WAIT_SECONDS ))
+
+while ! docker info >/dev/null 2>&1; do
+  if [ "$(date +%s)" -ge "$DOCKER_DEADLINE" ]; then
+    echo "[post-start] Docker daemon is not ready after ${MAX_DOCKER_WAIT_SECONDS}s; giving up"
+    exit 1
+  fi
+  echo "[post-start] Docker daemon not ready yet; waiting ${SLEEP_BETWEEN_DOCKER_CHECKS}s..."
+  sleep "$SLEEP_BETWEEN_DOCKER_CHECKS"
+done
 echo "[post-start] Docker daemon is ready"
 
 echo "[post-start] Restoring local dotnet tools"
