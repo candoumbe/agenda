@@ -6,17 +6,19 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 cd "$REPO_ROOT"
 
-if ! pgrep -f "podman system service --time=0 unix:///tmp/podman.sock" >/dev/null 2>&1; then
-  echo "[post-start] Starting Podman API service"
-  nohup podman system service --time=0 unix:///tmp/podman.sock >/tmp/podman-service.log 2>&1 &
-else
-  echo "[post-start] Podman API service already running"
+echo "[post-start] Verifying Docker daemon availability"
+if ! docker info >/dev/null 2>&1; then
+  echo "[post-start] Docker daemon is not ready"
+  exit 1
 fi
+echo "[post-start] Docker daemon is ready"
 
 echo "[post-start] Restoring local dotnet tools"
 ./build.sh --target restore
 
-if [ ! -d "src/Agenda.Frontend/node_modules" ]; then
+if ! command -v npm >/dev/null 2>&1; then
+  echo "[post-start] npm not found in PATH; skipping frontend restore"
+elif [ ! -d "src/Agenda.Frontend/node_modules" ]; then
   echo "[post-start] Frontend dependencies missing, restoring them"
   ./build.sh restore-frontend --skip restore
 else

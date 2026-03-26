@@ -9,7 +9,8 @@
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/copilot-cli": {},
-    "ghcr.io/dotnet/aspire-devcontainer-feature/dotnetaspire": {}
+    "ghcr.io/dotnet/aspire-devcontainer-feature/dotnetaspire": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
   "onCreateCommand": "./.devcontainer/scripts/on-create.sh",
   "postCreateCommand": "./.devcontainer/scripts/post-create.sh",
@@ -32,6 +33,7 @@
     }
   },
   "runArgs": [
+    "--privileged",
     "--env-file",
     "${localWorkspaceFolder}/.devcontainer/.env"
   ],

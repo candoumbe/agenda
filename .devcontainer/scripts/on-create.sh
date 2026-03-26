@@ -5,7 +5,12 @@ set -euo pipefail
 # but before it is started. It is used to perform any setup tasks that need to be done once per container creation,
 # such as installing additional tools or configuring the environment.
 
-sudo apt-get update && sudo apt-get install -y podman podman-docker
+# Some shells do not load the Node feature profile hooks in non-interactive scripts.
+# Ensure npm is available for Aspire JavaScript resources and build tasks.
+if ! command -v npm >/dev/null 2>&1; then
+	echo "[create] npm not found in PATH, installing nodejs/npm from apt"
+	sudo apt-get install -y nodejs npm
+fi
 
 echo "[create] Installing Aspire CLI"
 curl -sSL https://aspire.dev/install.sh | bash

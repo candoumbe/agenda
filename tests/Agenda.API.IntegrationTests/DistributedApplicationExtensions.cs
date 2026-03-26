@@ -130,40 +130,51 @@ public static class DistributedApplicationExtensions
     }
 
     /// <summary>
-    /// Replaces all named volumes with anonymous volumes so they're isolated across test runs and from the volume the app uses during development.
+    /// Replaces volume mounts with randomized names so they're isolated across test runs.
     /// </summary>
     /// <remarks>
-    /// Note that if multiple resources share a volume, the volume will instead be given a random name so that it's still shared across those resources in the test run.
+    /// If multiple resources share a volume, they receive the same randomized name to preserve that relationship.
     /// </remarks>
     public static TBuilder WithRandomVolumeNames<TBuilder>(this TBuilder builder) where TBuilder : IDistributedApplicationTestingBuilder
     {
-        // Named volumes that aren't shared across resources should be replaced with anonymous volumes.
-        // Named volumes shared by mulitple resources need to have their name randomized but kept shared across those resources.
-
-        // Find all shared volumes and make a map of their original name to a new randomized name
-        List<(IResource Resource, ContainerMountAnnotation Volume)> allResourceNamedVolumes = builder.Resources.SelectMany(r => r.Annotations
-                                                                                                                               .OfType<ContainerMountAnnotation>()
-                                                                                                                               .Where(m => m.Type == ContainerMountType.Volume && !string.IsNullOrEmpty(m.Source))
-                                                                                                                               .Select(m => (Resource: r, Volume: m)))
+        List<(IResource Resource, ContainerMountAnnotation Volume)> allResourceVolumes = builder.Resources.SelectMany(r => r.Annotations
+                                                                                                                          .OfType<ContainerMountAnnotation>()
+                                                                                                                          .Where(m => m.Type == ContainerMountType.Volume)
+                                                                                                                          .Select(m => (Resource: r, Volume: m)))
             .ToList();
-        HashSet<string> seenVolumes = new HashSet<string>();
-        Dictionary<string, string> renamedVolumes = new Dictionary<string, string>();
-        foreach ((IResource Resource, ContainerMountAnnotation Volume) resourceVolume in allResourceNamedVolumes)
-        {
-            string name = resourceVolume.Volume.Source!;
-            if (!seenVolumes.Add(name) && !renamedVolumes.ContainsKey(name))
-            {
-                renamedVolumes[name] = $"{name}-{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
-            }
-        }
 
-        // Replace all named volumes with randomly named or anonymous volumes
-        foreach ((IResource Resource, ContainerMountAnnotation Volume) resourceVolume in allResourceNamedVolumes)
+        Dictionary<string, int> sourceUsages = allResourceVolumes.Where(v => !string.IsNullOrWhiteSpace(v.Volume.Source))
+                                                                  .GroupBy(v => v.Volume.Source!, StringComparer.Ordinal)
+                                                                  .ToDictionary(g => g.Key, g => g.Count(), StringComparer.Ordinal);
+        Dictionary<string, string> renamedSharedVolumes = new(StringComparer.Ordinal);
+
+        foreach ((IResource resource, ContainerMountAnnotation volume) in allResourceVolumes)
         {
-            IResource resource = resourceVolume.Resource;
-            ContainerMountAnnotation volume = resourceVolume.Volume;
-            string newName = renamedVolumes.TryGetValue(volume.Source!, out string randomName) ? randomName : null;
-            ContainerMountAnnotation newMount = new ContainerMountAnnotation(newName, volume.Target, ContainerMountType.Volume, volume.IsReadOnly);
+            string source = volume.Source;
+            string randomizedName;
+
+            if (!string.IsNullOrWhiteSpace(source))
+            {
+                bool isShared = sourceUsages.TryGetValue(source, out int usageCount) && usageCount > 1;
+                if (isShared)
+                {
+                    if (!renamedSharedVolumes.TryGetValue(source, out randomizedName))
+                    {
+                        randomizedName = $"{source}-{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
+                        renamedSharedVolumes[source] = randomizedName;
+                    }
+                }
+                else
+                {
+                    randomizedName = $"{source}-{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
+                }
+            }
+            else
+            {
+                randomizedName = $"{resource.Name}-{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
+            }
+
+            ContainerMountAnnotation newMount = new ContainerMountAnnotation(randomizedName, volume.Target, ContainerMountType.Volume, volume.IsReadOnly);
             resource.Annotations.Remove(volume);
             resource.Annotations.Add(newMount);
         }

@@ -1,3 +1,4 @@
+using Aspire.Hosting;
 using Microsoft.Extensions.Configuration;
 using Projects;
 
@@ -9,7 +10,7 @@ var postgres = builder.AddPostgres("postgres")
 
 bool isRunningIntegrationTests = builder.Configuration.GetValue(RunningIntegrationTestsConfigName, false);
 
-if (! isRunningIntegrationTests)
+if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
 {
     postgres = postgres
             .WithDataVolume(name: "postgres-data")
@@ -35,14 +36,17 @@ var api = builder.AddProject<Agenda_API>("api")
 
 string runScriptName = builder.ExecutionContext.IsRunMode ? "start:dev" : "start";
 
-builder.AddJavaScriptApp("frontend", "../Agenda.Frontend", runScriptName)
-       .WithDeveloperCertificateTrust(trust: true)
-       .WithReference(api)
-       .WaitFor(api)
-        // Demande à Aspire d’allouer un port et de le passer à l’app via la variable d’env PORT
-       .WithHttpEndpoint(env: "PORT")
-       .WithExternalHttpEndpoints()
-    .PublishAsDockerFile();
+if (!isRunningIntegrationTests)
+{
+     builder.AddJavaScriptApp("frontend", "../Agenda.Frontend", runScriptName)
+              .WithDeveloperCertificateTrust(trust: true)
+              .WithReference(api)
+              .WaitFor(api)
+                // Demande à Aspire d’allouer un port et de le passer à l’app via la variable d’env PORT
+              .WithHttpEndpoint(env: "PORT")
+              .WithExternalHttpEndpoints()
+          .PublishAsDockerFile();
+}
 
 builder.Build().Run();
 

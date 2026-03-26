@@ -5,3 +5,7 @@ set -euo pipefail
 # echo "[post-create] Trusting ASP.NET Core development certificate"
 # dotnet dev-certs https --trust
 # echo "[post-create] ASP.NET Core development certificate trusted"
+
+echo "[post-create] Verifying Docker installation"
+docker --version
+echo "[post-create] Docker is available"
