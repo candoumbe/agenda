@@ -7,6 +7,10 @@ I'm really glad you're reading this, because I need volunteer developers to help
 
 There are a handful of unit/integration tests. Please write unit/integration tests examples for new code you create.
 
+## Branch workflow
+
+This repository follows a lightweight GitFlow workflow. `develop` is the default integration branch for day-to-day work, short-lived topic branches should usually be created from `develop`, `release/*` branches are used to stabilize an upcoming version, and `hotfix/*` branches are reserved for urgent fixes. Use descriptive branch names with a clear prefix, for example `feature/add-new-participant-to-existing-appointment`, `coldfix/replace-podman-with-docker-when-inside-the-docker-container`, `hotfix/fix-null-reference-in-search`, or `release/0.1.0`.
+
 ## Submitting changes
 
 Please send a [GitHub Pull Request to MedEasy](https://github.com/candoumbe/MedEasy/pull/new/develop) with a clear list of what you've done (read more about [pull requests](http://help.github.com/pull-requests/)).
