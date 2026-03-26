@@ -26,7 +26,7 @@ Always write a clear log message for your commits. One-line messages are fine fo
 
 Start reading our code and you'll get the hang of it. We optimize for readability:
 
-  * **Stick to the `*.editorconfig` file** at the root of the repository
+   * **Stick to the [.editorconfig](.editorconfig) file** at the root of the repository
   * **Do not `var`** unless there's no other option : `var` should only be used for anonymous types. So instead of `var data = new Something()`, prefer `Something data = new Something()`. Even better, prefer `ISomething data = new Something()` whenever possbile.
   * **Single entry, single exit** : a method should have one entry and one exit. This is just to avoid missing an exit point that could be in the mddle of a complex algorithm.
   I don't really mind the complexity of an algorithm (up to a certain point 😉).
