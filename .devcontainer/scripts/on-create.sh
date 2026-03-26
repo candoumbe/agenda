@@ -9,7 +9,10 @@ set -euo pipefail
 # Ensure npm is available for Aspire JavaScript resources and build tasks.
 if ! command -v npm >/dev/null 2>&1; then
 	echo "[create] npm not found in PATH, installing nodejs/npm from apt"
+	sudo apt-get update
 	sudo apt-get install -y nodejs npm
+	sudo apt-get clean
+	sudo rm -rf /var/lib/apt/lists/*
 fi
 
 echo "[create] Installing Aspire CLI"
