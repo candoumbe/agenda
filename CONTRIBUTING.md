@@ -2,6 +2,8 @@
 
 I'm really glad you're reading this, because I need volunteer developers to help this project come to fruition.
 
+For repository-specific AI instructions, see [AGENTS.md](AGENTS.md).
+
 
 ## Testing
 
@@ -10,6 +12,8 @@ There are a handful of unit/integration tests. Please write unit/integration tes
 ## Branch workflow
 
 This repository follows a lightweight GitFlow workflow. `develop` is the default integration branch for day-to-day work, short-lived topic branches should usually be created from `develop`, `release/*` branches are used to stabilize an upcoming version, and `hotfix/*` branches are reserved for urgent fixes. Use descriptive branch names with a clear prefix, for example `feature/add-new-participant-to-existing-appointment`, `coldfix/replace-podman-with-docker-when-inside-the-docker-container`, `hotfix/fix-null-reference-in-search`, or `release/0.1.0`.
+
+For a quick project overview, read [README.md](README.md).
 
 ## Submitting changes
 
@@ -26,7 +30,7 @@ Always write a clear log message for your commits. One-line messages are fine fo
 
 Start reading our code and you'll get the hang of it. We optimize for readability:
 
-   * **Stick to the [.editorconfig](.editorconfig) file** at the root of the repository
+  * **Stick to the [.editorconfig](.editorconfig) file** at the root of the repository
   * **Do not `var`** unless there's no other option : `var` should only be used for anonymous types. So instead of `var data = new Something()`, prefer `Something data = new Something()`. Even better, prefer `ISomething data = new Something()` whenever possbile.
   * **Single entry, single exit** : a method should have one entry and one exit. This is just to avoid missing an exit point that could be in the mddle of a complex algorithm.
   I don't really mind the complexity of an algorithm (up to a certain point 😉).
