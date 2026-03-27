@@ -151,10 +151,10 @@ This file defines repository-specific instructions for AI agents working on this
 - ✅ Full test pipeline: `./build.sh Tests` (script: [build.sh](build.sh))
   ❌ Avoid using this as a placeholder in your summary if you did not actually run it.
 
-- ✅ API architecture tests only: `dotnet test tests/Agenda.API.ArchitecturalTests/Agenda.API.ArchitecturalTests.csproj` (project: [tests/Agenda.API.ArchitecturalTests/Agenda.API.ArchitecturalTests.csproj](tests/Agenda.API.ArchitecturalTests/Agenda.API.ArchitecturalTests.csproj))
+- ✅ API architecture tests only: `./build.sh architectural-tests`
   ❌ Do not claim endpoint structure is valid without running the architecture tests after structural API changes.
 
-- ✅ Targeted backend tests: `dotnet test <path-to-csproj>`
+- ✅ Unit tests:  run `./build.sh unit-tests`
   ❌ Do not run an unrelated test project and present it as sufficient validation.
 
 - ✅ Frontend build: run `npm run build` from [src/Agenda.Frontend](src/Agenda.Frontend/)
@@ -176,3 +176,4 @@ This file defines repository-specific instructions for AI agents working on this
 
 - ❌ Do not omit tests for an observable change.
   ✅ Preferred behavior: add or update the most relevant tests before considering the task complete.
+  
