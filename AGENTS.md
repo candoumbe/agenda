@@ -27,7 +27,8 @@ This file defines repository-specific instructions for AI agents working on this
   Example to follow: when changing request validation, update the validator tests and the endpoint tests if needed.
 
 - ✅ Do update documentation when public behavior changes.
-  Example to follow: update [README.md](README.md) or [docs/](docs/) if an endpoint contract, workflow, or setup step changes.
+  Example to follow: update [README.md](README.md) or [docs/](docs/) or [CHANGELOG.md](CHANGELOG.md) if an endpoint contract, workflow, or setup step changes.
+
 
 - ❌ Do not start restructuring code based only on assumptions.
 
