@@ -17,7 +17,7 @@ This repository follows a lightweight GitFlow workflow. The main branches are:
 | `develop`   | N/A           | Default integration branch for day-to-day work. All topic branches are created from here.                                         |
 | `feature/*` | `develop`     | Short-lived branches for new features (e.g. `feature/add-new-participant-to-existing-appointment`).                               |
 | `coldfix/*` | `develop`     | Non-urgent fixes that can wait for the next release (e.g. `coldfix/replace-podman-with-docker-when-inside-the-docker-container`). |
-| `hotfix/*`  | `main`        | Urgent fixes applied directly to a release (e.g. `hotfix/fix-null-reference-in-search`). Created from                             |
+| `hotfix/*`  | `main`        | Urgent fixes applied directly to a release (e.g. `hotfix/fix-null-reference-in-search`). Created from `main` and merged back into `main` and `develop`. |
 | `release/*` | `develop`     | Stabilization branches for an upcoming version (e.g. `release/0.1.0`).                                                            |
 | `chore/*`   | `develop`     | Branches where to do some chores (e.g. `chore/adjust-style` or `chore/improve-performance`).                                      |
 | `exp/*`     | `develop`     | Experimentation branches.                                                                                                         |
