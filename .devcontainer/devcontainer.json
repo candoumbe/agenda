@@ -25,7 +25,7 @@
         "esbenp.prettier-vscode",
         "ms-azuretools.vscode-docker",
         "microsoft-aspire.aspire-vscode",
-        "GitHub.copilot-chat",
+        "GitHub.copilot",
         "EditorConfig.EditorConfig"
       ],
     "settings": {
