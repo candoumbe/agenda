@@ -24,7 +24,9 @@
         "angular.ng-template",
         "esbenp.prettier-vscode",
         "ms-azuretools.vscode-docker",
-        "microsoft-aspire.aspire-vscode"
+        "microsoft-aspire.aspire-vscode",
+        "GitHub.copilot",
+        "EditorConfig.EditorConfig"
       ],
     "settings": {
         "dotnet.defaultSolution": "Agenda.sln"

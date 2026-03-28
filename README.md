@@ -13,7 +13,7 @@ A REST API designed to handle appointments
 
 This repo follows the gitflow to manage its branches.
 
-## Get started 
+## Get started
 
 1. clone this repo
 
