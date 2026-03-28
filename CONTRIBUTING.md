@@ -101,16 +101,16 @@ Start reading our code and you'll get the hang of it. We optimize for readabilit
 - **Single entry, single exit** : a method should have one entry and one exit. This is just to avoid missing an exit point that could be in the middle of a complex algorithm.
   I don't really mind the complexity of an algorithm (up to a certain point 😉).
 
-    I will always prefer having
+I will always prefer having
 
-    ```csharp
-    int result;
-    if (condition)
-     result = 42;
-    else
-        result = 97;
-    return result;
-    ```
+```csharp
+int result;
+if (condition)
+    result = 42;
+else
+    result = 97;
+return result;
+```
 
 instead of
 
