@@ -97,7 +97,7 @@ Start reading our code and you'll get the hang of it. We optimize for readabilit
 
 - **Stick to the [.editorconfig](.editorconfig) file** at the root of the repository
 - **Do not `var`** unless there's no other option : `var` should only be used for anonymous types. So instead of `var data = new Something()`, prefer `Something data = new Something()`.
-  Even better, prefer `ISomething data = new Something()` whenever possbile.
+  Even better, prefer `ISomething data = new Something()` whenever possible.
 - **Single entry, single exit** : a method should have one entry and one exit. This is just to avoid missing an exit point that could be in the middle of a complex algorithm.
   I don't really mind the complexity of an algorithm (up to a certain point 😉).
 
