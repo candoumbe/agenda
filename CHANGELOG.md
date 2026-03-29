@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added healthchecks for PostgreSQL and RabbitMQ
 - Fixed appointments listing pagination metadata for UI navigation (`total` now represents total pages, with explicit `totalCount` and `pageSize` fields)
 - Added multi-criteria filtering for appointments listing (`subject`, `location`, and `from`/`to` time range)
+- Added `GET /health` readiness endpoint : returns `200 OK` when all health checks (including database connectivity) pass, otherwise `503 Service Unavailable`.
+- Added `GET /alive` liveness endpoint : returns `200 OK` when the process is up and responsive.
 
 ### 🧹 Housekeeping
 - Added task issue template

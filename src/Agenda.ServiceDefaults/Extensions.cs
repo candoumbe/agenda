@@ -241,6 +241,11 @@ public static class Extensions
     /// </summary>
     /// <param name="app">The app which health checks are enabled for.</param>
     /// <returns></returns>
+    /// <remarks>
+    /// These endpoints are publicly accessible in all environments.
+    /// Consider adding authorization or IP-restriction middleware before this call in production to prevent unintended exposure.
+    /// See <see href="https://aka.ms/dotnet/aspire/healthchecks"/> for details.
+    /// </remarks>
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
         // All health checks must pass for app to be considered ready to accept traffic after starting
