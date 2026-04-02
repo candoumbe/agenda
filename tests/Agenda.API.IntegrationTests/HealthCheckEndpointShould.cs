@@ -26,13 +26,7 @@ public class HealthCheckEndpointShould(ITestOutputHelper outputHelper) : IAsyncL
     }
 
     /// <inheritdoc />
-    public async ValueTask DisposeAsync()
-    {
-        if (_appHost is not null)
-        {
-            await _appHost.DisposeAsync();
-        }
-    }
+    public async ValueTask DisposeAsync() => await (_appHost?.DisposeAsync() ?? ValueTask.CompletedTask);
 
     [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
     public async Task Return_healthy_status_from_health_endpoint()
