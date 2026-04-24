@@ -7,6 +7,9 @@
   --accent-dark: #9f4413;
   --success: #1d7f5f;
   --danger: #b83535;
+  --radius-card: 22px;
+  --radius-input: 12px;
+  --radius-btn: 12px;
 
   min-height: 100vh;
   display: block;
@@ -14,6 +17,14 @@
   color: var(--ink);
 }
 
+/* Ensure all children respect box model to prevent overflow on narrow screens */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ── Mobile-first: full-bleed, no padding on page wrapper ───────────────── */
 .schedule-page {
   min-height: 100vh;
   position: relative;
@@ -22,7 +33,7 @@
     radial-gradient(circle at 15% 20%, #f4dfcb 0%, transparent 40%),
     radial-gradient(circle at 85% 15%, #dbece3 0%, transparent 42%),
     linear-gradient(145deg, #fefcf8 0%, #f4f9f6 60%, #edf4f6 100%);
-  padding: 2rem 1rem;
+  padding: 0;
 }
 
 .glow {
@@ -49,22 +60,24 @@
   bottom: -80px;
 }
 
+/* ── Card: edge-to-edge on mobile, floating card on larger screens ───────── */
 .card {
   position: relative;
   max-width: 920px;
   margin: 0 auto;
-  border: 1px solid color-mix(in srgb, var(--line) 78%, white);
-  border-radius: 22px;
   background: color-mix(in srgb, white 86%, #f4f8f2);
-  box-shadow: 0 20px 60px rgba(22, 38, 44, 0.08);
-  padding: 1.75rem;
+  padding: 1.25rem 1rem;
   animation: rise-in 0.45s ease;
+}
+
+.page-header {
+  margin-bottom: 0.5rem;
 }
 
 .page-header h1 {
   margin: 0;
   letter-spacing: -0.03em;
-  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-size: clamp(1.4rem, 6vw, 2.4rem);
 }
 
 .kicker {
@@ -79,6 +92,7 @@
 .subtitle {
   margin-top: 0.5rem;
   color: var(--ink-soft);
+  font-size: 0.9rem;
 }
 
 .form-grid {
@@ -97,10 +111,14 @@ label {
 input {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-input);
   padding: 0.75rem 0.8rem;
   font: inherit;
+  /* Prevent iOS auto-zoom on focus (requires ≥ 16px) */
+  font-size: 1rem;
   background: #fefefe;
+  /* Ensure 44px minimum touch target height */
+  min-height: 44px;
 }
 
 input:focus {
@@ -126,6 +144,7 @@ input:focus {
   font-size: 1.05rem;
 }
 
+/* ── Attendee card: single column on mobile ─────────────────────────────── */
 .attendee-card {
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -138,11 +157,13 @@ input:focus {
 
 button {
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-btn);
   cursor: pointer;
   font: inherit;
   font-weight: 600;
   transition: transform 0.15s ease, opacity 0.15s ease;
+  /* Ensure 44px minimum touch target height */
+  min-height: 44px;
 }
 
 button:hover:enabled {
@@ -154,7 +175,9 @@ button:disabled {
   opacity: 0.6;
 }
 
+/* Full width on mobile so it is easy to tap */
 .primary {
+  width: 100%;
   padding: 0.85rem 1rem;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
   color: white;
@@ -163,7 +186,7 @@ button:disabled {
 .ghost,
 .danger {
   width: fit-content;
-  padding: 0.45rem 0.8rem;
+  padding: 0.6rem 0.9rem;
   background: #f5f2ef;
   color: var(--ink);
 }
@@ -190,6 +213,41 @@ button:disabled {
   color: color-mix(in srgb, var(--danger) 84%, black);
 }
 
+/* ── ≥ 480px: restore floating card ─────────────────────────────────────── */
+@media (min-width: 480px) {
+  .schedule-page {
+    padding: 2rem 1rem;
+  }
+
+  .card {
+    border: 1px solid color-mix(in srgb, var(--line) 78%, white);
+    border-radius: var(--radius-card);
+    box-shadow: 0 20px 60px rgba(22, 38, 44, 0.08);
+    padding: 1.75rem;
+  }
+}
+
+/* ── ≥ 640px: attendee fields → 2 columns (name | email, phone | button) ── */
+@media (min-width: 640px) {
+  .attendee-card {
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
+
+  /* phone label spans both columns */
+  .attendee-card label:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  /* remove button: right-aligned below the phone field */
+  .attendee-card button {
+    grid-column: 1 / -1;
+    width: fit-content;
+    justify-self: end;
+  }
+}
+
+/* ── ≥ 760px: form → 2 columns, attendee card → 3 fields + button ────────── */
 @media (min-width: 760px) {
   .form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -199,6 +257,21 @@ button:disabled {
   .feedback,
   .primary {
     grid-column: 1 / -1;
+  }
+
+  /* name | email | phone | [remove] in a single row */
+  .attendee-card {
+    grid-template-columns: 1fr 1fr 1fr auto;
+  }
+
+  .attendee-card label:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .attendee-card button {
+    grid-column: auto;
+    justify-self: start;
+    align-self: end;
   }
 }
 
