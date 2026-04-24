@@ -1,0 +1,23 @@
+{
+  "universe_usage_history": [
+    {
+      "assignment_id": "2026-04-24-agenda-01",
+      "universe": "Alien",
+      "assigned_at": "2026-04-24T00:00:00Z"
+    }
+  ],
+  "assignment_cast_snapshots": {
+    "2026-04-24-agenda-01": {
+      "universe": "Alien",
+      "agents": [
+        "Ripley",
+        "Dallas",
+        "Bishop",
+        "Hicks",
+        "Vasquez",
+        "Lambert"
+      ],
+      "assigned_at": "2026-04-24T00:00:00Z"
+    }
+  }
+}
