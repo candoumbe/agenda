@@ -10,11 +10,14 @@ export interface Appointment {
   /** Subject of the appointment. */
   subject: string;
 
+  /** Location of the appointment. */
+  location: string;
+
   /** Start and end date for the appointment. */
-  startDate: Date;
+  startDate: string;
 
   /** End date for the appointment. */
-  endDate: Date;
+  endDate: string;
 
   /** Attendees for the appointment. */
   attendees: Attendee[];

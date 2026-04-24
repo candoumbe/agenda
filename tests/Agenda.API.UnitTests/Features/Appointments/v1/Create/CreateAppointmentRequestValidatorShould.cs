@@ -60,12 +60,9 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                              },
                               new XunitSerializableExpression<ValidationResult>
                               {
-                                  Value = validationResult => !validationResult.IsValid
-                                                              && validationResult.Errors.Count == 1
-                                                              && validationResult.Errors[0].PropertyName == nameof(NewAppointmentInfo.Attendees)
-                                                              && validationResult.Errors[0].Severity == Severity.Error
+                                  Value = validationResult => validationResult.IsValid
                               },
-                              "attendees cannot be null");
+                              "attendees can be null and are normalized by the endpoint");
                 }
                 {
                     OffsetDateTime start = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime();
