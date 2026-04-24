@@ -17,5 +17,5 @@ export interface Attendee {
   /**
    * Phone number.
    */
-  phone: string | null;
+  phoneNumber: string | null;
 }

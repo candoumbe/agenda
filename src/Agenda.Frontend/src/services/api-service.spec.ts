@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 
 import { ApiService } from './api-service';
-import {  HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { NewAppointmentPayload } from '../models/new-appointment-payload';
 
 describe('ApiService with HTTP', () => {
   let apiService: ApiService;
@@ -54,6 +55,64 @@ describe('ApiService with HTTP', () => {
       const req = httpMock.expectOne('/api/appointments');
       req.error(new ErrorEvent('NetworkError', { message: emsg }));
     });
+  });
+
+  it('should schedule a new appointment with expected payload', () => {
+    const payload: NewAppointmentPayload = {
+      subject: 'Comite architecture',
+      location: 'Salle Horizon',
+      startDate: '2026-04-24T08:00:00.000Z',
+      endDate: '2026-04-24T09:00:00.000Z',
+      attendees: [
+        {
+          name: 'Aline Dupont',
+          email: 'aline@example.fr',
+          phoneNumber: '0600000000'
+        }
+      ]
+    };
+
+    apiService.scheduleAppointment(payload).subscribe((response) => {
+      expect(response.resource.id).toBe('appt_001');
+    });
+
+    const req = httpMock.expectOne('/api/appointments');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(payload);
+
+    req.flush({
+      resource: {
+        id: 'appt_001',
+        subject: payload.subject,
+        location: payload.location,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        attendees: payload.attendees
+      },
+      links: []
+    });
+  });
+
+  it('should return an HTTP 400 error when appointment scheduling request is invalid', () => {
+    const invalidAppointment: NewAppointmentPayload = {
+      subject: '',
+      location: '',
+      startDate: '2026-04-24T10:00:00.000Z',
+      endDate: '2026-04-24T09:00:00.000Z',
+      attendees: []
+    };
+
+    apiService.scheduleAppointment(invalidAppointment).subscribe({
+      next: () => { throw new Error('Expected HTTP 400 error'); },
+      error: (err) => {
+        expect(err.status).toBe(400);
+        expect(err.statusText).toBe('Bad Request');
+      }
+    });
+
+    const req = httpMock.expectOne('/api/appointments');
+    expect(req.request.method).toBe('POST');
+    req.flush({ message: 'Validation error' }, { status: 400, statusText: 'Bad Request' });
   });
 
     afterEach(() => {

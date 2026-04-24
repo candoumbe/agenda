@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.Features.Appointments.v1.Delete;
 using Agenda.API.Features.Appointments.v1.GetById;
@@ -60,9 +61,10 @@ public partial class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, Cr
     {
 
         using IUnitOfWork unitOfWork = _unitOfWorkFactory.NewUnitOfWork();
+        IReadOnlyList<AttendeeInfo> attendees = req.Attendees ?? [];
 
         Appointment newAppointment = new(req.Id, req.Subject, req.Location, req.StartDate.ToInstant(), req.EndDate.ToInstant());
-        foreach (AttendeeInfo attendee in req.Attendees)
+        foreach (AttendeeInfo attendee in attendees)
         {
             newAppointment.AddAttendee(new Attendee(attendee.Id, attendee.Name, attendee.Email, attendee.PhoneNumber));
         }
@@ -92,7 +94,7 @@ public partial class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, Cr
             StartDate = newAppointment.StartDate.InZone(zone).ToOffsetDateTime(),
             EndDate = newAppointment.EndDate.InZone(zone).ToOffsetDateTime(),
             Subject = newAppointment.Subject,
-            Attendees = req.Attendees
+            Attendees = attendees
         };
 
         Browsable<AppointmentInfo> browsable = new()

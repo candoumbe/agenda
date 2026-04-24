@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Appointment } from '../models/appointment';
 import { Observable } from 'rxjs';
+import { NewAppointmentPayload } from '../models/new-appointment-payload';
+import { Browsable } from '../models/browsable';
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +19,12 @@ export class ApiService {
   }
 
   /** Gets all appointments from the API */
-  public  getAppointments() : Observable<Appointment[]> {
-    return  this.http.get<Appointment[]>('/api/appointments');
+  public getAppointments() : Observable<Appointment[]> {
+    return this.http.get<Appointment[]>('/api/appointments');
+  }
+
+  /** Creates a new appointment. */
+  public scheduleAppointment(payload: NewAppointmentPayload) : Observable<Browsable<Appointment>> {
+    return this.http.post<Browsable<Appointment>>('/api/appointments', payload);
   }
 }

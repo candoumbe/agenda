@@ -23,8 +23,6 @@ public class NewAppointmentInfoValidator : Validator<NewAppointmentInfo>
         RuleFor(x => x.EndDate).NotEmpty();
         RuleFor(x => x.Subject).NotNull();
 
-        RuleFor(x => x.Attendees).NotNull();
-
         When(x => x.StartDate != default && x.EndDate != default,
              () =>
              {

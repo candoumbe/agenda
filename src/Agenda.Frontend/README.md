@@ -12,6 +12,27 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+## Appointment scheduling screen
+
+The frontend now includes a dedicated screen to schedule a new appointment.
+
+- Route: `http://localhost:4200/appointments/new`
+- Form fields: subject, location, start date, end date, and attendees
+- API call: `POST /api/appointments` via `ApiService.scheduleAppointment(...)`
+
+Validation rules implemented in the UI:
+
+- Subject and location are required
+- At least one attendee is required
+- End date must be after start date
+
+You can validate the feature locally with:
+
+```bash
+npm run build
+npm run test -- --watch false
+```
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
