@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { AppointmentsListPageComponent } from './appointments-list-page.component';
 import { ApiService } from '../../../services/api-service';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { defer, of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { Browsable } from '../../../models/browsable';
 import { Appointment } from '../../../models/appointment';
@@ -53,6 +53,10 @@ describe('AppointmentsListPageComponent', () => {
 
     fixture = TestBed.createComponent(AppointmentsListPageComponent);
     component = fixture.componentInstance;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('should create', () => {
@@ -170,6 +174,68 @@ describe('AppointmentsListPageComponent', () => {
     expect(groups[0].isToday).toBe(true);
   });
 
+  it('should render appointment cards after async load without user interaction', async () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [
+        {
+          resource: {
+            id: 'appt_009',
+            subject: 'Async appointment',
+            location: 'Room C',
+            startDate: '2026-04-25T09:00:00Z',
+            endDate: '2026-04-25T10:00:00Z',
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(defer(() => Promise.resolve(mockResponse)));
+
+    fixture.autoDetectChanges();
+    await fixture.whenStable();
+
+    const appointmentCards = fixture.nativeElement.querySelectorAll('.appointment-card');
+    expect(appointmentCards.length).toBe(1);
+  });
+
+  it('should sync current page from API response and display it', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 3,
+      total: 5,
+      count: 1,
+      items: [
+        {
+          resource: {
+            id: 'appt_010',
+            subject: 'Paged appointment',
+            location: 'Room D',
+            startDate: '2026-04-25T11:00:00Z',
+            endDate: '2026-04-25T12:00:00Z',
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    expect(component.currentPage()).toBe(3);
+    expect(component.totalPages()).toBe(5);
+
+    const pageInfo = fixture.nativeElement.querySelector('.page-info') as HTMLElement;
+    expect(pageInfo.textContent).toContain('Page 3 sur 5');
+  });
+
   it('should identify ongoing appointments', () => {
     const now = new Date();
     const oneHourAgo = new Date(now.getTime() - 3600000);
@@ -212,7 +278,9 @@ describe('AppointmentsListPageComponent', () => {
     expect(component.errorMessage()).toBeTruthy();
   });
 
-  it('should filter appointments by subject', () => {
+  it('should request server-side search when subject changes after debounce', () => {
+    vi.useFakeTimers();
+
     const mockResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
       total: 1,
@@ -223,10 +291,21 @@ describe('AppointmentsListPageComponent', () => {
 
     apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
-    component.searchForm.controls.subject.setValue('Team meeting');
-    component.searchAppointments();
+    fixture.detectChanges();
+    expect(apiServiceSpy.getAppointments).toHaveBeenCalledTimes(1);
 
-    expect(apiServiceSpy.getAppointments).toHaveBeenCalledWith(
+    component.currentPage.set(2);
+    component.searchForm.controls.subject.setValue('Team meeting');
+
+    vi.advanceTimersByTime(299);
+    expect(apiServiceSpy.getAppointments).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(1);
+
+    expect(component.currentPage()).toBe(1);
+    expect(apiServiceSpy.getAppointments).toHaveBeenCalledTimes(2);
+
+    expect(apiServiceSpy.getAppointments).toHaveBeenLastCalledWith(
       expect.objectContaining({
         page: 1,
         pageSize: 10,
@@ -242,7 +321,7 @@ describe('AppointmentsListPageComponent', () => {
   });
 
   it('should handle pagination', () => {
-    const mockResponse: PageOf<Browsable<Appointment>> = {
+    const firstPageResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
       total: 3,
       count: 10,
@@ -250,7 +329,18 @@ describe('AppointmentsListPageComponent', () => {
       links: {}
     };
 
-    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+    const secondPageResponse: PageOf<Browsable<Appointment>> = {
+      page: 2,
+      total: 3,
+      count: 10,
+      items: [],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments
+      .mockReturnValueOnce(of(firstPageResponse))
+      .mockReturnValueOnce(of(secondPageResponse))
+      .mockReturnValueOnce(of(firstPageResponse));
 
     fixture.detectChanges();
     expect(component.currentPage()).toBe(1);
