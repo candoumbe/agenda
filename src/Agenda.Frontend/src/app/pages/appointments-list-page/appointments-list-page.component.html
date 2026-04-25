@@ -1,0 +1,126 @@
+<section class="appointments-page">
+  <div class="glow glow-left" aria-hidden="true"></div>
+  <div class="glow glow-right" aria-hidden="true"></div>
+
+  <article class="card">
+    <header class="page-header">
+      <p class="kicker">Agenda</p>
+      <h1>Rendez-vous</h1>
+      <p class="subtitle">Consultez et gérez vos rendez-vous à venir.</p>
+    </header>
+
+    <div class="search-section">
+      <form [formGroup]="searchForm" (ngSubmit)="searchAppointments()" class="search-form">
+        <input
+          type="text"
+          formControlName="subject"
+          placeholder="Rechercher par sujet..."
+          class="search-input"
+        />
+        <button type="submit" class="primary">Rechercher</button>
+        <button type="button" class="secondary" (click)="clearSearch()">Réinitialiser</button>
+      </form>
+    </div>
+
+    <button type="button" class="primary create-button" (click)="goToAppointmentCreation()">
+      + Nouveau rendez-vous
+    </button>
+
+    @if (hasError()) {
+      <p class="feedback failure">{{ errorMessage() }}</p>
+    }
+
+    @if (isLoading()) {
+      <div class="loading">
+        <p>Chargement des rendez-vous...</p>
+      </div>
+    } @else {
+      @if (appointmentGroups().length === 0) {
+        <div class="empty-state">
+          <p>Aucun rendez-vous trouvé.</p>
+        </div>
+      } @else {
+        <div class="appointments-container">
+          @for (group of appointmentGroups(); track group.date) {
+            <section class="date-group" [class.today]="group.isToday" [class.past]="group.isInThePast">
+              <h2 class="date-header">
+                {{ group.date | date: 'EEEE d MMMM yyyy' : '' : 'fr-FR' }}
+                @if (group.isToday) {
+                  <span class="badge today-badge">Aujourd'hui</span>
+                }
+              </h2>
+
+              <div class="appointments-grid">
+                @for (item of group.appointments; track item.resource.id) {
+                  <div class="appointment-card" [class.ongoing]="isAppointmentOngoing(item.resource)">
+                    <div class="card-header">
+                      <h3 class="appointment-subject">{{ item.resource.subject }}</h3>
+                      @if (isAppointmentOngoing(item.resource)) {
+                        <span class="badge ongoing-badge">En cours</span>
+                      } @else if (isAppointmentUpcoming(item.resource)) {
+                        <span class="badge upcoming-badge">À venir</span>
+                      }
+                    </div>
+
+                    <div class="appointment-details">
+                      <p class="detail-item">
+                        <strong>Heure:</strong>
+                        {{ item.resource.startDate | date: 'HH:mm' }}
+                        -
+                        {{ item.resource.endDate | date: 'HH:mm' }}
+                      </p>
+
+                      @if (item.resource.location) {
+                        <p class="detail-item">
+                          <strong>Lieu:</strong> {{ item.resource.location }}
+                        </p>
+                      }
+
+                      @if (item.resource.attendees.length > 0) {
+                        <div class="attendees-section">
+                          <strong>Participants:</strong>
+                          <ul class="attendees-list">
+                            @for (attendee of item.resource.attendees; track attendee.id) {
+                              <li class="attendee-item">
+                                <span class="attendee-name">{{ attendee.name }}</span>
+                                @if (attendee.phoneNumber) {
+                                  <span class="attendee-phone">{{ attendee.phoneNumber }}</span>
+                                }
+                              </li>
+                            }
+                          </ul>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+        </div>
+
+        <div class="pagination">
+          <button
+            type="button"
+            class="secondary"
+            (click)="previousPage()"
+            [disabled]="currentPage() === 1"
+          >
+            Précédent
+          </button>
+          <span class="page-info">
+            Page {{ currentPage() }} sur {{ totalPages() }}
+          </span>
+          <button
+            type="button"
+            class="secondary"
+            (click)="nextPage()"
+            [disabled]="currentPage() === totalPages()"
+          >
+            Suivant
+          </button>
+        </div>
+      }
+    }
+  </article>
+</section>
