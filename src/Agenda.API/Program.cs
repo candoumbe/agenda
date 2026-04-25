@@ -102,6 +102,8 @@ app.UseFastEndpoints(config =>
                      })
     .UseSwaggerGen();
 
+app.MapDefaultEndpoints();
+
 await app.RunAsync().ConfigureAwait(false);
 
 return;

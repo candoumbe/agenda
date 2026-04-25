@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### 🚀 New features
+
+#### Frontend
+
+- Added UI for scheduling an appointment
+
+#### API
 - Added `DELETE /appointments/{id}/attendees/{id}` endpoint
 - Added RabbitMQ integration and related configuration.
 - Added publication of `AppointmentScheduled` event when a new appointment is scheduled : 
+- Added healthchecks for PostgreSQL and RabbitMQ
 
 ### 🧹 Housekeeping
 - Added task issue template
@@ -19,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `xunit.v3` to `3.2.0`
 - Updated `Paramore.Brighter.*` packages to `10.0.4`
 - Bumped TFM to `net10.0`
+- Added dotnet devcontainer feature to manage .NET versions
 
 ## [0.1.0] / 2025-10-03
 ### 🚀 New features
