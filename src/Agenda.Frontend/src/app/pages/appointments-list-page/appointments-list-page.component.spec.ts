@@ -1,0 +1,297 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { AppointmentsListPageComponent } from './appointments-list-page.component';
+import { ApiService } from '../../../services/api-service';
+import { Router } from '@angular/router';
+import { of, throwError } from 'rxjs';
+import { Browsable } from '../../../models/browsable';
+import { Appointment } from '../../../models/appointment';
+import { PageOf } from '../../../models/page-of';
+
+describe('AppointmentsListPageComponent', () => {
+  let component: AppointmentsListPageComponent;
+  let fixture: ComponentFixture<AppointmentsListPageComponent>;
+  let apiService: ApiService;
+  let router: Router;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AppointmentsListPageComponent],
+      providers: [
+        ApiService,
+        provideHttpClientTesting(),
+        {
+          provide: Router,
+          useValue: {
+            navigate: jasmine.createSpy('navigate')
+          }
+        }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(AppointmentsListPageComponent);
+    component = fixture.componentInstance;
+    apiService = TestBed.inject(ApiService);
+    router = TestBed.inject(Router);
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should load appointments on init', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [
+        {
+          resource: {
+            id: 'appt_001',
+            subject: 'Team meeting',
+            location: 'Conference room',
+            startDate: '2026-04-25T09:00:00Z',
+            endDate: '2026-04-25T10:00:00Z',
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {
+        first: { href: '/appointments?page=1', relations: ['first'] },
+        last: { href: '/appointments?page=1', relations: ['last'] }
+      }
+    };
+
+    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    expect(apiService.getAppointments).toHaveBeenCalled();
+    expect(component.appointmentGroups().length).toBeGreaterThan(0);
+    expect(component.totalPages()).toBe(1);
+  });
+
+  it('should group appointments by date', () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString();
+
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 2,
+      items: [
+        {
+          resource: {
+            id: 'appt_001',
+            subject: 'Meeting 1',
+            location: 'Room A',
+            startDate: tomorrowStr,
+            endDate: new Date(tomorrow.getTime() + 3600000).toISOString(),
+            attendees: []
+          },
+          links: []
+        },
+        {
+          resource: {
+            id: 'appt_002',
+            subject: 'Meeting 2',
+            location: 'Room B',
+            startDate: tomorrowStr,
+            endDate: new Date(tomorrow.getTime() + 7200000).toISOString(),
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {}
+    };
+
+    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    const groups = component.appointmentGroups();
+    expect(groups.length).toBe(1);
+    expect(groups[0].appointments.length).toBe(2);
+  });
+
+  it('should mark today appointments', () => {
+    const today = new Date();
+    today.setHours(9, 0, 0, 0);
+    const todayStr = today.toISOString();
+
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [
+        {
+          resource: {
+            id: 'appt_001',
+            subject: 'Today meeting',
+            location: 'Room A',
+            startDate: todayStr,
+            endDate: new Date(today.getTime() + 3600000).toISOString(),
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {}
+    };
+
+    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    const groups = component.appointmentGroups();
+    expect(groups[0].isToday).toBe(true);
+  });
+
+  it('should identify ongoing appointments', () => {
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 3600000);
+    const oneHourFromNow = new Date(now.getTime() + 3600000);
+
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [
+        {
+          resource: {
+            id: 'appt_001',
+            subject: 'Ongoing meeting',
+            location: 'Room A',
+            startDate: oneHourAgo.toISOString(),
+            endDate: oneHourFromNow.toISOString(),
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {}
+    };
+
+    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    const appointment = component.appointmentGroups()[0].appointments[0].resource;
+    expect(component.isAppointmentOngoing(appointment)).toBe(true);
+  });
+
+  it('should handle API errors', () => {
+    spyOn(apiService, 'getAppointments').and.returnValue(throwError(() => new Error('API error')));
+
+    fixture.detectChanges();
+
+    expect(component.hasError()).toBe(true);
+    expect(component.errorMessage()).toBeTruthy();
+  });
+
+  it('should filter appointments by subject', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [],
+      links: {}
+    };
+
+    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+
+    component.searchForm.controls.subject.setValue('Team meeting');
+    component.searchAppointments();
+
+    expect(apiService.getAppointments).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        page: 1,
+        pageSize: 10,
+        subject: 'Team meeting'
+      })
+    );
+  });
+
+  it('should navigate to appointment creation', () => {
+    component.goToAppointmentCreation();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/appointments/new']);
+  });
+
+  it('should handle pagination', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 3,
+      count: 10,
+      items: [],
+      links: {}
+    };
+
+    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+
+    fixture.detectChanges();
+    expect(component.currentPage()).toBe(1);
+
+    component.nextPage();
+    expect(component.currentPage()).toBe(2);
+
+    component.previousPage();
+    expect(component.currentPage()).toBe(1);
+  });
+
+  it('should not go to next page when on last page', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 10,
+      items: [],
+      links: {}
+    };
+
+    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    component.nextPage();
+    expect(component.currentPage()).toBe(1);
+  });
+
+  it('should not go to previous page when on first page', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 2,
+      count: 10,
+      items: [],
+      links: {}
+    };
+
+    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    component.previousPage();
+    expect(component.currentPage()).toBe(1);
+  });
+
+  it('should reset to page 1 when clearing search', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 10,
+      items: [],
+      links: {}
+    };
+
+    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+
+    component.searchForm.controls.subject.setValue('test');
+    component.currentPage.set(2);
+    component.clearSearch();
+
+    expect(component.currentPage()).toBe(1);
+    expect(component.searchForm.controls.subject.value).toBe('');
+  });
+});

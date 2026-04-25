@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { Attendee } from '../../../models/attendee';
 import { NewAppointmentPayload } from '../../../models/new-appointment-payload';
@@ -15,6 +16,7 @@ import { ApiService } from '../../../services/api-service';
 export class ScheduleAppointmentPageComponent {
   private readonly _formBuilder = inject(FormBuilder);
   private readonly _apiService = inject(ApiService);
+  private readonly _router = inject(Router);
 
   public isSubmitting = false;
   public createdAppointmentId: string | null = null;
@@ -28,21 +30,21 @@ export class ScheduleAppointmentPageComponent {
     attendees: this._formBuilder.array([this.createAttendeeForm()], [Validators.minLength(1)])
   });
 
-  public get attendees() : FormArray {
+  public get attendees(): FormArray {
     return this.appointmentForm.controls.attendees;
   }
 
-  public addAttendee() : void {
+  public addAttendee(): void {
     this.attendees.push(this.createAttendeeForm());
   }
 
-  public removeAttendee(index: number) : void {
+  public removeAttendee(index: number): void {
     if (this.attendees.length > 1) {
       this.attendees.removeAt(index);
     }
   }
 
-  public submit() : void {
+  public submit(): void {
     this.failureMessage = null;
     this.createdAppointmentId = null;
 
@@ -90,6 +92,11 @@ export class ScheduleAppointmentPageComponent {
         next: (result) => {
           this.createdAppointmentId = result.resource.id;
           this.resetForm();
+          setTimeout(() => {
+            this._router.navigate(['/appointments'], {
+              queryParams: { newlyCreatedId: result.resource.id }
+            });
+          }, 1000);
         },
         error: () => {
           this.failureMessage = 'Impossible de planifier le rendez-vous pour le moment. Réessayez.';
@@ -97,7 +104,7 @@ export class ScheduleAppointmentPageComponent {
       });
   }
 
-  private createAttendeeForm() : FormGroup {
+  private createAttendeeForm(): FormGroup {
     return this._formBuilder.nonNullable.group({
       name: ['', [Validators.required, Validators.maxLength(120)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(160)]],
@@ -105,7 +112,7 @@ export class ScheduleAppointmentPageComponent {
     });
   }
 
-  private resetForm() : void {
+  private resetForm(): void {
     this.appointmentForm.reset({
       subject: '',
       location: '',

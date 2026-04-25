@@ -3,6 +3,9 @@ import { TestBed } from '@angular/core/testing';
 import { ApiService } from './api-service';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { NewAppointmentPayload } from '../models/new-appointment-payload';
+import { PageOf } from '../models/page-of';
+import { Browsable } from '../models/browsable';
+import { Appointment } from '../models/appointment';
 
 describe('ApiService with HTTP', () => {
   let apiService: ApiService;
@@ -55,6 +58,64 @@ describe('ApiService with HTTP', () => {
       const req = httpMock.expectOne('/api/appointments');
       req.error(new ErrorEvent('NetworkError', { message: emsg }));
     });
+  });
+
+  it('should return paginated appointments with query parameters', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 2,
+      count: 1,
+      items: [
+        {
+          resource: {
+            id: 'appt_001',
+            subject: 'Team meeting',
+            location: 'Conference room',
+            startDate: '2026-04-24T09:00:00Z',
+            endDate: '2026-04-24T10:00:00Z',
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {
+        first: { href: '/appointments?page=1', relations: ['first'] },
+        last: { href: '/appointments?page=2', relations: ['last'] },
+        next: { href: '/appointments?page=2', relations: ['next'] }
+      }
+    };
+
+    apiService.getAppointments({ page: 1, pageSize: 10 }).subscribe((response) => {
+      expect(response.page).toBe(1);
+      expect(response.items.length).toBe(1);
+      expect(response.items[0].resource.id).toBe('appt_001');
+    });
+
+    const req = httpMock.expectOne((request) => {
+      return request.url === '/api/appointments' && request.params.get('page') === '1' && request.params.get('pageSize') === '10';
+    });
+    expect(req.request.method).toBe('GET');
+    req.flush(mockResponse);
+  });
+
+  it('should filter appointments by subject', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [],
+      links: {}
+    };
+
+    apiService.getAppointments({ subject: 'meeting' }).subscribe(() => {
+      expect(true).toBe(true);
+    });
+
+    const req = httpMock.expectOne((request) => {
+      return request.url === '/api/appointments' && request.params.get('subject') === 'meeting';
+    });
+    expect(req.request.method).toBe('GET');
+    req.flush(mockResponse);
   });
 
   it('should schedule a new appointment with expected payload', () => {
