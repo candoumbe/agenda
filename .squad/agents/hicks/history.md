@@ -42,3 +42,43 @@ import { vi } from 'vitest';
 - Code style fully compliant with project conventions
 - API contract alignment verified against SearchAppointmentsEndpoint response
 - Coverage: 83.42% overall, 86.33% on component, 88.37% branch coverage
+
+### 2026-04-25: UI Bugfixes QA Validation (Dallas's Changes)
+
+**Changes Validated:**
+1. **Appointment cards appearing immediately (Bug #1)**
+   - Fix: ChangeDetectorRef.detectChanges() in finalize operator (line 77-81)
+   - Ensures change detection after async load without user interaction
+   - Implementation checks for destroyed ViewRef before calling detectChanges()
+
+2. **Page number synchronization (Bug #2)**
+   - Fix: currentPage.set(response.page) syncs display with API source of truth (line 88)
+   - Previous fix: currentPage.set(1) when search changes (line 57)
+   - Prevents stale UI state between clicks
+
+**Test Results:**
+- ✅ All 14 component tests PASS
+- ✅ All 27 frontend tests PASS (no regressions)
+- ✅ Architecture tests (2/2) PASS
+- ✅ Coverage maintained at 96.2% component, 86.4% branch, 84.1% overall
+- ⚠️ CSS budget: 5.4 KB (budget 4.0 KB, +265 bytes) - build warning only
+
+**Code Quality:**
+- ✅ No console.log or debug statements
+- ✅ ChangeDetectorRef usage minimal and targeted
+- ✅ Clean change detection logic, no performance concerns
+- ✅ No unrelated changes mixed in
+
+**Key Tests for Bugfixes:**
+1. "should render appointment cards after async load without user interaction" → validates Fix #1
+2. "should sync current page from API response and display it" → validates Fix #2
+3. Server-side search + pagination reset verified
+
+**Regression Testing:**
+- Date grouping works
+- Ongoing/upcoming badges render
+- API error handling works
+- Post-creation redirect flow preserved
+- All 27 frontend tests still pass
+
+**Recommendation:** ✅ **APPROVED** - Both bugfixes validated, no regressions, ready for merge
