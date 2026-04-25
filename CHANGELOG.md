@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Frontend
 
 - Added UI for scheduling an appointment
+- Added appointments list page with card-based layout, date grouping, search by subject, and pagination (#502)
+- Added automatic redirect to appointments list after creating a new appointment (#502)
 
 #### API
 - Added `DELETE /appointments/{id}/attendees/{id}` endpoint
