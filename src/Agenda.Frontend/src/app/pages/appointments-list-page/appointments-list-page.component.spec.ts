@@ -4,35 +4,55 @@ import { AppointmentsListPageComponent } from './appointments-list-page.componen
 import { ApiService } from '../../../services/api-service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 import { Browsable } from '../../../models/browsable';
 import { Appointment } from '../../../models/appointment';
 import { PageOf } from '../../../models/page-of';
+import { LOCALE_ID } from '@angular/core';
+import localeFr from '@angular/common/locales/fr';
+import { registerLocaleData } from '@angular/common';
+
+registerLocaleData(localeFr);
 
 describe('AppointmentsListPageComponent', () => {
   let component: AppointmentsListPageComponent;
   let fixture: ComponentFixture<AppointmentsListPageComponent>;
-  let apiService: ApiService;
-  let router: Router;
+  let apiServiceSpy: { getAppointments: ReturnType<typeof vi.fn> };
+  let routerSpy: { navigate: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
+    apiServiceSpy = {
+      getAppointments: vi.fn().mockReturnValue(of({
+        page: 1,
+        total: 1,
+        count: 1,
+        items: [],
+        links: {}
+      }))
+    };
+
+    routerSpy = {
+      navigate: vi.fn()
+    };
+
     await TestBed.configureTestingModule({
       imports: [AppointmentsListPageComponent],
       providers: [
-        ApiService,
+        {
+          provide: ApiService,
+          useValue: apiServiceSpy
+        },
         provideHttpClientTesting(),
         {
           provide: Router,
-          useValue: {
-            navigate: jasmine.createSpy('navigate')
-          }
-        }
+          useValue: routerSpy
+        },
+        { provide: LOCALE_ID, useValue: 'fr-FR' }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(AppointmentsListPageComponent);
     component = fixture.componentInstance;
-    apiService = TestBed.inject(ApiService);
-    router = TestBed.inject(Router);
   });
 
   it('should create', () => {
@@ -63,11 +83,11 @@ describe('AppointmentsListPageComponent', () => {
       }
     };
 
-    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
     fixture.detectChanges();
 
-    expect(apiService.getAppointments).toHaveBeenCalled();
+    expect(apiServiceSpy.getAppointments).toHaveBeenCalled();
     expect(component.appointmentGroups().length).toBeGreaterThan(0);
     expect(component.totalPages()).toBe(1);
   });
@@ -108,7 +128,7 @@ describe('AppointmentsListPageComponent', () => {
       links: {}
     };
 
-    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
     fixture.detectChanges();
 
@@ -142,7 +162,7 @@ describe('AppointmentsListPageComponent', () => {
       links: {}
     };
 
-    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
     fixture.detectChanges();
 
@@ -175,7 +195,7 @@ describe('AppointmentsListPageComponent', () => {
       links: {}
     };
 
-    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
     fixture.detectChanges();
 
@@ -184,7 +204,7 @@ describe('AppointmentsListPageComponent', () => {
   });
 
   it('should handle API errors', () => {
-    spyOn(apiService, 'getAppointments').and.returnValue(throwError(() => new Error('API error')));
+    apiServiceSpy.getAppointments.mockReturnValue(throwError(() => new Error('API error')));
 
     fixture.detectChanges();
 
@@ -201,13 +221,13 @@ describe('AppointmentsListPageComponent', () => {
       links: {}
     };
 
-    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
     component.searchForm.controls.subject.setValue('Team meeting');
     component.searchAppointments();
 
-    expect(apiService.getAppointments).toHaveBeenCalledWith(
-      jasmine.objectContaining({
+    expect(apiServiceSpy.getAppointments).toHaveBeenCalledWith(
+      expect.objectContaining({
         page: 1,
         pageSize: 10,
         subject: 'Team meeting'
@@ -218,7 +238,7 @@ describe('AppointmentsListPageComponent', () => {
   it('should navigate to appointment creation', () => {
     component.goToAppointmentCreation();
 
-    expect(router.navigate).toHaveBeenCalledWith(['/appointments/new']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/appointments/new']);
   });
 
   it('should handle pagination', () => {
@@ -230,7 +250,7 @@ describe('AppointmentsListPageComponent', () => {
       links: {}
     };
 
-    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
     fixture.detectChanges();
     expect(component.currentPage()).toBe(1);
@@ -251,7 +271,7 @@ describe('AppointmentsListPageComponent', () => {
       links: {}
     };
 
-    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
     fixture.detectChanges();
 
@@ -268,7 +288,7 @@ describe('AppointmentsListPageComponent', () => {
       links: {}
     };
 
-    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
     fixture.detectChanges();
 
@@ -285,7 +305,7 @@ describe('AppointmentsListPageComponent', () => {
       links: {}
     };
 
-    spyOn(apiService, 'getAppointments').and.returnValue(of(mockResponse));
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
     component.searchForm.controls.subject.setValue('test');
     component.currentPage.set(2);
