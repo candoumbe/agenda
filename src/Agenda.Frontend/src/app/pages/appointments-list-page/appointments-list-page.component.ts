@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Component, DestroyRef, ChangeDetectorRef, ViewRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize, map } from 'rxjs';
 import { Appointment } from '../../../models/appointment';
 import { ApiService } from '../../../services/api-service';
 import { Browsable } from '../../../models/browsable';
@@ -24,6 +25,8 @@ export class AppointmentsListPageComponent implements OnInit {
   private readonly _formBuilder = inject(FormBuilder);
   private readonly _apiService = inject(ApiService);
   private readonly _router = inject(Router);
+  private readonly _destroyRef = inject(DestroyRef);
+  private readonly _changeDetectorRef = inject(ChangeDetectorRef);
 
   public isLoading = signal(false);
   public appointmentGroups = signal<AppointmentGroup[]>([]);
@@ -41,6 +44,19 @@ export class AppointmentsListPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.newlyCreatedAppointmentId = this.extractNewlyCreatedId();
+
+    this.searchForm.controls.subject.valueChanges
+      .pipe(
+        map((value) => value.trim()),
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this._destroyRef)
+      )
+      .subscribe(() => {
+        this.currentPage.set(1);
+        this.loadAppointments();
+      });
+
     this.loadAppointments();
   }
 
@@ -57,9 +73,20 @@ export class AppointmentsListPageComponent implements OnInit {
     };
 
     this._apiService.getAppointments(searchParams)
-      .pipe(finalize(() => this.isLoading.set(false)))
+      .pipe(
+        takeUntilDestroyed(this._destroyRef),
+        finalize(() => {
+          this.isLoading.set(false);
+
+          const viewRef = this._changeDetectorRef as ViewRef;
+          if (!viewRef.destroyed) {
+            this._changeDetectorRef.detectChanges();
+          }
+        })
+      )
       .subscribe({
         next: (response) => {
+          this.currentPage.set(response.page);
           this.totalPages.set(response.total);
           this.appointmentGroups.set(this.groupAppointmentsByDate(response.items));
         },
@@ -76,7 +103,7 @@ export class AppointmentsListPageComponent implements OnInit {
   }
 
   public clearSearch(): void {
-    this.searchForm.controls.subject.reset();
+    this.searchForm.controls.subject.reset('', { emitEvent: false });
     this.currentPage.set(1);
     this.loadAppointments();
   }
