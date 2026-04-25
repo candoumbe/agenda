@@ -24,9 +24,15 @@ log_error() {
     echo -e "${RED}❌ $1${NC}"
 }
 
+command_exists() {
+    command -v "$@" > /dev/null 2>&1
+}
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
+echo "SCRIPT_DIR is set to: $SCRIPT_DIR"
+echo "REPO_ROOT is set to: $REPO_ROOT"
 cd "$REPO_ROOT"
 
 echo "[post-start] Verifying Docker daemon availability"
@@ -44,6 +50,7 @@ while ! docker info >/dev/null 2>&1; do
 done
 echo "[post-start] Docker daemon is ready"
 
+cd "$SCRIPT_DIR"
 echo "[post-start] Restoring local dotnet tools"
 ./build.sh --target restore
 

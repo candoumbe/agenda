@@ -5,14 +5,18 @@
     "ghcr.io/devcontainers/features/node:1": {
       "version": "24"
     },
-    "ghcr.io/devcontainers-extra/features/gh-cli:1": {},
+    "ghcr.io/microsoft/aspire-devcontainer-feature/aspire:2": {},
+	"ghcr.io/devcontainers-extra/features/gh-cli:1": {},
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/copilot-cli": {},
-    "ghcr.io/dotnet/aspire-devcontainer-feature/dotnetaspire": {},
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/nils-geistmann/devcontainers-features/zsh": {
        "plugins": "git npm gh git-prompt"
+    },
+    "ghcr.io/devcontainers/features/dotnet": {
+      "version": "10.0.203",
+      "additionalVersions": "10.0.201"
     }
   },
   "onCreateCommand": "zsh ./.devcontainer/scripts/on-create.sh",
