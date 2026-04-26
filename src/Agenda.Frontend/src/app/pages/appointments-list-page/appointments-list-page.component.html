@@ -17,6 +17,24 @@
           placeholder="Rechercher par sujet..."
           class="search-input"
         />
+        <input
+          type="text"
+          formControlName="location"
+          placeholder="Filtrer par lieu..."
+          class="search-input"
+        />
+        <input
+          type="datetime-local"
+          formControlName="from"
+          class="search-input"
+          aria-label="Debut de plage horaire"
+        />
+        <input
+          type="datetime-local"
+          formControlName="to"
+          class="search-input"
+          aria-label="Fin de plage horaire"
+        />
         <button type="submit" class="primary">Rechercher</button>
         <button type="button" class="secondary" (click)="clearSearch()">Réinitialiser</button>
       </form>
@@ -104,7 +122,7 @@
             type="button"
             class="secondary"
             (click)="previousPage()"
-            [disabled]="currentPage() === 1"
+            [disabled]="!canGoToPreviousPage()"
           >
             Précédent
           </button>
@@ -115,7 +133,7 @@
             type="button"
             class="secondary"
             (click)="nextPage()"
-            [disabled]="currentPage() === totalPages()"
+            [disabled]="!canGoToNextPage()"
           >
             Suivant
           </button>

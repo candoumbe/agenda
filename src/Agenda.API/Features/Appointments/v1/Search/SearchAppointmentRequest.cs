@@ -22,4 +22,9 @@ public record SearchAppointmentRequest : AbstractSearchRequest<AppointmentInfo>
     /// Criteria on the subject
     /// </summary>
     public string? Subject { get; init; }
+
+    /// <summary>
+    /// Criteria on the location
+    /// </summary>
+    public string? Location { get; init; }
 }

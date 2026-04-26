@@ -97,14 +97,28 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             })
         ];
         int count = entries.Count;
+        long totalCount = pageOfAppointments.Total;
+        int pageSize = request.PageSize.Value;
+        int totalPages = totalCount switch
+        {
+            <= 0 => 0,
+            _ => (int)Math.Ceiling(totalCount / (double)pageSize)
+        };
+        int lastPage = totalPages switch
+        {
+            > 0 => totalPages,
+            _ => 1
+        };
 
         Link firstPageLink = ComputeLinkToFirstPage(request, HttpContext!);
-        Link lastPageLink = ComputeLinkToLastPage(request, HttpContext, pageOfAppointments);
+        Link lastPageLink = ComputeLinkToLastPage(request, HttpContext, lastPage);
 
         PageOf<Browsable<AppointmentInfo>> content = new()
         {
             Page = request.Page,
-            Total = pageOfAppointments.Total,
+            Total = totalPages,
+            PageSize = pageSize,
+            TotalCount = totalCount,
             Count = count,
             Items =
             [
@@ -128,8 +142,8 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             ],
             Links = new PageLinks(First: firstPageLink,
                                   Last: lastPageLink,
-                                  Previous: ComputeLinkToPreviousPage(request, pageOfAppointments, HttpContext),
-                                  Next: ComputeLinkToNextPage(request, pageOfAppointments, HttpContext))
+                                  Previous: ComputeLinkToPreviousPage(request, totalPages, HttpContext),
+                                  Next: ComputeLinkToNextPage(request, totalPages, HttpContext))
         };
 
         return TypedResults.Ok(content);
@@ -161,6 +175,12 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                 filters.Add($"{nameof(Appointment.Subject)}={subject}".ToFilter<Appointment>());
             }
 
+            string location = search.Location?.Trim();
+            if (!string.IsNullOrWhiteSpace(location))
+            {
+                filters.Add($"{nameof(Appointment.Location)}={location}".ToFilter<Appointment>());
+            }
+
             return filters.Count switch
             {
                 1   => filters.Single(),
@@ -169,30 +189,30 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             };
         }
 
-        Link ComputeLinkToPreviousPage(SearchAppointmentRequest localSearch, Page<AppointmentDto> page, HttpContext httpContext)
+        Link ComputeLinkToPreviousPage(SearchAppointmentRequest localSearch, int totalPages, HttpContext httpContext)
         {
             ArgumentNullException.ThrowIfNull(httpContext);
 
-            return (page.Count, localSearch.Page.Value) switch
+            return (localSearch.Page.Value, totalPages) switch
             {
-                (> 1, > 1) => new Link
+                (> 1, > 0) => new Link
                 {
                     Href = _linkGenerator.GetPathByName(httpContext,
                                                       IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
-                                                      new SearchAppointmentQuery(localSearch.Page - 1, localSearch.PageSize, localSearch.Subject, localSearch.From, localSearch.To, localSearch.Sort)),
+                                                      new SearchAppointmentQuery(localSearch.Page - 1, localSearch.PageSize, localSearch.Subject, localSearch.Location, localSearch.From, localSearch.To, localSearch.Sort)),
                 },
                 _ => null
             };
         }
 
-        Link ComputeLinkToNextPage(SearchAppointmentRequest searchAppointmentRequest, Page<AppointmentDto> page, HttpContext httpContext)
+        Link ComputeLinkToNextPage(SearchAppointmentRequest searchAppointmentRequest, int totalPages, HttpContext httpContext)
         {
-            return searchAppointmentRequest.Page < page.Count
+            return searchAppointmentRequest.Page.Value < totalPages
                        ? new Link
                        {
                            Href = _linkGenerator.GetUriByRouteValues(httpContext,
                                                                      IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
-                                                                     new SearchAppointmentQuery(searchAppointmentRequest.Page + 1, searchAppointmentRequest.PageSize, searchAppointmentRequest.Subject, searchAppointmentRequest.From, searchAppointmentRequest.To, searchAppointmentRequest.Sort)),
+                                                                     new SearchAppointmentQuery(searchAppointmentRequest.Page + 1, searchAppointmentRequest.PageSize, searchAppointmentRequest.Subject, searchAppointmentRequest.Location, searchAppointmentRequest.From, searchAppointmentRequest.To, searchAppointmentRequest.Sort)),
                        }
                        : null;
         }
@@ -208,6 +228,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                                                               Page = 1,
                                                               localSearch.PageSize,
                                                               localSearch.Subject,
+                                                              localSearch.Location,
                                                               localSearch.From,
                                                               localSearch.To,
                                                               localSearch.Sort
@@ -216,7 +237,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             };
         }
 
-        Link ComputeLinkToLastPage(SearchAppointmentRequest localSearch, HttpContext httpContext, Page<AppointmentDto> page)
+        Link ComputeLinkToLastPage(SearchAppointmentRequest localSearch, HttpContext httpContext, int lastPage)
         {
             return new()
             {
@@ -224,9 +245,10 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                                                     IEndpoint.GetName<SearchAppointmentsEndpoint>(verb: Http.GET),
                                                     new
                                                     {
-                                                        Page = (int)page.Total,
+                                                        Page = lastPage,
                                                         localSearch.PageSize,
                                                         localSearch.Subject,
+                                                        localSearch.Location,
                                                         localSearch.From,
                                                         localSearch.To,
                                                         localSearch.Sort
@@ -256,4 +278,4 @@ file record AttendeeDto
     public string PhoneNumber { get; init; }
 }
 
-file record SearchAppointmentQuery(NonNegativeInteger Page, PositiveInteger PageSize, string Subject, OffsetDateTime? From, OffsetDateTime? To, string Sort);
+file record SearchAppointmentQuery(NonNegativeInteger Page, PositiveInteger PageSize, string Subject, string Location, OffsetDateTime? From, OffsetDateTime? To, string Sort);

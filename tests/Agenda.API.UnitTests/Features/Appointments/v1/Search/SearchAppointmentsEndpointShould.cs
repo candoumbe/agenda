@@ -129,6 +129,8 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                           new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
                           {
                               Value = pageOfAppointments => pageOfAppointments.Total == 0
+                                                            && pageOfAppointments.TotalCount == 0
+                                                            && pageOfAppointments.PageSize == 10
                                                             && pageOfAppointments.Count == 0
                                                             && pageOfAppointments.Items != null
                                                             && pageOfAppointments.Items.Exactly(0)
@@ -150,7 +152,9 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                           request,
                           new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
                           {
-                              Value = pageOfAppointments => pageOfAppointments.Total == 30
+                              Value = pageOfAppointments => pageOfAppointments.Total == 3
+                                                            && pageOfAppointments.TotalCount == 30
+                                                            && pageOfAppointments.PageSize == 10
                                                             && pageOfAppointments.Count == 10
                                                             && pageOfAppointments.Items != null
                                                             && pageOfAppointments.Items.Exactly(10)
@@ -171,7 +175,9 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                           request,
                           new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>()
                           {
-                              Value = pageOfAppointments => pageOfAppointments.Total == 30
+                              Value = pageOfAppointments => pageOfAppointments.Total == 3
+                                                            && pageOfAppointments.TotalCount == 30
+                                                            && pageOfAppointments.PageSize == 10
                                                             && pageOfAppointments.Count == 10
                                                             && pageOfAppointments.Items != null
                                                             && pageOfAppointments.Items.Exactly(10)
@@ -192,7 +198,9 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                           request,
                           new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>()
                           {
-                              Value = pageOfAppointments => pageOfAppointments.Total == 30
+                              Value = pageOfAppointments => pageOfAppointments.Total == 3
+                                                            && pageOfAppointments.TotalCount == 30
+                                                            && pageOfAppointments.PageSize == 10
                                                             && pageOfAppointments.Count == 10
                                                             && pageOfAppointments.Items != null
                                                             && pageOfAppointments.Items.Exactly(10)
@@ -230,12 +238,66 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                           new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
                           {
                               Value = pageOfAppointments => pageOfAppointments.Total == 1
+                                                            && pageOfAppointments.TotalCount == 1
+                                                            && pageOfAppointments.PageSize == 10
                                                             && pageOfAppointments.Count == 1
                                                             && pageOfAppointments.Items != null
                                                             && pageOfAppointments.Items.Exactly(1)
                                                             && pageOfAppointments.Items.Once(a => a.Resource.Id == adventure.Id
                                                                                                   && a.Resource.Subject.Contains("brave")
                                                                                                   && a.Resource.Attendees.Count == adventure.Attendees.Count)
+                                                            && pageOfAppointments.Page == 1
+                                                            && pageOfAppointments.Links != null
+                                                            && pageOfAppointments.Links.First != null
+                                                            && pageOfAppointments.Links.Previous == null
+                                                            && pageOfAppointments.Links.Next == null
+                                                            && pageOfAppointments.Links.Last != null
+                          });
+            }
+
+            // Search with combined criteria (subject + location + from/to)
+            {
+                Instant targetStartDate = Instant.FromUtc(2026, 04, 26, 13, 00);
+                Appointment matchingAppointment = new(AppointmentId.New(),
+                                                      "Backend design review",
+                                                      "Paris",
+                                                      targetStartDate,
+                                                      targetStartDate.Plus(Duration.FromHours(1)));
+
+                Appointment sameSubjectWrongLocation = new(AppointmentId.New(),
+                                                           "Backend design review",
+                                                           "Lyon",
+                                                           targetStartDate,
+                                                           targetStartDate.Plus(Duration.FromHours(1)));
+
+                Appointment sameSubjectWrongRange = new(AppointmentId.New(),
+                                                        "Backend design review",
+                                                        "Paris",
+                                                        targetStartDate.Plus(Duration.FromDays(2)),
+                                                        targetStartDate.Plus(Duration.FromDays(2)).Plus(Duration.FromHours(1)));
+
+                List<Appointment> data = [matchingAppointment, sameSubjectWrongLocation, sameSubjectWrongRange];
+                SearchAppointmentRequest request = new()
+                {
+                    Page = NonNegativeInteger.From(1),
+                    PageSize = PositiveInteger.From(10),
+                    Subject = "*design*",
+                    Location = "*paris*",
+                    From = targetStartDate.Minus(Duration.FromHours(1)).InUtc().ToOffsetDateTime(),
+                    To = targetStartDate.Plus(Duration.FromHours(2)).InUtc().ToOffsetDateTime()
+                };
+
+                cases.Add(data,
+                          request,
+                          new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
+                          {
+                              Value = pageOfAppointments => pageOfAppointments.Total == 1
+                                                            && pageOfAppointments.TotalCount == 1
+                                                            && pageOfAppointments.PageSize == 10
+                                                            && pageOfAppointments.Count == 1
+                                                            && pageOfAppointments.Items != null
+                                                            && pageOfAppointments.Items.Exactly(1)
+                                                            && pageOfAppointments.Items.Once(a => a.Resource.Id == matchingAppointment.Id)
                                                             && pageOfAppointments.Page == 1
                                                             && pageOfAppointments.Links != null
                                                             && pageOfAppointments.Links.First != null

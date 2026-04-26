@@ -20,6 +20,16 @@ public class PageOf<TResource> where TResource : class
     public long Total { get; init; }
 
     /// <summary>
+    /// Size requested for each page.
+    /// </summary>
+    public int PageSize { get; init; }
+
+    /// <summary>
+    /// Total number of elements matching the criteria.
+    /// </summary>
+    public long TotalCount { get; init; }
+
+    /// <summary>
     /// The number of elements the current page holds
     /// </summary>
     public long Count { get; init; }

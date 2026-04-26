@@ -26,3 +26,6 @@ Initial setup complete.
 - Lors d'une recherche par sujet, il faut reinitialiser `currentPage` a 1 avant l'appel API pour eviter des pages incoherentes sur un nouveau filtre.
 - Sur la liste des rendez-vous, la page affichee doit rester synchronisee avec `response.page` (source de verite API), sinon l'UI peut annoncer une page differente de la page reellement servie.
 - Dans ce frontend Angular zoneless, un callback asynchrone de chargement peut necessiter un `ChangeDetectorRef.detectChanges()` apres mise a jour des signaux pour garantir un rendu immediat sans interaction utilisateur.
+- Pour une pagination fiable, exploiter d'abord `links.last/next/previous` pour les bornes et la navigation, puis utiliser `response.total` en repli si les liens sont absents.
+- La recherche multi-criteres du listing doit envoyer `subject`, `location`, `from`, `to` (dates en ISO) et reinitialiser la page a 1 a chaque changement de filtre.
+- Pour une coherence durable UI/API, la page affichee doit toujours etre resynchronisee depuis `response.page` et non seulement depuis l'etat local.
