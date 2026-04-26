@@ -121,6 +121,11 @@ public class Build : EnhancedNukeBuild,
     ///<inheritdoc/>
     IEnumerable<Project> IUnitTest.UnitTestsProjects => this.Get<IHaveSolution>().Solution.GetAllProjects("*.UnitTests");
 
+    Configure<DotNetTestSettings, (Project project, string framework)> IUnitTest.ProjectUnitTestSettings => (settings, unitTestRunContext) => settings
+        .ResetProjectFile()
+        .ClearLoggers()
+        .SetProcessAdditionalArguments($"--project {unitTestRunContext.project}");
+
     ///<inheritdoc/>
     IEnumerable<Project> IIntegrationTest.IntegrationTestsProjects => this.Get<IHaveSolution>().Solution.GetAllProjects("*.IntegrationTests");
 
@@ -190,7 +195,7 @@ public class Build : EnhancedNukeBuild,
                                                                          .SetNoBuild(SucceededTargets.Contains(this.Get<ICompile>().Compile))
                                                                          .SetNoRestore(SucceededTargets.Contains(this.Get<IRestore>().Restore))
                                                                          .CombineWith(ArchitecturalTestsProjects,
-                                                                                      (setting, project) => setting.SetProjectFile(project)
+                                                                                      (setting, project) => setting.SetProcessAdditionalArguments($"--project {project}")
                                                                                           .CombineWith(project.GetTargetFrameworks(),
                                                                                                        (x, framework) => x.SetFramework(framework)))
                                                                     )
