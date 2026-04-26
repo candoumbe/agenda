@@ -82,3 +82,23 @@ import { vi } from 'vitest';
 - All 27 frontend tests still pass
 
 **Recommendation:** ✅ **APPROVED** - Both bugfixes validated, no regressions, ready for merge
+
+### 2026-04-26: Pagination metadata coherence validation
+
+**Key Findings:**
+- Frontend pagination confidence increases when tests assert link-driven behavior (`links.last`, `links.next`, `links.previous`) instead of trusting only `total`.
+- Edge-case coverage should explicitly include `0` result, `1` result, and API page value above last-page metadata to prevent navigation drift.
+- Multi-criteria search coverage is stronger when request assertions verify serialized ISO dates and all active filters (`subject`, `location`, `from`, `to`).
+
+**Execution Notes:**
+- Frontend suite passed with new edge-case scenarios (34/34).
+- Targeted backend search tests could not complete in this environment because the Postgres fixture container failed to initialize (Docker runtime mount error), so backend validation remains partially blocked.
+
+### 2026-04-26: Multi-criteria + pagination contract validation follow-up
+
+**Key Findings:**
+- Pagination assertions are more stable when tests verify link-driven navigation semantics before derived counters.
+- Contract tests should keep explicit checks for `location` propagation in listing requests and preserved filter context across pagination links.
+
+**Residual Risk:**
+- Environment-level container initialization issues can still prevent full targeted backend execution in some contexts; architecture and frontend validations reduce but do not eliminate this risk.

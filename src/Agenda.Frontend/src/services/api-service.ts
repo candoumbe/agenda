@@ -34,6 +34,9 @@ export class ApiService {
       if (params.subject !== undefined && params.subject.trim()) {
         httpParams = httpParams.set('subject', params.subject);
       }
+      if (params.location !== undefined && params.location.trim()) {
+        httpParams = httpParams.set('location', params.location);
+      }
       if (params.from !== undefined) {
         httpParams = httpParams.set('from', params.from);
       }

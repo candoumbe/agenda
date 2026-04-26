@@ -11,6 +11,9 @@ export interface SearchAppointmentsParams {
   /** Filter by subject */
   subject?: string;
 
+  /** Filter by location */
+  location?: string;
+
   /** Filter from date (ISO datetime) */
   from?: string;
 

@@ -207,7 +207,7 @@ describe('AppointmentsListPageComponent', () => {
   it('should sync current page from API response and display it', () => {
     const mockResponse: PageOf<Browsable<Appointment>> = {
       page: 3,
-      total: 5,
+      total: 99,
       count: 1,
       items: [
         {
@@ -222,7 +222,9 @@ describe('AppointmentsListPageComponent', () => {
           links: []
         }
       ],
-      links: {}
+      links: {
+        last: { href: '/appointments?page=5', relations: ['last'] }
+      }
     };
 
     apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
@@ -309,7 +311,44 @@ describe('AppointmentsListPageComponent', () => {
       expect.objectContaining({
         page: 1,
         pageSize: 10,
-        subject: 'Team meeting'
+        subject: 'Team meeting',
+        location: undefined,
+        from: undefined,
+        to: undefined
+      })
+    );
+  });
+
+  it('should request server-side search with multiple criteria', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 0,
+      items: [],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    component.searchForm.patchValue({
+      subject: 'Comite produit',
+      location: 'Salle Neptune',
+      from: '2026-05-02T09:30',
+      to: '2026-05-02T10:30'
+    }, { emitEvent: false });
+
+    component.searchAppointments();
+
+    expect(apiServiceSpy.getAppointments).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        page: 1,
+        pageSize: 10,
+        subject: 'Comite produit',
+        location: 'Salle Neptune',
+        from: new Date('2026-05-02T09:30').toISOString(),
+        to: new Date('2026-05-02T10:30').toISOString()
       })
     );
   });
@@ -369,6 +408,143 @@ describe('AppointmentsListPageComponent', () => {
     expect(component.currentPage()).toBe(1);
   });
 
+  it('should respect previous and next links to compute pagination boundaries', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 2,
+      total: 99,
+      count: 10,
+      items: [],
+      links: {
+        previous: { href: '/appointments?page=1', relations: ['previous'] },
+        next: { href: '/appointments?page=3', relations: ['next'] },
+        last: { href: '/appointments?page=3', relations: ['last'] }
+      }
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    expect(component.currentPage()).toBe(2);
+    expect(component.totalPages()).toBe(3);
+    expect(component.canGoToPreviousPage()).toBe(true);
+    expect(component.canGoToNextPage()).toBe(true);
+  });
+
+  it('should clamp page display when API returns a page above last page', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 9,
+      total: 99,
+      count: 0,
+      items: [],
+      links: {
+        last: { href: '/appointments?page=3', relations: ['last'] }
+      }
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    expect(component.currentPage()).toBe(3);
+    expect(component.totalPages()).toBe(3);
+    expect(component.canGoToNextPage()).toBe(false);
+  });
+
+  it('should disable previous and next navigation for a single-page result', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [
+        {
+          resource: {
+            id: 'appt_011',
+            subject: 'One item page',
+            location: 'Room A',
+            startDate: '2026-04-25T09:00:00Z',
+            endDate: '2026-04-25T10:00:00Z',
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {
+        first: { href: '/appointments?page=1', relations: ['first'] },
+        last: { href: '/appointments?page=1', relations: ['last'] }
+      }
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    expect(component.canGoToPreviousPage()).toBe(false);
+    expect(component.canGoToNextPage()).toBe(false);
+  });
+
+  it('should use next link target page when navigating forward', () => {
+    const initialResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 99,
+      count: 10,
+      items: [],
+      links: {
+        next: { href: '/appointments?page=4', relations: ['next'] },
+        last: { href: '/appointments?page=4', relations: ['last'] }
+      }
+    };
+
+    const nextResponse: PageOf<Browsable<Appointment>> = {
+      page: 4,
+      total: 4,
+      count: 0,
+      items: [],
+      links: {
+        previous: { href: '/appointments?page=3', relations: ['previous'] },
+        last: { href: '/appointments?page=4', relations: ['last'] }
+      }
+    };
+
+    apiServiceSpy.getAppointments
+      .mockReturnValueOnce(of(initialResponse))
+      .mockReturnValueOnce(of(nextResponse));
+
+    fixture.detectChanges();
+
+    component.nextPage();
+
+    expect(apiServiceSpy.getAppointments).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        page: 4
+      })
+    );
+    expect(component.currentPage()).toBe(4);
+  });
+
+  it('should keep pagination stable for an empty result', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 0,
+      count: 0,
+      items: [],
+      links: {
+        first: { href: '/appointments?page=1', relations: ['first'] },
+        last: { href: '/appointments?page=1', relations: ['last'] }
+      }
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    expect(component.currentPage()).toBe(1);
+    expect(component.totalPages()).toBe(1);
+    expect(component.canGoToPreviousPage()).toBe(false);
+    expect(component.canGoToNextPage()).toBe(false);
+  });
+
   it('should not go to previous page when on first page', () => {
     const mockResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
@@ -397,11 +573,19 @@ describe('AppointmentsListPageComponent', () => {
 
     apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
-    component.searchForm.controls.subject.setValue('test');
+    component.searchForm.patchValue({
+      subject: 'test',
+      location: 'Room 7',
+      from: '2026-05-02T09:30',
+      to: '2026-05-02T10:30'
+    }, { emitEvent: false });
     component.currentPage.set(2);
     component.clearSearch();
 
     expect(component.currentPage()).toBe(1);
     expect(component.searchForm.controls.subject.value).toBe('');
+    expect(component.searchForm.controls.location.value).toBe('');
+    expect(component.searchForm.controls.from.value).toBe('');
+    expect(component.searchForm.controls.to.value).toBe('');
   });
 });

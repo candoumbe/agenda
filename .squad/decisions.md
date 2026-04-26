@@ -28,6 +28,28 @@
 **Scope:** `NewAppointmentInfoValidator`, create endpoint normalization, and related create flow tests.
 **Impact:** No route or namespace changes; vertical-slice architecture remains unchanged.
 
+### 2026-04-26T12:00:00Z: Appointments listing pagination metadata contract
+**By:** Bishop, Dallas, Hicks
+**What:** Standardize listing/search pagination semantics and client behavior:
+- `page`: page served by backend (source of truth)
+- `total`: total pages
+- `totalCount`: total matching items
+- `pageSize`: requested page size
+- `count`: items returned on current page
+- Pagination links (`first`, `last`, `previous`, `next`) must be derived from total pages, not current-page item count.
+**Why:** Remove ambiguity between item-count and page-count semantics and prevent frontend page drift.
+**Impact:** Deterministic pagination across API and UI; clearer contract for future consumers.
+
+### 2026-04-26T12:00:00Z: Link-first frontend pagination and multi-criteria listing search
+**By:** Dallas
+**What:** For appointments list UX:
+- Use API links (`links.previous`, `links.next`, `links.last`) as primary navigation bounds.
+- Keep displayed page synchronized from `response.page`.
+- Derive displayed total pages from `links.last` when present, fallback to `response.total`.
+- Send multi-criteria filters `subject`, `location`, `from`, `to` to listing endpoint.
+**Why:** Keep UI navigation robust when backend clamps/adjusts page values and improve search usefulness.
+**Impact:** Stable pagination UX, better search coverage, and improved frontend test confidence.
+
 ## Governance
 
 - All meaningful changes require team consensus

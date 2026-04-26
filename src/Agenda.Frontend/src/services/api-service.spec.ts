@@ -118,6 +118,36 @@ describe('ApiService with HTTP', () => {
     req.flush(mockResponse);
   });
 
+  it('should filter appointments by subject, location and time range', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 0,
+      items: [],
+      links: {}
+    };
+
+    apiService.getAppointments({
+      subject: 'meeting',
+      location: 'Salle Atlas',
+      from: '2026-05-02T08:00:00.000Z',
+      to: '2026-05-02T10:00:00.000Z'
+    }).subscribe(() => {
+      expect(true).toBe(true);
+    });
+
+    const req = httpMock.expectOne((request) => {
+      return request.url === '/api/appointments'
+        && request.params.get('subject') === 'meeting'
+        && request.params.get('location') === 'Salle Atlas'
+        && request.params.get('from') === '2026-05-02T08:00:00.000Z'
+        && request.params.get('to') === '2026-05-02T10:00:00.000Z';
+    });
+
+    expect(req.request.method).toBe('GET');
+    req.flush(mockResponse);
+  });
+
   it('should schedule a new appointment with expected payload', () => {
     const payload: NewAppointmentPayload = {
       subject: 'Comite architecture',
