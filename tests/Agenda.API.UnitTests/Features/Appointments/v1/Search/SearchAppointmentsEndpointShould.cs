@@ -282,7 +282,7 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                     Page = NonNegativeInteger.From(1),
                     PageSize = PositiveInteger.From(10),
                     Subject = "*design*",
-                    Location = "*paris*",
+                    Location = "*Paris*",
                     From = targetStartDate.Minus(Duration.FromHours(1)).InUtc().ToOffsetDateTime(),
                     To = targetStartDate.Plus(Duration.FromHours(2)).InUtc().ToOffsetDateTime()
                 };
