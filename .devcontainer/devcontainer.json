@@ -10,9 +10,12 @@
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/copilot-cli": {},
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": true,
+      "dockerDashComposeVersion": "v2"
+    },
     "ghcr.io/nils-geistmann/devcontainers-features/zsh": {
-       "plugins": "git npm gh git-prompt"
+       "plugins": "git npm gh"
     },
     "ghcr.io/devcontainers/features/dotnet": {
       "version": "10.0.203",
@@ -32,7 +35,9 @@
         "ms-azuretools.vscode-docker",
         "microsoft-aspire.aspire-vscode",
         "GitHub.copilot",
-        "EditorConfig.EditorConfig"
+        "EditorConfig.EditorConfig",
+        "mhutchie.git-graph",
+        "zaaack.markdown-editor"
       ],
     "settings": {
         "dotnet.defaultSolution": "Agenda.sln"
