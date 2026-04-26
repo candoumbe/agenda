@@ -18,6 +18,11 @@ public class PatchAppointmentByIdEndpoint : Endpoint<PatchRequest<AppointmentId,
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly CurrentRequestMetadataInfoProvider _currentRequestMetadataInfoProvider;
 
+    /// <summary>
+    /// Builds a new <see cref="PatchAppointmentByIdEndpoint"/> instance.
+    /// </summary>
+    /// <param name="unitOfWorkFactory">The unit of work factory.</param>
+    /// <param name="currentRequestMetadataInfoProvider">The current request metadata info provider.</param>
     public PatchAppointmentByIdEndpoint(IUnitOfWorkFactory unitOfWorkFactory, CurrentRequestMetadataInfoProvider currentRequestMetadataInfoProvider)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
