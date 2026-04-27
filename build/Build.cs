@@ -121,10 +121,17 @@ public class Build : EnhancedNukeBuild,
     ///<inheritdoc/>
     IEnumerable<Project> IUnitTest.UnitTestsProjects => this.Get<IHaveSolution>().Solution.GetAllProjects("*.UnitTests");
 
+    ///<inheritdoc/>
     Configure<DotNetTestSettings, (Project project, string framework)> IUnitTest.ProjectUnitTestSettings => (settings, unitTestRunContext) => settings
         .ResetProjectFile()
         .ClearLoggers()
         .SetProcessAdditionalArguments($"--project {unitTestRunContext.project}");
+
+    ///<inheritdoc/>
+    Configure<DotNetTestSettings, (Project project, string framework)> IIntegrationTest.ProjectIntegrationTestSettings => (settings, testRunContext) => settings
+        .ResetProjectFile()
+        .ClearLoggers()
+        .SetProcessAdditionalArguments($"--project {testRunContext.project}");
 
     ///<inheritdoc/>
     IEnumerable<Project> IIntegrationTest.IntegrationTestsProjects => this.Get<IHaveSolution>().Solution.GetAllProjects("*.IntegrationTests");
