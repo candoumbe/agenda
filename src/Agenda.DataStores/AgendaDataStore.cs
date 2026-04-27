@@ -29,6 +29,7 @@ public class AgendaDataStore : DataStore<AgendaDataStore>
     /// Builds a new <see cref="AgendaDataStore"/> instance.
     /// </summary>
     /// <param name="options">options of the MeasuresContext</param>
+    /// <param name="clock">Clock used to get the current time</param>
     public AgendaDataStore(DbContextOptions<AgendaDataStore> options, IClock clock) : base(options, clock)
     {
     }

@@ -56,6 +56,5 @@ public class RemoveAnAttendeeByItsIdEndpoint : Endpoint<RemoveAttendeeRequest, R
             },
             none: () => Task.FromResult<Results<NoContent, NotFound>>(TypedResults.NotFound())
         );
-        return TypedResults.NotFound();
     }
 }
