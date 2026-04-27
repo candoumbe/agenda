@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Candoumbe.DataAccess.EFStore" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="OpenTelemetry.Api" />
     <PackageReference Include="Paramore.Brighter" />
     
   </ItemGroup>

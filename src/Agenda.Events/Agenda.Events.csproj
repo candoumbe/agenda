@@ -8,6 +8,7 @@
     <ProjectReference Include="..\Agenda.Ids\Agenda.Ids.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Api" />
     <PackageReference Include="Paramore.Brighter" />
   </ItemGroup>
 </Project>
