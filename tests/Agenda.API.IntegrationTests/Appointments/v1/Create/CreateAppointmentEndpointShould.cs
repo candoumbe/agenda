@@ -28,7 +28,7 @@ using Xunit.OpenCategories.V3;
 
 namespace Agenda.API.IntegrationTests.Appointments.v1.Create;
 
-[IntegrationTests]
+[IntegrationTest]
 [Feature(nameof(Appointments))]
 public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : IAsyncLifetime
 {

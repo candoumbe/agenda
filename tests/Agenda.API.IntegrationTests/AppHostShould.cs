@@ -9,7 +9,7 @@ using Xunit.OpenCategories.V3;
 
 namespace Agenda.API.IntegrationTests;
 
-[IntegrationTests]
+[IntegrationTest]
 public class AppHostShould(ITestOutputHelper outputHelper)
 {
     private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(120);
