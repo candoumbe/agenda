@@ -50,7 +50,6 @@ while ! docker info >/dev/null 2>&1; do
 done
 echo "[post-start] Docker daemon is ready"
 
-cd "$SCRIPT_DIR"
 echo "[post-start] Restoring local dotnet tools"
 ./build.sh --target restore
 
