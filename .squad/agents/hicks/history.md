@@ -43,6 +43,31 @@ import { vi } from 'vitest';
 - API contract alignment verified against SearchAppointmentsEndpoint response
 - Coverage: 83.42% overall, 86.33% on component, 88.37% branch coverage
 
+### 2026-04-26: Unit-test Build Failure Diagnosis
+
+**Task:** Diagnose why `./build.sh unit-tests` was failing in the Nuke pipeline.
+
+**Root Causes Found (two compounding issues):**
+
+1. **Format gate blocks UnitTests first.**
+   The Nuke `UnitTests` target depends on `Format`. Any formatting violation causes the pipeline to abort before a single test runs. This masks test failures entirely when code isn't fully formatted.
+
+2. **Nuke `DotNetTest` is incompatible with Microsoft.Testing.Platform (MTP).**
+   The projects under `tests/` use MTP (via the `Microsoft.Testing.Platform` runner). Nuke's built-in `DotNetTest` helper passes `--logger` and `--results-directory` flags that MTP does not accept, causing the test host to exit with an error before any test assertion is evaluated. This is **not** a red test — it is a runner invocation mismatch.
+
+**Key files:**
+- `build/Build.cs` — Nuke target definitions, `DotNetTest` call site
+- `tests.props` — shared test project properties (MTP enablement)
+- `global.json` — SDK version pinning
+
+**Required fixes:**
+- Replace `DotNetTest(...)` in the `UnitTests` Nuke target with a direct MTP-compatible invocation (e.g., `DotNet("test {project} --no-build")` or a `ProcessTasks.StartProcess("dotnet", ...)` call that omits unsupported flags).
+- Either decouple `UnitTests` from the `Format` dependency or document a `--skip Format` invocation for developers running tests locally.
+
+**Confidence:** High — both blockers reproduced consistently; no ambiguity about root cause.
+
+---
+
 ### 2026-04-25: UI Bugfixes QA Validation (Dallas's Changes)
 
 **Changes Validated:**
