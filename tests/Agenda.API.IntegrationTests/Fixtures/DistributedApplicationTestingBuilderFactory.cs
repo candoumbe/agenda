@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting.ApplicationModel;
@@ -28,6 +29,7 @@ namespace Agenda.API.IntegrationTests.Fixtures;
 public static class DistributedApplicationTestingBuilderFactory
 {
     private static readonly TimeSpan s_defaultTimeout = 30.Seconds();
+    private static int s_httpsCertificateChecked;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DistributedApplicationTestingBuilderFactory"/> class.
@@ -37,6 +39,8 @@ public static class DistributedApplicationTestingBuilderFactory
     /// <returns></returns>
     public static async Task<AgendaApplicationTestingBuilder> CreateBuilderAsync(ITestOutputHelper outputHelper = null, CancellationToken cancellationToken = default)
     {
+        EnsureDeveloperHttpsCertificate();
+
         string previousRunningIntegrationTestsValue = Environment.GetEnvironmentVariable("RunningIntegrationTests");
         Environment.SetEnvironmentVariable("RunningIntegrationTests", bool.TrueString);
         IDistributedApplicationTestingBuilder builder = await DistributedApplicationTestingBuilder.CreateAsync<Agenda_AppHost>(cancellationToken);
@@ -68,5 +72,47 @@ public static class DistributedApplicationTestingBuilderFactory
                                     });
 
         return new AgendaApplicationTestingBuilder(builder, previousRunningIntegrationTestsValue);
+    }
+
+    private static void EnsureDeveloperHttpsCertificate()
+    {
+        if (Interlocked.Exchange(ref s_httpsCertificateChecked, 1) == 1)
+        {
+            return;
+        }
+
+        ProcessStartInfo checkCertificateStartInfo = new("dotnet", "dev-certs https --check")
+        {
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using Process checkCertificateProcess = Process.Start(checkCertificateStartInfo);
+        checkCertificateProcess?.WaitForExit();
+
+        if (checkCertificateProcess is not null && checkCertificateProcess.ExitCode == 0)
+        {
+            return;
+        }
+
+        ProcessStartInfo createCertificateStartInfo = new("dotnet", "dev-certs https")
+        {
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using Process createCertificateProcess = Process.Start(createCertificateStartInfo);
+        createCertificateProcess?.WaitForExit();
+
+        if (createCertificateProcess is null || createCertificateProcess.ExitCode != 0)
+        {
+            string errorOutput = createCertificateProcess?.StandardError.ReadToEnd() ?? string.Empty;
+            string standardOutput = createCertificateProcess?.StandardOutput.ReadToEnd() ?? string.Empty;
+            throw new InvalidOperationException($"Unable to create ASP.NET Core developer HTTPS certificate. stdout='{standardOutput}' stderr='{errorOutput}'");
+        }
     }
 }
