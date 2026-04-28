@@ -29,7 +29,9 @@ namespace Agenda.API.IntegrationTests.Fixtures;
 public static class DistributedApplicationTestingBuilderFactory
 {
     private static readonly TimeSpan s_defaultTimeout = 30.Seconds();
+#pragma warning disable IDE1006 // Styles d'affectation de noms
     private static int s_httpsCertificateChecked;
+#pragma warning restore IDE1006 // Styles d'affectation de noms
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DistributedApplicationTestingBuilderFactory"/> class.
