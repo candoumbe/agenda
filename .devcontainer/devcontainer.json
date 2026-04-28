@@ -25,9 +25,9 @@
   "containerEnv": {
     "TESTCONTAINERS_RYUK_CONTAINER_PRIVILEGED": "false"
   },
-  "onCreateCommand": "zsh ./.devcontainer/scripts/on-create.sh",
-  "postCreateCommand": "zsh ./.devcontainer/scripts/post-create.sh",
-  "postStartCommand": "zsh ./.devcontainer/scripts/post-start.sh",
+  "onCreateCommand": "bash ./.devcontainer/scripts/on-create.sh",
+  "postCreateCommand": "bash ./.devcontainer/scripts/post-create.sh",
+  "postStartCommand": "bash ./.devcontainer/scripts/post-start.sh",
   "customizations": {
     "vscode": {
       "extensions": [
