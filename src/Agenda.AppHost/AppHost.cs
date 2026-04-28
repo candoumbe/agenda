@@ -25,14 +25,18 @@ var migrationService = builder.AddProject<Agenda_Migrator>("migrations")
     .WithReference(postgres)
     .WaitFor(postgres);
 
-var api = builder.AddProject<Agenda_API>("api")
-    .WithDeveloperCertificateTrust(trust: true)
+IResourceBuilder<ProjectResource> api = builder.AddProject<Agenda_API>("api")
     .WithExternalHttpEndpoints()
     .WithReference(postgres)
     .WithReference(messaging)
     .WaitFor(messaging)
     .WaitForCompletion(migrationService)
     .PublishAsDockerFile();
+
+if (!isRunningIntegrationTests)
+{
+    api = api.WithDeveloperCertificateTrust(trust: true);
+}
 
 string runScriptName = builder.ExecutionContext.IsRunMode ? "start:dev" : "start";
 
