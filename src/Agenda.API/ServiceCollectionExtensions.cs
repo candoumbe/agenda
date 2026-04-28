@@ -100,11 +100,12 @@ public static class ServiceCollectionExtensions
         {
             string databaseConnectionString = configuration.GetConnectionString("postgres")!;
             MessagingOptions messagingOptions = configuration.GetSection($"ApiOptions:{nameof(AgendaApiOptions.MessagingOptions)}").Get<MessagingOptions>();
+            bool runningIntegrationTests = configuration.GetValue<bool>("RunningIntegrationTests");
             RelationalDatabaseConfiguration outboxConfiguration = new (databaseConnectionString, outBoxTableName: "outbox");
 
             services.AddSingleton<IAmARelationalDatabaseConfiguration>(outboxConfiguration);
 
-            services.AddBrighter()
+            IBrighterBuilder brighterBuilder = services.AddBrighter()
                 .AddProducers(producers =>
                 {
                     RmqMessagingGatewayConnection rmqMessagingGatewayConnection = new ()
@@ -130,8 +131,12 @@ public static class ServiceCollectionExtensions
                     producers.Outbox = new PostgreSqlOutbox(outboxConfiguration);
                     producers.ConnectionProvider = typeof(PostgreSqlConnectionProvider);
                     producers.TransactionProvider = typeof(PostgreSqlEntityFrameworkTransactionProvider<AgendaDataStore>);
-                })
-                .UseOutboxSweeper();
+                });
+
+            if (!runningIntegrationTests)
+            {
+                brighterBuilder.UseOutboxSweeper();
+            }
         }
     }
 }
