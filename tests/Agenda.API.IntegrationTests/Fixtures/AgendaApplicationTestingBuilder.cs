@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// Time to wait after which the application under test will be considered as "not started".
     /// </summary>
     private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromSeconds(120);
+    private static readonly TimeSpan s_readinessProbeDelay = TimeSpan.FromMilliseconds(500);
     /// <summary>
     /// Time to wait after which building the infrastructure will be considered as failed.
     /// </summary>
@@ -56,9 +58,40 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         await _app.StartAsync(cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
         await _app.WaitForResourcesAsync(cancellationToken: cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
 
-        ApiClient = _app.CreateHttpClient(ApiResourceName);
+        ApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http");
+        await WaitUntilApiIsReachableAsync(cancellationToken);
 
         return _app;
+    }
+
+    private async Task WaitUntilApiIsReachableAsync(CancellationToken cancellationToken)
+    {
+        Exception lastException = null;
+
+        using CancellationTokenSource timeoutCancellationTokenSource = new(s_startStopTimeout);
+        using CancellationTokenSource linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellationTokenSource.Token);
+
+        while (!linkedCancellationTokenSource.IsCancellationRequested)
+        {
+            try
+            {
+                using HttpRequestMessage request = new(HttpMethod.Get, "/health");
+                using HttpResponseMessage response = await ApiClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedCancellationTokenSource.Token);
+
+                if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return;
+                }
+            }
+            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+            {
+                lastException = exception;
+            }
+
+            await Task.Delay(s_readinessProbeDelay, linkedCancellationTokenSource.Token);
+        }
+
+        throw new TimeoutException("The API endpoint did not become reachable before the startup timeout elapsed.", lastException);
     }
 
 
