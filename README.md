@@ -19,13 +19,11 @@ This repo follows the gitflow to manage its branches.
 
 ## <a id="lnk-contribute">Want to contribute ?</a>
 
-You can start contributing by looking at [`good first issues`](https://github.com/kalic-io/agenda/contribute) 
+You can start contributing by looking at [`good first issues`](https://github.com/kalic-io/agenda/contribute)
 on the issue tracker.
 
 Make sure you've read the [contribution guidelines](CONTRIBUTING.md)
 
 ## <a id="lnk-contribute">Troubleshooting</a>
 
-If you find an issue, you can submit a pull request (PRs are welcome 😀 !!) or [open an issue](https://github.com/kalic-io/agenda/issues/new). 
-
-If Testcontainers-based tests fail in the devcontainer because the Ryuk sidecar cannot start correctly, rebuild or reopen the devcontainer to apply the shared fix. The devcontainer now sets `TESTCONTAINERS_RYUK_CONTAINER_PRIVILEGED=false` so Ryuk runs without privileged mode in Docker-in-Docker.
+If you find an issue, you can submit a pull request (PRs are welcome 😀 !!) or [open an issue](https://github.com/kalic-io/agenda/issues/new).
