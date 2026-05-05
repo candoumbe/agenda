@@ -22,9 +22,6 @@ namespace Agenda.API;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Extension method used to configure dependency injection container.
-    /// </summary>
     extension(IServiceCollection services)
     {
         /// <summary>
@@ -81,9 +78,6 @@ public static class ServiceCollectionExtensions
         /// <summary>
         /// Configure dependency injection container
         /// </summary>
-        /// <remarks>
-        /// Adds the
-        /// </remarks>
         public void AddCustomizedDependencyInjection()
         {
             services.AddSingleton<IClock>(SystemClock.Instance);
@@ -101,14 +95,14 @@ public static class ServiceCollectionExtensions
             string databaseConnectionString = configuration.GetConnectionString("postgres")!;
             MessagingOptions messagingOptions = configuration.GetSection($"ApiOptions:{nameof(AgendaApiOptions.MessagingOptions)}").Get<MessagingOptions>();
             bool runningIntegrationTests = configuration.GetValue<bool>("RunningIntegrationTests");
-            RelationalDatabaseConfiguration outboxConfiguration = new (databaseConnectionString, outBoxTableName: "outbox");
+            RelationalDatabaseConfiguration outboxConfiguration = new(databaseConnectionString, outBoxTableName: "outbox");
 
             services.AddSingleton<IAmARelationalDatabaseConfiguration>(outboxConfiguration);
 
             IBrighterBuilder brighterBuilder = services.AddBrighter()
                 .AddProducers(producers =>
                 {
-                    RmqMessagingGatewayConnection rmqMessagingGatewayConnection = new ()
+                    RmqMessagingGatewayConnection rmqMessagingGatewayConnection = new()
                     {
                         AmpqUri = new AmqpUriSpecification(new Uri(configuration.GetConnectionString("messaging")!)),
                         PersistMessages = true,
