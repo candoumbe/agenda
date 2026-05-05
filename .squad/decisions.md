@@ -50,6 +50,24 @@
 **Why:** Keep UI navigation robust when backend clamps/adjusts page values and improve search usefulness.
 **Impact:** Stable pagination UX, better search coverage, and improved frontend test confidence.
 
+### 2026-04-26T09:54:11Z: User directive - Agent history language
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** All agent history files must always be written in English.
+**Why:** Ensure consistency and readability across all team history artifacts.
+
+### 2026-04-28T16:08:01Z: User directive - Reinforce GitFlow and CONTRIBUTING
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** Team must strictly follow GitFlow and read `CONTRIBUTING.md` before any code modification.
+**Why:** Reinforce workflow and contribution discipline as non-optional preconditions for code changes.
+
+### 2026-04-26T18:00:00Z: Unit-tests pipeline compatibility with Microsoft.Testing.Platform
+**By:** Hicks (via Scribe)
+**What:** `./build.sh unit-tests` is blocked by two independent issues:
+- `UnitTests` depends on `Format`, so formatting violations can abort before tests run.
+- Nuke's `DotNetTest` invocation passes options incompatible with Microsoft.Testing.Platform (`--logger`, `--results-directory`).
+**Decision:** Update `UnitTests` in `build/Build.cs` to use an MTP-compatible test invocation, and decouple `Format` from `UnitTests` or provide a documented skip path.
+**Why:** Restore reliable and actionable unit-test execution in local and CI workflows.
+
 ## Governance
 
 - All meaningful changes require team consensus
