@@ -56,7 +56,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         _app  = await _sutBuilder.BuildAsync(cancellationToken).WaitAsync(s_buildStopTimeout, cancellationToken);
 
         await _app.StartAsync(cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
-        await _app.WaitForResourcesAsync(cancellationToken: cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
+        await _app.WaitForResource(ApiResourceName, cancellationToken: cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
 
         ApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http");
         await WaitUntilApiIsReachableAsync(cancellationToken);
