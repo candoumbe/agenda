@@ -13,9 +13,11 @@ using Xunit.OpenCategories.V3;
 
 namespace Agenda.API.IntegrationTests;
 
-[IntegrationTests]
+[IntegrationTest]
 public class HealthCheckSplitShould
 {
+    private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromSeconds(30);
+
     [Fact]
     public async Task Return_unhealthy_from_health_but_healthy_from_alive_when_readiness_check_fails()
     {
@@ -34,16 +36,23 @@ public class HealthCheckSplitShould
         app.MapHealthChecks("/health");
         app.MapHealthChecks("/alive", new HealthCheckOptions { Predicate = r => r.Tags.Contains("live") });
 
-        await app.StartAsync(cancellationToken);
+        await app.StartAsync(cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
 
         using HttpClient client = app.GetTestClient();
 
-        // Act
-        using HttpResponseMessage healthResponse = await client.GetAsync("/health", cancellationToken);
-        using HttpResponseMessage aliveResponse = await client.GetAsync("/alive", cancellationToken);
+        try
+        {
+            // Act
+            using HttpResponseMessage healthResponse = await client.GetAsync("/health", cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
+            using HttpResponseMessage aliveResponse = await client.GetAsync("/alive", cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
 
-        // Assert
-        healthResponse.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
-        aliveResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+            // Assert
+            healthResponse.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+            aliveResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+        finally
+        {
+            await app.StopAsync(cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
+        }
     }
 }
