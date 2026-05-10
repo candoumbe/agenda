@@ -2,5 +2,6 @@
   "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
   "methodDisplay": "method",
   "methodDisplayOptions": "all",
-  "shadowCopy": false
+  "shadowCopy": false,
+  "maxParallelThreads": 1
 }

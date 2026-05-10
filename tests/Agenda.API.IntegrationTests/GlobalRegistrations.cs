@@ -13,6 +13,7 @@ using Xunit;
 // de COM, définissez l'attribut ComVisible sur True pour ce type.
 
 [assembly: ComVisible(false)]
+[assembly: CollectionBehavior(DisableTestParallelization = true, MaxParallelThreads = 1)]
 
 // Le GUID suivant concerne l'ID de typelib si ce projet est exposé à COM.
 
