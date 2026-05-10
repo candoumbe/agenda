@@ -72,8 +72,6 @@ builder.Services.AddFastEndpoints(options => options.IncludeAbstractValidators =
 
 WebApplication app = builder.Build();
 
-app.MapDefaultEndpoints();
-
 // app.UseSerilogRequestLogging(opts => opts.EnrichDiagnosticContext = (diagnosticContext, httpContext) => diagnosticContext.Set("CorrelationId", httpContext.TraceIdentifier));
 app.UseFastEndpoints(config =>
                      {
