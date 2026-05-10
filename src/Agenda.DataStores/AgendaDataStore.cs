@@ -1,4 +1,4 @@
-﻿
+
 using Agenda.Objects;
 
 using Candoumbe.DataAccess.Abstractions;

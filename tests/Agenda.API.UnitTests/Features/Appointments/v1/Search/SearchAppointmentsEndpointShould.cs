@@ -146,7 +146,6 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
             // Search with no filter, first page and there are 3 pages of 10 items
             {
                 List<Appointment> data = s_appointementFaker.Generate(30);
-
                 SearchAppointmentRequest request = new() { Page = NonNegativeInteger.One, PageSize = PositiveInteger.From(10) };
                 cases.Add(data,
                           request,
@@ -304,6 +303,102 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                                                             && pageOfAppointments.Links.Previous == null
                                                             && pageOfAppointments.Links.Next == null
                                                             && pageOfAppointments.Links.Last != null
+                          });
+            }
+
+            // Search by subject case-insensitive (upper-cased query should match lower-cased data)
+            {
+                Instant startDate = Instant.FromUtc(2026, 05, 10, 9, 0);
+                Appointment appointment = new(AppointmentId.New(),
+                                             "backend architecture review",
+                                             "Paris",
+                                             startDate,
+                                             startDate.Plus(Duration.FromHours(1)));
+
+                List<Appointment> data = [appointment];
+                SearchAppointmentRequest request = new()
+                {
+                    Page = NonNegativeInteger.One,
+                    PageSize = PositiveInteger.From(10),
+                    Subject = "*BACKEND*"
+                };
+
+                cases.Add(data,
+                          request,
+                          new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
+                          {
+                              Value = pageOfAppointments => pageOfAppointments.Total == 1
+                                                            && pageOfAppointments.TotalCount == 1
+                                                            && pageOfAppointments.Count == 1
+                                                            && pageOfAppointments.Items != null
+                                                            && pageOfAppointments.Items.Exactly(1)
+                                                            && pageOfAppointments.Items.Once(a => a.Resource.Id == appointment.Id)
+                          });
+            }
+
+            // Search by location case-insensitive (lower-cased query should match upper-cased data)
+            {
+                Instant startDate = Instant.FromUtc(2026, 05, 10, 14, 0);
+                Appointment appointment = new(AppointmentId.New(),
+                                             "Product roadmap",
+                                             "PARIS",
+                                             startDate,
+                                             startDate.Plus(Duration.FromHours(2)));
+
+                Appointment otherAppointment = new(AppointmentId.New(),
+                                                   "Product roadmap",
+                                                   "Lyon",
+                                                   startDate,
+                                                   startDate.Plus(Duration.FromHours(2)));
+
+                List<Appointment> data = [appointment, otherAppointment];
+                SearchAppointmentRequest request = new()
+                {
+                    Page = NonNegativeInteger.One,
+                    PageSize = PositiveInteger.From(10),
+                    Location = "*paris*"
+                };
+
+                cases.Add(data,
+                          request,
+                          new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
+                          {
+                              Value = pageOfAppointments => pageOfAppointments.Total == 1
+                                                            && pageOfAppointments.TotalCount == 1
+                                                            && pageOfAppointments.Count == 1
+                                                            && pageOfAppointments.Items != null
+                                                            && pageOfAppointments.Items.Exactly(1)
+                                                            && pageOfAppointments.Items.Once(a => a.Resource.Id == appointment.Id)
+                          });
+            }
+
+            // Search by subject mixed-case (mixed-case query should match mixed-case data regardless of casing)
+            {
+                Instant startDate = Instant.FromUtc(2026, 05, 10, 16, 0);
+                Appointment appointment = new(AppointmentId.New(),
+                                             "Should Shazam be a member of the JLA ?",
+                                             "Metropolis",
+                                             startDate,
+                                             startDate.Plus(Duration.FromHours(1)));
+
+                List<Appointment> data = [appointment];
+                SearchAppointmentRequest request = new()
+                {
+                    Page = NonNegativeInteger.One,
+                    PageSize = PositiveInteger.From(10),
+                    Subject = "*shazam*"
+                };
+
+                cases.Add(data,
+                          request,
+                          new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
+                          {
+                              Value = pageOfAppointments => pageOfAppointments.Total == 1
+                                                            && pageOfAppointments.TotalCount == 1
+                                                            && pageOfAppointments.Count == 1
+                                                            && pageOfAppointments.Items != null
+                                                            && pageOfAppointments.Items.Exactly(1)
+                                                            && pageOfAppointments.Items.Once(a => a.Resource.Id == appointment.Id)
                           });
             }
 
