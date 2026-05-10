@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Aspire.Hosting;
 using Microsoft.Extensions.Configuration;
 using Projects;
@@ -6,6 +7,8 @@ IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(ar
 
 var postgres = builder.AddPostgres("postgres")
     .WithImage("postgres:17-alpine");
+
+ApplyResourceLimits(postgres, builder.Configuration.GetSection("Aspire:Resources:postgres"));
 
 
 bool isRunningIntegrationTests = builder.Configuration.GetValue(RunningIntegrationTestsConfigName, false);
@@ -20,6 +23,8 @@ if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
 
 var messaging = builder.AddRabbitMQ("messaging")
     .WithManagementPlugin();
+
+ApplyResourceLimits(messaging, builder.Configuration.GetSection("Aspire:Resources:messaging"));
 
 var migrationService = builder.AddProject<Agenda_Migrator>("migrations")
     .WithReference(postgres)
@@ -53,6 +58,32 @@ if (!isRunningIntegrationTests)
 }
 
 builder.Build().Run();
+
+static void ApplyResourceLimits<TResource>(Aspire.Hosting.ApplicationModel.IResourceBuilder<TResource> resourceBuilder, IConfigurationSection section)
+    where TResource : Aspire.Hosting.ApplicationModel.ContainerResource
+{
+    string cpuLimit = section.GetValue<string>("cpu");
+    string memoryLimit = section.GetValue<string>("memory");
+
+    List<string> runtimeArgs = [];
+
+    if (!string.IsNullOrWhiteSpace(cpuLimit))
+    {
+        runtimeArgs.Add("--cpus");
+        runtimeArgs.Add(cpuLimit);
+    }
+
+    if (!string.IsNullOrWhiteSpace(memoryLimit))
+    {
+        runtimeArgs.Add("--memory");
+        runtimeArgs.Add(memoryLimit);
+    }
+
+    if (runtimeArgs.Count > 0)
+    {
+        resourceBuilder.WithContainerRuntimeArgs([.. runtimeArgs]);
+    }
+}
 
 
 public partial class Program
