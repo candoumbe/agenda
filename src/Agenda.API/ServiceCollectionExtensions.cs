@@ -47,7 +47,7 @@ public static class ServiceCollectionExtensions
             });
 
             services.AddHealthChecks()
-                    .AddDbContextCheck<AgendaDataStore>(tags: ["ready"]);
+                    .AddDbContextCheck<AgendaDataStore>(name: "agenda-datastore-readiness", tags: ["ready"]);
         }
 
         /// <summary>
