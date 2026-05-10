@@ -25,6 +25,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// </summary>
     private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan s_readinessProbeDelay = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan s_requestProbeTimeout = TimeSpan.FromSeconds(5);
     /// <summary>
     /// Time to wait after which building the infrastructure will be considered as failed.
     /// </summary>
@@ -56,7 +57,6 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         _app  = await _sutBuilder.BuildAsync(cancellationToken).WaitAsync(s_buildStopTimeout, cancellationToken);
 
         await _app.StartAsync(cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
-        await _app.WaitForResource(ApiResourceName, cancellationToken: cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
 
         ApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http");
         await WaitUntilApiIsReachableAsync(cancellationToken);
@@ -75,8 +75,11 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         {
             try
             {
-                using HttpRequestMessage request = new(HttpMethod.Get, "/health");
-                using HttpResponseMessage response = await ApiClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, linkedCancellationTokenSource.Token);
+                using HttpRequestMessage request = new(HttpMethod.Get, "/alive");
+                using CancellationTokenSource requestCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(linkedCancellationTokenSource.Token);
+                requestCancellationTokenSource.CancelAfter(s_requestProbeTimeout);
+
+                using HttpResponseMessage response = await ApiClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, requestCancellationTokenSource.Token);
 
                 if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.NotFound)
                 {

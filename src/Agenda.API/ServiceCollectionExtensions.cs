@@ -45,6 +45,9 @@ public static class ServiceCollectionExtensions
                 IClock clock = serviceProvider.GetRequiredService<IClock>();
                 return new EntityFrameworkUnitOfWorkFactory<AgendaDataStore>(dbContextOptions, options => new AgendaDataStore(options, clock), new AgendaRepositoryFactory());
             });
+
+            services.AddHealthChecks()
+                    .AddDbContextCheck<AgendaDataStore>(name: "agenda-datastore-readiness", tags: ["ready"]);
         }
 
         /// <summary>

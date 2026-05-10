@@ -49,6 +49,8 @@ public static class DistributedApplicationTestingBuilderFactory
 
 
         builder.Configuration.AddInMemoryCollection([new KeyValuePair<string, string>("RunningIntegrationTests", bool.TrueString)]);
+        builder.Configuration["ConnectionStrings:postgres"] += ";SSL Mode=Disable";
+        
         builder.WithRandomParameterValues();
         builder.WithRandomVolumeNames();
         // Containers should be re-created for each test.
