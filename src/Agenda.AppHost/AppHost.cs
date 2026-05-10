@@ -21,17 +21,30 @@ if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
 var messaging = builder.AddRabbitMQ("messaging")
     .WithManagementPlugin();
 
-var migrationService = builder.AddProject<Agenda_Migrator>("migrations")
-    .WithReference(postgres)
-    .WaitFor(postgres);
+IResourceBuilder<ProjectResource> migrationService = builder.AddProject<Agenda_Migrator>("migrations")
+    .WithReference(postgres);
+
+if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
+{
+    migrationService = migrationService.WaitFor(postgres);
+}
 
 IResourceBuilder<ProjectResource> api = builder.AddProject<Agenda_API>("api")
     .WithExternalHttpEndpoints()
     .WithReference(postgres)
-    .WithReference(messaging)
-    .WaitFor(messaging)
-    .WaitForCompletion(migrationService)
-    .PublishAsDockerFile();
+    .WithReference(messaging);
+
+if (builder.ExecutionContext.IsPublishMode)
+{
+    api = api.PublishAsDockerFile();
+}
+
+if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
+{
+    api = api
+        .WaitFor(messaging)
+        .WaitForCompletion(migrationService);
+}
 
 if (!isRunningIntegrationTests)
 {
