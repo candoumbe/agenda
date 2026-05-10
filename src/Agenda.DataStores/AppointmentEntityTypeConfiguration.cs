@@ -1,4 +1,3 @@
-﻿
 using Agenda.Ids;
 using Agenda.Objects;
 
@@ -16,11 +15,13 @@ internal class AppointmentEntityTypeConfiguration : IEntityTypeConfiguration<App
         builder.Property(x => x.Id).HasConversion<AppointmentId.EfCoreValueConverter>();
 
         builder.Property(x => x.Location)
-            .HasMaxLength(AgendaDataStore.NormalTextLength);
+            .HasMaxLength(AgendaDataStore.NormalTextLength)
+            .HasColumnType("citext");
 
         builder.Property(x => x.Subject)
             .HasMaxLength(AgendaDataStore.NormalTextLength)
-            .IsRequired();
+            .IsRequired()
+            .HasColumnType("citext");
 
         builder.Property(x => x.StartDate)
               .IsRequired();
