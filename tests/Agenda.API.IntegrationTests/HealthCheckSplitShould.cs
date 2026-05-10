@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -40,19 +41,12 @@ public class HealthCheckSplitShould
 
         using HttpClient client = app.GetTestClient();
 
-        try
-        {
-            // Act
-            using HttpResponseMessage healthResponse = await client.GetAsync("/health", cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
-            using HttpResponseMessage aliveResponse = await client.GetAsync("/alive", cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
+        // Act
+        using HttpResponseMessage healthResponse = await client.GetAsync("/health", cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
+        using HttpResponseMessage aliveResponse = await client.GetAsync("/alive", cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
 
-            // Assert
-            healthResponse.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
-            aliveResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        }
-        finally
-        {
-            await app.StopAsync(cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
-        }
+        // Assert
+        healthResponse.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        aliveResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }
