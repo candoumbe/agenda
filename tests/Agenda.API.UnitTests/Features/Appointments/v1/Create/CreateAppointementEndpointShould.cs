@@ -284,6 +284,13 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                                                               A<CancellationToken>._))
                 .ReturnsLazily((AppointmentScheduled evt, RequestContext _, Dictionary<string, object> _, bool _, CancellationToken _) => evt.Id);
 
+            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentCreated>._,
+                                                              A<RequestContext>._,
+                                                              A<Dictionary<string, object>>._,
+                                                              A<bool>._,
+                                                              A<CancellationToken>._))
+                .ReturnsLazily((AppointmentCreated evt, RequestContext _, Dictionary<string, object> _, bool _, CancellationToken _) => evt.Id);
+
             // Act
             await _sut.ExecuteAsync(req, CancellationToken.None);
 
