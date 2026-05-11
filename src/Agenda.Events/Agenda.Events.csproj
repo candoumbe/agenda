@@ -10,5 +10,6 @@
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Api" />
     <PackageReference Include="Paramore.Brighter" />
+    <PackageReference Include="NodaTime" />
   </ItemGroup>
 </Project>

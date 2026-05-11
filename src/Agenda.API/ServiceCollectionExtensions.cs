@@ -120,8 +120,13 @@ public static class ServiceCollectionExtensions
                             MakeChannels = OnMissingChannel.Create,
                             WaitForConfirmsTimeOutInMilliseconds = 1000,
                             Subject = "appointment/scheduled",
-
-
+                        },
+                        new RmqPublication<AppointmentCreated>()
+                        {
+                            Topic = "agenda.appointments.created",
+                            MakeChannels = OnMissingChannel.Create,
+                            WaitForConfirmsTimeOutInMilliseconds = 1000,
+                            Subject = "appointment/created",
                         }
                     ];
                     producers.ProducerRegistry = new RmqProducerRegistryFactory(rmqMessagingGatewayConnection, publications).Create();
