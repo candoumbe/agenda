@@ -441,5 +441,164 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                 A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
         }
+
+        [Fact]
+        public async Task Emit_AppointmentCreated_event_with_empty_location_when_no_location_provided()
+        {
+            // Arrange
+            NewAppointmentInfo req = new()
+            {
+                Id = AppointmentId.New(),
+                Subject = s_faker.Lorem.Sentence(),
+                Location = string.Empty,
+                StartDate = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime(),
+                EndDate = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime(),
+                Attendees = s_attendeeFaker.Generate(1),
+            };
+
+            A.CallTo(() => _linkGenerator.GetUriByAddress(A<HttpContext>.Ignored,
+                                                          A<string>.Ignored,
+                                                          A<RouteValueDictionary>.Ignored,
+                                                          A<RouteValueDictionary>.Ignored,
+                                                          A<string>.Ignored,
+                                                          A<HostString>.Ignored,
+                                                          A<PathString>.Ignored,
+                                                          A<FragmentString>.Ignored,
+                                                          A<LinkOptions>.Ignored))
+                .WithAnyArguments()
+                .Returns(s_faker.Internet.Url());
+
+            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentScheduled>._,
+                                                              A<RequestContext>._,
+                                                              A<Dictionary<string, object>>._,
+                                                              A<bool>._,
+                                                              A<CancellationToken>._))
+                .ReturnsLazily((AppointmentScheduled evt, RequestContext _, Dictionary<string, object> _, bool _, CancellationToken _) => evt.Id);
+
+            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentCreated>._,
+                                                              A<RequestContext>._,
+                                                              A<Dictionary<string, object>>._,
+                                                              A<bool>._,
+                                                              A<CancellationToken>._))
+                .ReturnsLazily((AppointmentCreated evt, RequestContext _, Dictionary<string, object> _, bool _, CancellationToken _) => evt.Id);
+
+            // Act
+            await _sut.ExecuteAsync(req, CancellationToken.None);
+
+            // Assert
+            A.CallTo(() => _commandProcessor.DepositPostAsync(A<AppointmentCreated>.That.Matches(evt =>
+                    evt.Location == string.Empty),
+                A<RequestContext>._,
+                A<Dictionary<string, object>>._,
+                A<bool>._,
+                A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Fact]
+        public async Task Emit_AppointmentCreated_event_with_empty_attendees_list_when_none_provided()
+        {
+            // Arrange
+            NewAppointmentInfo req = new()
+            {
+                Id = AppointmentId.New(),
+                Subject = s_faker.Lorem.Sentence(),
+                Location = s_faker.Address.FullAddress(),
+                StartDate = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime(),
+                EndDate = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime(),
+                Attendees = null,
+            };
+
+            A.CallTo(() => _linkGenerator.GetUriByAddress(A<HttpContext>.Ignored,
+                                                          A<string>.Ignored,
+                                                          A<RouteValueDictionary>.Ignored,
+                                                          A<RouteValueDictionary>.Ignored,
+                                                          A<string>.Ignored,
+                                                          A<HostString>.Ignored,
+                                                          A<PathString>.Ignored,
+                                                          A<FragmentString>.Ignored,
+                                                          A<LinkOptions>.Ignored))
+                .WithAnyArguments()
+                .Returns(s_faker.Internet.Url());
+
+            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentScheduled>._,
+                                                              A<RequestContext>._,
+                                                              A<Dictionary<string, object>>._,
+                                                              A<bool>._,
+                                                              A<CancellationToken>._))
+                .ReturnsLazily((AppointmentScheduled evt, RequestContext _, Dictionary<string, object> _, bool _, CancellationToken _) => evt.Id);
+
+            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentCreated>._,
+                                                              A<RequestContext>._,
+                                                              A<Dictionary<string, object>>._,
+                                                              A<bool>._,
+                                                              A<CancellationToken>._))
+                .ReturnsLazily((AppointmentCreated evt, RequestContext _, Dictionary<string, object> _, bool _, CancellationToken _) => evt.Id);
+
+            // Act
+            await _sut.ExecuteAsync(req, CancellationToken.None);
+
+            // Assert
+            A.CallTo(() => _commandProcessor.DepositPostAsync(A<AppointmentCreated>.That.Matches(evt =>
+                    evt.Attendees.Count == 0),
+                A<RequestContext>._,
+                A<Dictionary<string, object>>._,
+                A<bool>._,
+                A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Fact]
+        public async Task Emit_AppointmentCreated_event_with_system_creator_id()
+        {
+            // Arrange
+            NewAppointmentInfo req = new()
+            {
+                Id = AppointmentId.New(),
+                Subject = s_faker.Lorem.Sentence(),
+                Location = s_faker.Address.FullAddress(),
+                StartDate = s_faker.Noda().ZonedDateTime.Past().ToOffsetDateTime(),
+                EndDate = s_faker.Noda().ZonedDateTime.Future().ToOffsetDateTime(),
+                Attendees = s_attendeeFaker.Generate(1),
+            };
+
+            A.CallTo(() => _linkGenerator.GetUriByAddress(A<HttpContext>.Ignored,
+                                                          A<string>.Ignored,
+                                                          A<RouteValueDictionary>.Ignored,
+                                                          A<RouteValueDictionary>.Ignored,
+                                                          A<string>.Ignored,
+                                                          A<HostString>.Ignored,
+                                                          A<PathString>.Ignored,
+                                                          A<FragmentString>.Ignored,
+                                                          A<LinkOptions>.Ignored))
+                .WithAnyArguments()
+                .Returns(s_faker.Internet.Url());
+
+            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentScheduled>._,
+                                                              A<RequestContext>._,
+                                                              A<Dictionary<string, object>>._,
+                                                              A<bool>._,
+                                                              A<CancellationToken>._))
+                .ReturnsLazily((AppointmentScheduled evt, RequestContext _, Dictionary<string, object> _, bool _, CancellationToken _) => evt.Id);
+
+            A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentCreated>._,
+                                                              A<RequestContext>._,
+                                                              A<Dictionary<string, object>>._,
+                                                              A<bool>._,
+                                                              A<CancellationToken>._))
+                .ReturnsLazily((AppointmentCreated evt, RequestContext _, Dictionary<string, object> _, bool _, CancellationToken _) => evt.Id);
+
+            // Act
+            await _sut.ExecuteAsync(req, CancellationToken.None);
+
+            // Assert
+            A.CallTo(() => _commandProcessor.DepositPostAsync(A<AppointmentCreated>.That.Matches(evt =>
+                    evt.CreatorId == "system"),
+                A<RequestContext>._,
+                A<Dictionary<string, object>>._,
+                A<bool>._,
+                A<CancellationToken>._))
+                .MustHaveHappenedOnceExactly();
+        }
     }
 }
