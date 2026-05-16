@@ -13,12 +13,7 @@ namespace Agenda.API.UnitTests.Features.Events
     [UnitTest]
     public class AppointmentCreatedShould
     {
-        private static readonly Faker s_faker;
-
-        static AppointmentCreatedShould()
-        {
-            s_faker = new Faker();
-        }
+        private static readonly Faker s_faker =  new ();
 
         [Fact]
         public void Build_with_required_data()
@@ -61,11 +56,12 @@ namespace Agenda.API.UnitTests.Features.Events
             IReadOnlyList<Attendee> attendees = [];
             string creatorId = "user-123";
 
-            // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
-                new AppointmentCreated(appointmentId, startDate, endDate, null!, attendees, creatorId));
+            // Act
+            Action buildEventWithNullLocation = () => _ = new AppointmentCreated(appointmentId, startDate, endDate, null!, attendees, creatorId);
 
-            exception.ParamName.Should().Be("location");
+            // Assert
+            buildEventWithNullLocation.Should().Throw<ArgumentNullException>()
+                .WithParameterName("location");
         }
 
         [Fact]
@@ -78,11 +74,12 @@ namespace Agenda.API.UnitTests.Features.Events
             string location = s_faker.Address.FullAddress();
             string creatorId = "user-123";
 
-            // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
-                new AppointmentCreated(appointmentId, startDate, endDate, location, null!, creatorId));
+            // Act
+            Action buildEventWithAttendeesNull = () => _ = new AppointmentCreated(appointmentId, startDate, endDate, location, null!, creatorId);
 
-            exception.ParamName.Should().Be("attendees");
+            // Assert
+            buildEventWithAttendeesNull.Should().Throw<ArgumentNullException>()
+                .WithParameterName("attendees");
         }
 
         [Fact]
@@ -95,11 +92,12 @@ namespace Agenda.API.UnitTests.Features.Events
             string location = s_faker.Address.FullAddress();
             IReadOnlyList<Attendee> attendees = [];
 
-            // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
-                new AppointmentCreated(appointmentId, startDate, endDate, location, attendees, null!));
+            // Act
+            Action buildEventWithCreatorNull = () => _ = new AppointmentCreated(appointmentId, startDate, endDate, location, attendees, null!);
 
-            exception.ParamName.Should().Be("creatorId");
+            // Assert
+            buildEventWithCreatorNull.Should().Throw<ArgumentNullException>()
+                .WithParameterName("creatorId");
         }
 
         [Fact]
