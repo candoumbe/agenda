@@ -83,7 +83,22 @@ public partial class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, Cr
                                                                             })
                                                              ]);
 
+        AppointmentCreated appointmentCreatedEvent = new(newAppointment.Id,
+                                                         newAppointment.StartDate,
+                                                         newAppointment.EndDate,
+                                                         newAppointment.Location,
+                                                         [
+                                                             ..newAppointment.Attendees.Select(a => new Agenda.Events.Attendee()
+                                                                        {
+                                                                            Id = a.Id.Value,
+                                                                            FirstName = a.Name,
+                                                                            LastName = a.Email
+                                                                        })
+                                                         ],
+                                                         "system");
+
         await _commandProcessor.DepositPostAsync(appointmentScheduledEvent, cancellationToken: ct);
+        await _commandProcessor.DepositPostAsync(appointmentCreatedEvent, cancellationToken: ct);
         await unitOfWork.SaveChangesAsync(ct).ConfigureAwait(false);
 
         DateTimeZone zone = _currentRequestMetadataInfoProvider.GetCurrentDateTimeZone();

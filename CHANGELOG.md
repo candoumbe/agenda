@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `DELETE /appointments/{id}/attendees/{id}` endpoint
 - Added RabbitMQ integration and related configuration.
 - Added publication of `AppointmentScheduled` event when a new appointment is scheduled : 
+- Added publication of `AppointmentCreated` event when a new appointment is created, containing appointment ID, start/end dates (ISO 8601), location, attendees list, and creator ID (#329)
 - Added healthchecks for PostgreSQL and RabbitMQ
 - Fixed appointments listing pagination metadata for UI navigation (`total` now represents total pages, with explicit `totalCount` and `pageSize` fields)
 - Added multi-criteria filtering for appointments listing (`subject`, `location`, and `from`/`to` time range)
