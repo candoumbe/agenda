@@ -13,7 +13,6 @@ bool isRunningIntegrationTests = builder.Configuration.GetValue(RunningIntegrati
 if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
 {
     postgres = postgres
-            .WithDataVolume(name: "postgres-data")
             .WithPgAdmin(containerName: "pg-admin")
             .WithPgWeb(containerName: "pg-web");
 }
