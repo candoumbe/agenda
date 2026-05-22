@@ -77,7 +77,7 @@
     <PackageVersion Include="Paramore.Brighter.MessagingGateway.RMQ.Async" Version="10.1.0" />
     <PackageVersion Include="Paramore.Brighter.Outbox.Hosting" Version="10.1.0" />
     <PackageVersion Include="Paramore.Brighter.Outbox.PostgreSql" Version="10.1.0" />
-    <PackageVersion Include="Paramore.Brighter.PostgreSql" Version="10.4.1" />
+    <PackageVersion Include="Paramore.Brighter.PostgreSql" Version="10.5.1" />
     <PackageVersion Include="Paramore.Brighter.PostgreSql.EntityFrameworkCore" Version="10.1.0" />
     <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.DependencyInjection" Version="10.1.0" />
     <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" Version="10.1.0" />
