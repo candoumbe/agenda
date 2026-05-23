@@ -1,14 +1,10 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
 using Xunit;
 
 namespace Agenda.API.IntegrationTests.Fixtures;
@@ -30,7 +26,6 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan s_readinessProbeDelay = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan s_requestProbeTimeout = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan s_dependencyProbeTimeout = TimeSpan.FromSeconds(5);
     /// <summary>
     /// Time to wait after which building the infrastructure will be considered as failed.
     /// </summary>
@@ -62,36 +57,14 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         _app  = await _sutBuilder.BuildAsync(cancellationToken).WaitAsync(s_buildStopTimeout, cancellationToken);
 
         await _app.StartAsync(cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
-        await _app.WaitForResourcesAsync(cancellationToken: cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
-        await WaitUntilDependenciesAreReadyAsync(cancellationToken);
 
         ApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http");
-        await WaitUntilApiIsReadyAsync(cancellationToken);
+        await WaitUntilApiIsReachableAsync(cancellationToken);
 
         return _app;
     }
 
-    private async Task WaitUntilDependenciesAreReadyAsync(CancellationToken cancellationToken)
-    {
-        IConfiguration configuration = _app.Services.GetRequiredService<IConfiguration>();
-        string postgresConnectionString = configuration.GetConnectionString("postgres");
-        string messagingConnectionString = configuration.GetConnectionString("messaging");
-
-        if (string.IsNullOrWhiteSpace(postgresConnectionString))
-        {
-            throw new InvalidOperationException("The 'postgres' connection string is missing in integration test runtime configuration.");
-        }
-
-        if (string.IsNullOrWhiteSpace(messagingConnectionString))
-        {
-            throw new InvalidOperationException("The 'messaging' connection string is missing in integration test runtime configuration.");
-        }
-
-        await WaitUntilPostgresIsReadyAsync(postgresConnectionString, cancellationToken);
-        await WaitUntilTcpEndpointIsReadyAsync(messagingConnectionString, "messaging", cancellationToken);
-    }
-
-    private async Task WaitUntilPostgresIsReadyAsync(string postgresConnectionString, CancellationToken cancellationToken)
+    private async Task WaitUntilApiIsReachableAsync(CancellationToken cancellationToken)
     {
         Exception lastException = null;
 
@@ -102,78 +75,13 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         {
             try
             {
-                await using NpgsqlConnection connection = new(postgresConnectionString);
-                using CancellationTokenSource requestCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(linkedCancellationTokenSource.Token);
-                requestCancellationTokenSource.CancelAfter(s_dependencyProbeTimeout);
-
-                await connection.OpenAsync(requestCancellationTokenSource.Token);
-                await using NpgsqlCommand command = new("SELECT 1", connection);
-                await command.ExecuteScalarAsync(requestCancellationTokenSource.Token);
-
-                return;
-            }
-            catch (Exception exception) when (exception is NpgsqlException or SocketException or TimeoutException or TaskCanceledException)
-            {
-                lastException = exception;
-            }
-
-            await Task.Delay(s_readinessProbeDelay, linkedCancellationTokenSource.Token);
-        }
-
-        throw new TimeoutException("Postgres did not become queryable before the startup timeout elapsed.", lastException);
-    }
-
-    private async Task WaitUntilTcpEndpointIsReadyAsync(string connectionString, string resourceName, CancellationToken cancellationToken)
-    {
-        Exception lastException = null;
-
-        using CancellationTokenSource timeoutCancellationTokenSource = new(s_startStopTimeout);
-        using CancellationTokenSource linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellationTokenSource.Token);
-
-        Uri endpointUri = new(connectionString);
-        int port = endpointUri.IsDefaultPort ? 5672 : endpointUri.Port;
-
-        while (!linkedCancellationTokenSource.IsCancellationRequested)
-        {
-            try
-            {
-                using CancellationTokenSource requestCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(linkedCancellationTokenSource.Token);
-                requestCancellationTokenSource.CancelAfter(s_dependencyProbeTimeout);
-
-                using TcpClient tcpClient = new();
-                await tcpClient.ConnectAsync(endpointUri.Host, port, requestCancellationTokenSource.Token);
-
-                return;
-            }
-            catch (Exception exception) when (exception is SocketException or TimeoutException or TaskCanceledException)
-            {
-                lastException = exception;
-            }
-
-            await Task.Delay(s_readinessProbeDelay, linkedCancellationTokenSource.Token);
-        }
-
-        throw new TimeoutException($"{resourceName} did not start accepting TCP connections before the startup timeout elapsed.", lastException);
-    }
-
-    private async Task WaitUntilApiIsReadyAsync(CancellationToken cancellationToken)
-    {
-        Exception lastException = null;
-
-        using CancellationTokenSource timeoutCancellationTokenSource = new(s_startStopTimeout);
-        using CancellationTokenSource linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellationTokenSource.Token);
-
-        while (!linkedCancellationTokenSource.IsCancellationRequested)
-        {
-            try
-            {
-                using HttpRequestMessage request = new(HttpMethod.Get, "/health");
+                using HttpRequestMessage request = new(HttpMethod.Get, "/alive");
                 using CancellationTokenSource requestCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(linkedCancellationTokenSource.Token);
                 requestCancellationTokenSource.CancelAfter(s_requestProbeTimeout);
 
                 using HttpResponseMessage response = await ApiClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, requestCancellationTokenSource.Token);
 
-                if (response.StatusCode == HttpStatusCode.OK)
+                if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.NotFound)
                 {
                     return;
                 }
@@ -186,7 +94,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
             await Task.Delay(s_readinessProbeDelay, linkedCancellationTokenSource.Token);
         }
 
-        throw new TimeoutException("The API health endpoint did not become ready before the startup timeout elapsed.", lastException);
+        throw new TimeoutException("The API endpoint did not become reachable before the startup timeout elapsed.", lastException);
     }
 
 
