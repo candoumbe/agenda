@@ -24,6 +24,8 @@ interface AppointmentGroup {
   styleUrl: './appointments-list-page.component.css'
 })
 export class AppointmentsListPageComponent implements OnInit {
+  private static readonly DEFAULT_RANGE_IN_DAYS = 15;
+
   private readonly _formBuilder = inject(FormBuilder);
   private readonly _apiService = inject(ApiService);
   private readonly _router = inject(Router);
@@ -39,6 +41,7 @@ export class AppointmentsListPageComponent implements OnInit {
   public hasNextPage = signal(false);
   public hasError = signal(false);
   public errorMessage = signal('');
+  public firstIncomingAppointmentOutsideInterval = signal<Browsable<Appointment> | null>(null);
 
   public readonly searchForm = this._formBuilder.nonNullable.group({
     subject: [''],
@@ -53,6 +56,7 @@ export class AppointmentsListPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.newlyCreatedAppointmentId = this.extractNewlyCreatedId();
+    this.applyDefaultDateInterval();
 
     this.searchForm.valueChanges
       .pipe(
@@ -101,6 +105,11 @@ export class AppointmentsListPageComponent implements OnInit {
         next: (response) => {
           this.applyPaginationState(response);
           this.appointmentGroups.set(this.groupAppointmentsByDate(response.items));
+          this.firstIncomingAppointmentOutsideInterval.set(null);
+
+          if (this.shouldSearchForIncomingAppointments(response, filters)) {
+            this.loadFirstIncomingAppointment(filters);
+          }
         },
         error: () => {
           this.hasError.set(true);
@@ -115,6 +124,42 @@ export class AppointmentsListPageComponent implements OnInit {
 
   public clearSearch(): void {
     this.searchForm.reset({ subject: '', location: '', from: '', to: '' }, { emitEvent: false });
+    this.applyDefaultDateInterval();
+    this.loadAppointments(1);
+  }
+
+  public noAppointmentsMessage(): string {
+    const from = this.searchForm.controls.from.value;
+    const to = this.searchForm.controls.to.value;
+
+    if (from && to) {
+      return `No appointments between ${from} and ${to}`;
+    }
+
+    return 'Aucun rendez-vous trouvé.';
+  }
+
+  public canJumpToFirstIncomingAppointment(): boolean {
+    return this.firstIncomingAppointmentOutsideInterval() !== null;
+  }
+
+  public jumpToFirstIncomingAppointment(): void {
+    const firstIncomingAppointment = this.firstIncomingAppointmentOutsideInterval();
+    if (!firstIncomingAppointment) {
+      return;
+    }
+
+    const startDate = new Date(firstIncomingAppointment.resource.startDate);
+    const endDate = this.addDays(startDate, AppointmentsListPageComponent.DEFAULT_RANGE_IN_DAYS);
+
+    this.searchForm.patchValue(
+      {
+        from: this.toDateTimeLocalValue(startDate),
+        to: this.toDateTimeLocalValue(endDate)
+      },
+      { emitEvent: false }
+    );
+
     this.loadAppointments(1);
   }
 
@@ -178,6 +223,78 @@ export class AppointmentsListPageComponent implements OnInit {
 
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+  }
+
+  private shouldSearchForIncomingAppointments(
+    response: PageOf<Browsable<Appointment>>,
+    filters: Pick<SearchAppointmentsParams, 'subject' | 'location' | 'from' | 'to'>
+  ): boolean {
+    return response.items.length === 0
+      && response.count === 0
+      && Boolean(filters.from)
+      && Boolean(filters.to);
+  }
+
+  private loadFirstIncomingAppointment(filters: Pick<SearchAppointmentsParams, 'subject' | 'location' | 'from' | 'to'>): void {
+    if (!filters.to) {
+      this.firstIncomingAppointmentOutsideInterval.set(null);
+      return;
+    }
+
+    const searchNextParams: SearchAppointmentsParams = {
+      page: 1,
+      pageSize: 1,
+      subject: filters.subject,
+      location: filters.location,
+      from: filters.to
+    };
+
+    this._apiService.getAppointments(searchNextParams)
+      .pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.firstIncomingAppointmentOutsideInterval.set(response.items[0] ?? null);
+        },
+        error: () => {
+          this.firstIncomingAppointmentOutsideInterval.set(null);
+        }
+      });
+  }
+
+  private applyDefaultDateInterval(): void {
+    const fromValue = this.searchForm.controls.from.value;
+    const toValue = this.searchForm.controls.to.value;
+
+    if (fromValue || toValue) {
+      return;
+    }
+
+    const now = new Date();
+    const end = this.addDays(now, AppointmentsListPageComponent.DEFAULT_RANGE_IN_DAYS);
+
+    this.searchForm.patchValue(
+      {
+        from: this.toDateTimeLocalValue(now),
+        to: this.toDateTimeLocalValue(end)
+      },
+      { emitEvent: false }
+    );
+  }
+
+  private addDays(baseDate: Date, days: number): Date {
+    const result = new Date(baseDate);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+
+  private toDateTimeLocalValue(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    const hours = `${date.getHours()}`.padStart(2, '0');
+    const minutes = `${date.getMinutes()}`.padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
   private applyPaginationState(response: PageOf<Browsable<Appointment>>): void {
