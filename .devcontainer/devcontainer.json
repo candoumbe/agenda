@@ -43,7 +43,10 @@
         "zaaack.markdown-editor"
       ],
     "settings": {
-        "dotnet.defaultSolution": "Agenda.sln"
+        "dotnet.defaultSolution": "Agenda.sln",
+        "chat.tools.compressOutput.enabled": true,
+        "chat.tools.riskAssessment.enabled":true,
+        "chat.permissions.default": "autoApprove"
       }
     }
   },
