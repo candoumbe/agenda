@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -37,6 +38,10 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
     private AgendaApplicationTestingBuilder _appHost;
     private static readonly JsonSerializerOptions s_jsonSerializerOptions;
     private DistributedApplication _sut;
+    private const int s_transientInfrastructureMaxAttempts = 3;
+    private static readonly TimeSpan s_transientInfrastructureRetryDelay = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan s_firstRequestTimeout = TimeSpan.FromSeconds(15);
+    private static readonly HttpStatusCode[] s_transientInfrastructureStatusCodes = [HttpStatusCode.InternalServerError, HttpStatusCode.ServiceUnavailable, HttpStatusCode.BadGateway];
 
     static CreateAppointmentEndpointShould()
     {
@@ -93,7 +98,9 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
         };
 
         // Act
-        using HttpResponseMessage response = await _client.PostAsJsonAsync("/appointments", newAppointmentInfo, s_jsonSerializerOptions, cancellationToken: cancellationToken);
+        using CancellationTokenSource firstRequestCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        firstRequestCancellationTokenSource.CancelAfter(s_firstRequestTimeout);
+        using HttpResponseMessage response = await ExecuteCreateRequestWithTransientInfrastructureRetryAsync(newAppointmentInfo, firstRequestCancellationTokenSource.Token);
 
         // Assert
         response.StatusCode.Should()
@@ -115,5 +122,68 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
         resource.StartDate.Should().Be(newAppointmentInfo.StartDate);
         resource.EndDate.Should().Be(newAppointmentInfo.EndDate);
         resource.Attendees.Should().BeEquivalentTo(newAppointmentInfo.Attendees);
+    }
+
+    private async Task<HttpResponseMessage> ExecuteCreateRequestWithTransientInfrastructureRetryAsync(AppointmentInfo newAppointmentInfo, CancellationToken cancellationToken)
+    {
+        Exception lastTransientException = null;
+        HttpResponseMessage finalResponse = null;
+
+        for (int attempt = 1; attempt <= s_transientInfrastructureMaxAttempts; attempt++)
+        {
+            try
+            {
+                HttpResponseMessage response = await _client.PostAsJsonAsync("/appointments", newAppointmentInfo, s_jsonSerializerOptions, cancellationToken: cancellationToken);
+
+                bool shouldRetry = await ShouldRetryBecauseOfTransientInfrastructureFailureAsync(response, attempt, cancellationToken);
+
+                if (!shouldRetry)
+                {
+                    finalResponse = response;
+                    break;
+                }
+
+                response.Dispose();
+            }
+            catch (HttpRequestException exception) when (attempt < s_transientInfrastructureMaxAttempts)
+            {
+                lastTransientException = exception;
+                outputHelper.WriteLine($"Transient HTTP failure detected on create attempt {attempt}/{s_transientInfrastructureMaxAttempts}: {exception.Message}");
+            }
+            catch (TaskCanceledException exception) when (!cancellationToken.IsCancellationRequested && attempt < s_transientInfrastructureMaxAttempts)
+            {
+                lastTransientException = exception;
+                outputHelper.WriteLine($"Transient timeout detected on create attempt {attempt}/{s_transientInfrastructureMaxAttempts}: {exception.Message}");
+            }
+
+            if (attempt < s_transientInfrastructureMaxAttempts)
+            {
+                await Task.Delay(s_transientInfrastructureRetryDelay, cancellationToken);
+            }
+        }
+
+        if (finalResponse is null)
+        {
+            if (lastTransientException is not null)
+            {
+                throw new HttpRequestException("Create appointment request failed after transient infrastructure retries.", lastTransientException);
+            }
+
+            throw new TimeoutException("Create appointment request did not complete successfully before retry timeout elapsed.");
+        }
+
+        return finalResponse;
+    }
+
+    private async Task<bool> ShouldRetryBecauseOfTransientInfrastructureFailureAsync(HttpResponseMessage response, int attempt, CancellationToken cancellationToken)
+    {
+        if (attempt < s_transientInfrastructureMaxAttempts && s_transientInfrastructureStatusCodes.Contains(response.StatusCode))
+        {
+            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            outputHelper.WriteLine($"Transient infrastructure response detected on create attempt {attempt}/{s_transientInfrastructureMaxAttempts}. Status code: {(int)response.StatusCode}. Body: {responseContent}");
+            return true;
+        }
+
+        return false;
     }
 }
