@@ -14,6 +14,16 @@ import { registerLocaleData } from '@angular/common';
 
 registerLocaleData(localeFr);
 
+function toDateTimeLocalValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  const hours = `${date.getHours()}`.padStart(2, '0');
+  const minutes = `${date.getMinutes()}`.padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 describe('AppointmentsListPageComponent', () => {
   let component: AppointmentsListPageComponent;
   let fixture: ComponentFixture<AppointmentsListPageComponent>;
@@ -61,6 +71,49 @@ describe('AppointmentsListPageComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should initialize default date interval to [today, today + 15 days] on first load', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-01T10:20:00Z'));
+
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [
+        {
+          resource: {
+            id: 'appt_default_range',
+            subject: 'Within default range',
+            location: 'Room A',
+            startDate: '2026-05-03T09:00:00Z',
+            endDate: '2026-05-03T10:00:00Z',
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    const expectedFrom = toDateTimeLocalValue(new Date('2026-05-01T10:20:00Z'));
+    const expectedTo = toDateTimeLocalValue(new Date('2026-05-16T10:20:00Z'));
+
+    expect(component.searchForm.controls.from.value).toBe(expectedFrom);
+    expect(component.searchForm.controls.to.value).toBe(expectedTo);
+    expect(apiServiceSpy.getAppointments).toHaveBeenCalledWith(
+      expect.objectContaining({
+        page: 1,
+        pageSize: 10,
+        from: new Date(expectedFrom).toISOString(),
+        to: new Date(expectedTo).toISOString()
+      })
+    );
   });
 
   it('should load appointments on init', () => {
@@ -280,6 +333,149 @@ describe('AppointmentsListPageComponent', () => {
     expect(component.errorMessage()).toBeTruthy();
   });
 
+  it('should show empty interval message and create button when no appointment exists in selected range', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-01T08:00:00Z'));
+
+    const emptyResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 0,
+      items: [],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments
+      .mockReturnValueOnce(of(emptyResponse))
+      .mockReturnValueOnce(of(emptyResponse));
+
+    fixture.detectChanges();
+
+    const emptyStateMessage = fixture.nativeElement.querySelector('.empty-state p') as HTMLElement;
+    const from = component.searchForm.controls.from.value;
+    const to = component.searchForm.controls.to.value;
+
+    expect(emptyStateMessage.textContent).toContain(`No appointments between ${from} and ${to}`);
+
+    const createButtons = Array.from(fixture.nativeElement.querySelectorAll('.empty-state .primary')) as HTMLButtonElement[];
+    expect(createButtons.length).toBe(1);
+    expect(createButtons[0].textContent).toContain('+ Nouveau rendez-vous');
+  });
+
+  it('should show jump button when appointments exist after selected interval', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-01T08:00:00Z'));
+
+    const emptyResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 0,
+      items: [],
+      links: {}
+    };
+
+    const incomingResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [
+        {
+          resource: {
+            id: 'appt_after_range',
+            subject: 'After range',
+            location: 'Room Z',
+            startDate: '2026-05-20T09:00:00Z',
+            endDate: '2026-05-20T10:00:00Z',
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments
+      .mockReturnValueOnce(of(emptyResponse))
+      .mockReturnValueOnce(of(incomingResponse));
+
+    fixture.detectChanges();
+
+    const jumpButton = fixture.nativeElement.querySelector('.jump-button') as HTMLButtonElement | null;
+    expect(jumpButton).not.toBeNull();
+    expect(jumpButton?.textContent).toContain('Voir le premier rendez-vous à venir');
+  });
+
+  it('should update date range to [first incoming appointment, +15 days] when jump button is clicked', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-01T08:00:00Z'));
+
+    const emptyResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 0,
+      items: [],
+      links: {}
+    };
+
+    const firstIncomingStartDate = '2026-05-20T09:00:00Z';
+    const incomingResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [
+        {
+          resource: {
+            id: 'appt_after_range_jump',
+            subject: 'After range jump',
+            location: 'Room Z',
+            startDate: firstIncomingStartDate,
+            endDate: '2026-05-20T10:00:00Z',
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {}
+    };
+
+    const afterJumpResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: incomingResponse.items,
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments
+      .mockReturnValueOnce(of(emptyResponse))
+      .mockReturnValueOnce(of(incomingResponse))
+      .mockReturnValueOnce(of(afterJumpResponse));
+
+    fixture.detectChanges();
+
+    const jumpButton = fixture.nativeElement.querySelector('.jump-button') as HTMLButtonElement;
+    jumpButton.click();
+
+    const fromValue = component.searchForm.controls.from.value;
+    const toValue = component.searchForm.controls.to.value;
+
+    expect(new Date(fromValue).toISOString()).toBe(new Date(firstIncomingStartDate).toISOString());
+
+    const fromDate = new Date(fromValue);
+    const toDate = new Date(toValue);
+    const daysDiff = Math.round((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
+    expect(daysDiff).toBe(15);
+
+    expect(apiServiceSpy.getAppointments).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        page: 1,
+        pageSize: 10,
+        from: new Date(fromValue).toISOString(),
+        to: new Date(toValue).toISOString()
+      })
+    );
+  });
+
   it('should request server-side search when subject changes after debounce', () => {
     vi.useFakeTimers();
 
@@ -311,10 +507,8 @@ describe('AppointmentsListPageComponent', () => {
       expect.objectContaining({
         page: 1,
         pageSize: 10,
-        subject: 'Team meeting',
-        location: undefined,
-        from: undefined,
-        to: undefined
+        from: expect.any(String),
+        to: expect.any(String)
       })
     );
   });
@@ -323,7 +517,7 @@ describe('AppointmentsListPageComponent', () => {
     const mockResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
       total: 1,
-      count: 0,
+      count: 1,
       items: [],
       links: {}
     };
@@ -351,6 +545,138 @@ describe('AppointmentsListPageComponent', () => {
         to: new Date('2026-05-02T10:30').toISOString()
       })
     );
+  });
+
+  it('should initialize a default 15-day date interval and use it for the first load', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-01T08:15:00.000Z'));
+
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 0,
+      items: [],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    const firstCallParams = apiServiceSpy.getAppointments.mock.calls[0][0];
+    const fromDate = new Date(firstCallParams.from as string);
+    const toDate = new Date(firstCallParams.to as string);
+
+    expect(firstCallParams).toEqual(
+      expect.objectContaining({
+        from: expect.any(String),
+        to: expect.any(String)
+      })
+    );
+    expect(Math.abs(fromDate.getTime() - new Date('2026-05-01T08:15:00.000Z').getTime())).toBeLessThan(1000);
+    expect(toDate.getTime() - fromDate.getTime()).toBe(15 * 24 * 60 * 60 * 1000);
+  });
+
+  it('should display an interval-based empty-state message and a creation CTA when no result exists in range', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-01T08:00:00.000Z'));
+
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 0,
+      items: [],
+      links: {
+        first: { href: '/appointments?page=1', relations: ['first'] },
+        last: { href: '/appointments?page=1', relations: ['last'] }
+      }
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    const emptyStateElement = fixture.nativeElement.querySelector('.empty-state') as HTMLElement;
+    expect(emptyStateElement).toBeTruthy();
+    expect(emptyStateElement.textContent).toContain('No appointments between');
+
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+    const createButton = buttons
+      .find((button: HTMLButtonElement) => {
+        const content = button.textContent?.toLowerCase() ?? '';
+        return content.includes('nouveau') || content.includes('create');
+      });
+
+    expect(createButton).toBeTruthy();
+  });
+
+  it('should offer jump-to-first-incoming and update the filter window by 15 days', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-01T08:00:00.000Z'));
+
+    const firstIncomingStart = '2026-05-21T09:00:00.000Z';
+    const expectedWindowEnd = '2026-06-05T09:00:00.000Z';
+
+    const emptyWindowResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 0,
+      items: [],
+      links: {
+        next: {
+          href: `/appointments?from=${encodeURIComponent(firstIncomingStart)}`,
+          relations: ['next']
+        }
+      }
+    };
+
+    const incomingWindowResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [
+        {
+          resource: {
+            id: 'appt_541',
+            subject: 'First incoming appointment',
+            location: 'Room 541',
+            startDate: firstIncomingStart,
+            endDate: '2026-05-21T10:00:00.000Z',
+            attendees: []
+          },
+          links: []
+        }
+      ],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments
+      .mockReturnValueOnce(of(emptyWindowResponse))
+      .mockReturnValueOnce(of(incomingWindowResponse));
+
+    fixture.detectChanges();
+
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+    const jumpButton = buttons
+      .find((button: HTMLButtonElement) => {
+        const content = button.textContent?.toLowerCase() ?? '';
+        return content.includes('premier rendez-vous à venir') || content.includes('first incoming') || content.includes('first appointment');
+      });
+
+    expect(jumpButton).toBeTruthy();
+
+    jumpButton!.click();
+    fixture.detectChanges();
+
+    expect(apiServiceSpy.getAppointments).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({
+        from: firstIncomingStart,
+        to: expectedWindowEnd
+      })
+    );
+    expect(component.searchForm.controls.from.value).toContain('2026-05-21T09:00');
+    expect(component.searchForm.controls.to.value).toContain('2026-06-05T09:00');
   });
 
   it('should navigate to appointment creation', () => {
@@ -563,6 +889,9 @@ describe('AppointmentsListPageComponent', () => {
   });
 
   it('should reset to page 1 when clearing search', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-01T08:00:00Z'));
+
     const mockResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
       total: 1,
@@ -585,7 +914,7 @@ describe('AppointmentsListPageComponent', () => {
     expect(component.currentPage()).toBe(1);
     expect(component.searchForm.controls.subject.value).toBe('');
     expect(component.searchForm.controls.location.value).toBe('');
-    expect(component.searchForm.controls.from.value).toBe('');
-    expect(component.searchForm.controls.to.value).toBe('');
+    expect(component.searchForm.controls.from.value).toBe(toDateTimeLocalValue(new Date('2026-05-01T08:00:00Z')));
+    expect(component.searchForm.controls.to.value).toBe(toDateTimeLocalValue(new Date('2026-05-16T08:00:00Z')));
   });
 });
