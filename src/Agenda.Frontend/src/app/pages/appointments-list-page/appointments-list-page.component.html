@@ -55,7 +55,16 @@
     } @else {
       @if (appointmentGroups().length === 0) {
         <div class="empty-state">
-          <p>Aucun rendez-vous trouvé.</p>
+          <p>{{ noAppointmentsMessage() }}</p>
+          <button type="button" class="primary" (click)="goToAppointmentCreation()">
+            + Nouveau rendez-vous
+          </button>
+
+          @if (canJumpToFirstIncomingAppointment()) {
+            <button type="button" class="secondary jump-button" (click)="jumpToFirstIncomingAppointment()">
+              Voir le premier rendez-vous à venir
+            </button>
+          }
         </div>
       } @else {
         <div class="appointments-container">
