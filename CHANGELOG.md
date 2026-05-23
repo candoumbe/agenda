@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added UI for scheduling an appointment
 - Added appointments list page with card-based layout, date grouping, search by subject, and pagination (#502)
 - Added automatic redirect to appointments list after creating a new appointment (#502)
+- Added default 15-day appointments window with contextual empty-state guidance and jump-to-first-incoming action ([#541](https://github.com/candoumbe/agenda/issues/541))
 
 #### API
 - Added `DELETE /appointments/{id}/attendees/{id}` endpoint
