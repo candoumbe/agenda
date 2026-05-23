@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added task issue template
 - Updated bug issue template
 - Added Codecov configuration file
+- Fixed devcontainer .NET SDK provisioning to install `10.0.300` by default (with `10.0.203` and `10.0.201` as additional SDKs) to match project requirements and unblock Aspire startup
 - Updated `xRetry` to `1.0.0-rc2`
 - Updated `xunit.v3` to `3.2.0`
 - Updated `Paramore.Brighter.*` packages to `10.0.4`
