@@ -45,7 +45,7 @@ public sealed class SearchAppointmentHeadContractShould
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        Instant start = SystemClock.Instance.GetCurrentInstant().Plus(Duration.FromHours(2));
+        Instant start = Instant.FromUtc(2026, 05, 24, 08, 00);
 
         await CreateAppointmentAsync(start, "Planning sync", "Paris", cancellationToken);
         await CreateAppointmentAsync(start.Plus(Duration.FromHours(2)), "Backlog review", "Paris", cancellationToken);
@@ -79,7 +79,7 @@ public sealed class SearchAppointmentHeadContractShould
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        Instant matchingStart = SystemClock.Instance.GetCurrentInstant().Plus(Duration.FromHours(4));
+        Instant matchingStart = Instant.FromUtc(2026, 05, 23, 22, 30);
 
         await CreateAppointmentAsync(matchingStart, "Backend design review", "Paris", cancellationToken);
         await CreateAppointmentAsync(matchingStart.Plus(Duration.FromDays(3)), "Frontend design review", "Lyon", cancellationToken);
