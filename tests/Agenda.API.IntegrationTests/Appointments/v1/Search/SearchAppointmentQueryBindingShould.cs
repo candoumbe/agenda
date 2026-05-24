@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.IntegrationTests.Fixtures;
@@ -44,22 +46,18 @@ public sealed class SearchAppointmentQueryBindingShould
         HttpRequestMessage request = new(HttpMethod.Head, "/appointments?page=1&pageSize=10&from=2026-05-23T22:00:00.000Z&to=2026-06-08T21:59:59.999Z");
 
         // Act
-        using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
+        using HttpResponseMessage response = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead,    cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        if (response.Headers.TryGetValues("Link", out IEnumerable<string> linkValues))
-        {
-            linkValues.Should().NotBeNull();
-        }
+        response.Headers.Should().Contain(header => string.Equals(header.Key, "Link", StringComparison.OrdinalIgnoreCase));
+        response.Headers.Should().Contain(header => string.Equals(header.Key, "total", StringComparison.OrdinalIgnoreCase));
+        response.Headers.Should().Contain(header => string.Equals(header.Key, "count", StringComparison.OrdinalIgnoreCase));
 
-        if (response.Headers.TryGetValues("total", out IEnumerable<string> totalValues)
-            && response.Headers.TryGetValues("count", out IEnumerable<string> countValues))
-        {
-            totalValues.Should().ContainSingle();
-            countValues.Should().ContainSingle();
-            totalValues.Single().Should().NotBeNullOrWhiteSpace();
-            countValues.Single().Should().NotBeNullOrWhiteSpace();
-        }
+        string total = response.Headers.First(header => string.Equals(header.Key, "total", StringComparison.OrdinalIgnoreCase)).Value.Single();
+        string count = response.Headers.First(header => string.Equals(header.Key, "count", StringComparison.OrdinalIgnoreCase)).Value.Single();
+
+        total.Should().NotBeNullOrWhiteSpace();
+        count.Should().NotBeNullOrWhiteSpace();
     }
 }
