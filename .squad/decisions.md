@@ -99,6 +99,16 @@ Jump action updates `from` to the discovered appointment start date and `to` to 
 **Why:** User directive for consistent test style across the Agenda project.
 **Applies to:** All test code in the Agenda project.
 
+### 2026-05-24T07:29:04Z: User directive - Separate commit for Squad files
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** Always create a dedicated, separate commit for all Squad files.
+**Why:** User request captured for team workflow consistency.
+
+### 2026-05-24T07:32:06Z: User directive - PR title and description language
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** For this public repository, pull request titles and descriptions must be written in English.
+**Why:** User request captured for collaboration and external readability consistency.
+
 ## Governance
 
 - All meaningful changes require team consensus
