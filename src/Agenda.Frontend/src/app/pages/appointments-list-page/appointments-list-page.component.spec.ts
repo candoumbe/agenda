@@ -14,14 +14,12 @@ import { registerLocaleData } from '@angular/common';
 
 registerLocaleData(localeFr);
 
-function toDateTimeLocalValue(date: Date): string {
+function toDateValue(date: Date): string {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, '0');
   const day = `${date.getDate()}`.padStart(2, '0');
-  const hours = `${date.getHours()}`.padStart(2, '0');
-  const minutes = `${date.getMinutes()}`.padStart(2, '0');
 
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+  return `${year}-${month}-${day}`;
 }
 
 describe('AppointmentsListPageComponent', () => {
@@ -73,7 +71,7 @@ describe('AppointmentsListPageComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize default date interval to [today, today + 15 days] on first load', () => {
+  it('should initialize default date interval to [today, today + 15 days] on first load without requiring time', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-05-01T10:20:00Z'));
 
@@ -101,17 +99,19 @@ describe('AppointmentsListPageComponent', () => {
 
     fixture.detectChanges();
 
-    const expectedFrom = toDateTimeLocalValue(new Date('2026-05-01T10:20:00Z'));
-    const expectedTo = toDateTimeLocalValue(new Date('2026-05-16T10:20:00Z'));
+    const expectedFromDate = toDateValue(new Date('2026-05-01T10:20:00Z'));
+    const expectedToDate = toDateValue(new Date('2026-05-16T10:20:00Z'));
 
-    expect(component.searchForm.controls.from.value).toBe(expectedFrom);
-    expect(component.searchForm.controls.to.value).toBe(expectedTo);
+    expect(component.searchForm.controls.fromDate.value).toBe(expectedFromDate);
+    expect(component.searchForm.controls.toDate.value).toBe(expectedToDate);
+    expect(component.searchForm.controls.fromTime.value).toBe('');
+    expect(component.searchForm.controls.toTime.value).toBe('');
     expect(apiServiceSpy.getAppointments).toHaveBeenCalledWith(
       expect.objectContaining({
         page: 1,
         pageSize: 10,
-        from: new Date(expectedFrom).toISOString(),
-        to: new Date(expectedTo).toISOString()
+        from: new Date(2026, 4, 1, 0, 0, 0, 0).toISOString(),
+        to: new Date(2026, 4, 16, 23, 59, 59, 999).toISOString()
       })
     );
   });
@@ -352,10 +352,7 @@ describe('AppointmentsListPageComponent', () => {
     fixture.detectChanges();
 
     const emptyStateMessage = fixture.nativeElement.querySelector('.empty-state p') as HTMLElement;
-    const from = component.searchForm.controls.from.value;
-    const to = component.searchForm.controls.to.value;
-
-    expect(emptyStateMessage.textContent).toContain(`No appointments between ${from} and ${to}`);
+    expect(emptyStateMessage.textContent).toContain('No appointments between');
 
     const createButtons = Array.from(fixture.nativeElement.querySelectorAll('.empty-state .primary')) as HTMLButtonElement[];
     expect(createButtons.length).toBe(1);
@@ -456,13 +453,18 @@ describe('AppointmentsListPageComponent', () => {
     const jumpButton = fixture.nativeElement.querySelector('.jump-button') as HTMLButtonElement;
     jumpButton.click();
 
-    const fromValue = component.searchForm.controls.from.value;
-    const toValue = component.searchForm.controls.to.value;
+    const fromDateValue = component.searchForm.controls.fromDate.value;
+    const fromTimeValue = component.searchForm.controls.fromTime.value;
+    const toDateValue = component.searchForm.controls.toDate.value;
+    const toTimeValue = component.searchForm.controls.toTime.value;
 
-    expect(new Date(fromValue).toISOString()).toBe(new Date(firstIncomingStartDate).toISOString());
+    expect(fromDateValue).toBe('2026-05-20');
+    expect(fromTimeValue).toBe('09:00');
+    expect(toDateValue).toBe('2026-06-04');
+    expect(toTimeValue).toBe('09:00');
 
-    const fromDate = new Date(fromValue);
-    const toDate = new Date(toValue);
+    const fromDate = new Date(`${fromDateValue}T${fromTimeValue}`);
+    const toDate = new Date(`${toDateValue}T${toTimeValue}`);
     const daysDiff = Math.round((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
     expect(daysDiff).toBe(15);
 
@@ -470,8 +472,8 @@ describe('AppointmentsListPageComponent', () => {
       expect.objectContaining({
         page: 1,
         pageSize: 10,
-        from: new Date(fromValue).toISOString(),
-        to: new Date(toValue).toISOString()
+        from: new Date('2026-05-20T09:00:00').toISOString(),
+        to: new Date('2026-06-04T09:00:00').toISOString()
       })
     );
   });
@@ -529,8 +531,10 @@ describe('AppointmentsListPageComponent', () => {
     component.searchForm.patchValue({
       subject: 'Comite produit',
       location: 'Salle Neptune',
-      from: '2026-05-02T09:30',
-      to: '2026-05-02T10:30'
+      fromDate: '2026-05-02',
+      fromTime: '09:30',
+      toDate: '2026-05-02',
+      toTime: '10:30'
     }, { emitEvent: false });
 
     component.searchAppointments();
@@ -541,8 +545,38 @@ describe('AppointmentsListPageComponent', () => {
         pageSize: 10,
         subject: 'Comite produit',
         location: 'Salle Neptune',
-        from: new Date('2026-05-02T09:30').toISOString(),
-        to: new Date('2026-05-02T10:30').toISOString()
+        from: new Date('2026-05-02T09:30:00').toISOString(),
+        to: new Date('2026-05-02T10:30:00').toISOString()
+      })
+    );
+  });
+
+  it('should send start-of-day and end-of-day boundaries when only dates are provided', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 1,
+      items: [],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+
+    fixture.detectChanges();
+
+    component.searchForm.patchValue({
+      fromDate: '2026-05-02',
+      fromTime: '',
+      toDate: '2026-05-03',
+      toTime: ''
+    }, { emitEvent: false });
+
+    component.searchAppointments();
+
+    expect(apiServiceSpy.getAppointments).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        from: new Date(2026, 4, 2, 0, 0, 0, 0).toISOString(),
+        to: new Date(2026, 4, 3, 23, 59, 59, 999).toISOString()
       })
     );
   });
@@ -573,8 +607,8 @@ describe('AppointmentsListPageComponent', () => {
         to: expect.any(String)
       })
     );
-    expect(Math.abs(fromDate.getTime() - new Date('2026-05-01T08:15:00.000Z').getTime())).toBeLessThan(1000);
-    expect(toDate.getTime() - fromDate.getTime()).toBe(15 * 24 * 60 * 60 * 1000);
+    expect(fromDate.getTime()).toBe(new Date(2026, 4, 1, 0, 0, 0, 0).getTime());
+    expect(toDate.getTime() - fromDate.getTime()).toBe((16 * 24 * 60 * 60 * 1000) - 1);
   });
 
   it('should display an interval-based empty-state message and a creation CTA when no result exists in range', () => {
@@ -675,8 +709,10 @@ describe('AppointmentsListPageComponent', () => {
         to: expectedWindowEnd
       })
     );
-    expect(component.searchForm.controls.from.value).toContain('2026-05-21T09:00');
-    expect(component.searchForm.controls.to.value).toContain('2026-06-05T09:00');
+    expect(component.searchForm.controls.fromDate.value).toContain('2026-05-21');
+    expect(component.searchForm.controls.fromTime.value).toContain('09:00');
+    expect(component.searchForm.controls.toDate.value).toContain('2026-06-05');
+    expect(component.searchForm.controls.toTime.value).toContain('09:00');
   });
 
   it('should navigate to appointment creation', () => {
@@ -905,8 +941,10 @@ describe('AppointmentsListPageComponent', () => {
     component.searchForm.patchValue({
       subject: 'test',
       location: 'Room 7',
-      from: '2026-05-02T09:30',
-      to: '2026-05-02T10:30'
+      fromDate: '2026-05-02',
+      fromTime: '09:30',
+      toDate: '2026-05-02',
+      toTime: '10:30'
     }, { emitEvent: false });
     component.currentPage.set(2);
     component.clearSearch();
@@ -914,7 +952,9 @@ describe('AppointmentsListPageComponent', () => {
     expect(component.currentPage()).toBe(1);
     expect(component.searchForm.controls.subject.value).toBe('');
     expect(component.searchForm.controls.location.value).toBe('');
-    expect(component.searchForm.controls.from.value).toBe(toDateTimeLocalValue(new Date('2026-05-01T08:00:00Z')));
-    expect(component.searchForm.controls.to.value).toBe(toDateTimeLocalValue(new Date('2026-05-16T08:00:00Z')));
+    expect(component.searchForm.controls.fromDate.value).toBe(toDateValue(new Date('2026-05-01T08:00:00Z')));
+    expect(component.searchForm.controls.toDate.value).toBe(toDateValue(new Date('2026-05-16T08:00:00Z')));
+    expect(component.searchForm.controls.fromTime.value).toBe('');
+    expect(component.searchForm.controls.toTime.value).toBe('');
   });
 });
