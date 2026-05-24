@@ -34,27 +34,7 @@ public sealed class SearchAppointmentHeadContractShould
 {
     private readonly HttpClient _client;
     private static readonly Faker s_faker = new();
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions;
-
-    static SearchAppointmentHeadContractShould()
-    {
-        s_jsonSerializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            AllowTrailingCommas = true
-        };
-
-        s_jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-        s_jsonSerializerOptions.Converters.Add(new MultiFilterConverter());
-        s_jsonSerializerOptions.Converters.Add(new FilterConverter());
-        s_jsonSerializerOptions.Converters.Add(new PatchJsonConverter());
-        s_jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<OperationType>());
-        s_jsonSerializerOptions.Converters.Add(new EnumStringConverter<OperationType>());
-        s_jsonSerializerOptions.Converters.Add(new AppointmentId.AppointmentIdSystemTextJsonConverter());
-        s_jsonSerializerOptions.Converters.Add(new AttendeeId.AttendeeIdSystemTextJsonConverter());
-    }
-
+    
     public SearchAppointmentHeadContractShould(AgendaApplicationFixture fixture)
     {
         _client = fixture.ApiClient;
@@ -74,36 +54,24 @@ public sealed class SearchAppointmentHeadContractShould
         string query = "/appointments?page=1&pageSize=2";
 
         // Act
-        using HttpResponseMessage getResponse = await _client.GetAsync(query, cancellationToken);
         using HttpResponseMessage headResponse = await _client.SendAsync(new HttpRequestMessage(HttpMethod.Head, query), HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
         // Assert
-        getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         headResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        System.Net.Http.Headers.HttpResponseHeaders headers = headResponse.Headers;
+        headers.Should().ContainKey("total")
+            .WhoseValue.Should().ContainSingle("3");
+        headers.Should().ContainKey("totalCount")
+            .WhoseValue.Should().ContainSingle("3");
+        headers.Should().ContainKey("count")
+            .WhoseValue.Should().ContainSingle("2");
 
-        using JsonDocument getPayload = await JsonDocument.ParseAsync(await getResponse.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
-        JsonElement root = getPayload.RootElement;
-
-        string expectedCount = root.GetProperty("count").GetInt64().ToString(CultureInfo.InvariantCulture);
-        string expectedTotal = root.GetProperty("total").GetInt64().ToString(CultureInfo.InvariantCulture);
-        string expectedTotalCount = root.GetProperty("totalCount").GetInt64().ToString(CultureInfo.InvariantCulture);
-
-        if (headResponse.Headers.TryGetValues("count", out IEnumerable<string> headCountValues)
-            && headResponse.Headers.TryGetValues("total", out IEnumerable<string> headTotalValues)
-            && headResponse.Headers.TryGetValues("totalCount", out IEnumerable<string> headTotalCountValues))
-        {
-            headCountValues.Should().ContainSingle().Which.Should().Be(expectedCount);
-            headTotalValues.Should().ContainSingle().Which.Should().Be(expectedTotal);
-            headTotalCountValues.Should().ContainSingle().Which.Should().Be(expectedTotalCount);
-        }
-
-        if (headResponse.Headers.TryGetValues("Link", out IEnumerable<string> linkValues))
-        {
-            linkValues.Should().ContainSingle(link => link.Contains("rel=\"first\"", StringComparison.OrdinalIgnoreCase));
-            linkValues.Should().ContainSingle(link => link.Contains("rel=\"last\"", StringComparison.OrdinalIgnoreCase));
-            linkValues.Should().ContainSingle(link => link.Contains("rel=\"next\"", StringComparison.OrdinalIgnoreCase));
-            linkValues.Should().NotContain(link => link.Contains("rel=\"previous\"", StringComparison.OrdinalIgnoreCase));
-        }
+        headers.Should().ContainKey("Link")
+            .WhoseValue.Should().ContainSingle(link => link.Contains("rel=\"first\"", StringComparison.OrdinalIgnoreCase))
+            .And.ContainSingle(link => link.Contains("rel=\"first\"", StringComparison.OrdinalIgnoreCase))
+            .And.ContainSingle(link => link.Contains("rel=\"last\"", StringComparison.OrdinalIgnoreCase))
+            .And.ContainSingle(link => link.Contains("rel=\"next\"", StringComparison.OrdinalIgnoreCase));
+        headers.Should().NotContain(header => header.Key.Equals("previous", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
