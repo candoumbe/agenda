@@ -46,8 +46,10 @@ export class AppointmentsListPageComponent implements OnInit {
   public readonly searchForm = this._formBuilder.nonNullable.group({
     subject: [''],
     location: [''],
-    from: [''],
-    to: ['']
+    fromDate: [''],
+    fromTime: [''],
+    toDate: [''],
+    toTime: ['']
   });
 
   private newlyCreatedAppointmentId: string | null = null;
@@ -123,14 +125,26 @@ export class AppointmentsListPageComponent implements OnInit {
   }
 
   public clearSearch(): void {
-    this.searchForm.reset({ subject: '', location: '', from: '', to: '' }, { emitEvent: false });
+    this.searchForm.reset({
+      subject: '',
+      location: '',
+      fromDate: '',
+      fromTime: '',
+      toDate: '',
+      toTime: ''
+    }, { emitEvent: false });
     this.applyDefaultDateInterval();
     this.loadAppointments(1);
   }
 
   public noAppointmentsMessage(): string {
-    const from = this.searchForm.controls.from.value;
-    const to = this.searchForm.controls.to.value;
+    const fromDate = this.searchForm.controls.fromDate.value;
+    const fromTime = this.searchForm.controls.fromTime.value;
+    const toDate = this.searchForm.controls.toDate.value;
+    const toTime = this.searchForm.controls.toTime.value;
+
+    const from = this.formatBoundaryForDisplay(fromDate, fromTime, false);
+    const to = this.formatBoundaryForDisplay(toDate, toTime, true);
 
     if (from && to) {
       return `No appointments between ${from} and ${to}`;
@@ -154,8 +168,10 @@ export class AppointmentsListPageComponent implements OnInit {
 
     this.searchForm.patchValue(
       {
-        from: this.toDateTimeLocalValue(startDate),
-        to: this.toDateTimeLocalValue(endDate)
+        fromDate: this.toDateValue(startDate),
+        fromTime: this.toTimeValue(startDate),
+        toDate: this.toDateValue(endDate),
+        toTime: this.toTimeValue(endDate)
       },
       { emitEvent: false }
     );
@@ -205,8 +221,16 @@ export class AppointmentsListPageComponent implements OnInit {
   private buildFilters(): Pick<SearchAppointmentsParams, 'subject' | 'location' | 'from' | 'to'> {
     const subject = this.searchForm.controls.subject.value.trim();
     const location = this.searchForm.controls.location.value.trim();
-    const from = this.toIsoOrUndefined(this.searchForm.controls.from.value);
-    const to = this.toIsoOrUndefined(this.searchForm.controls.to.value);
+    const from = this.composeBoundaryIso(
+      this.searchForm.controls.fromDate.value,
+      this.searchForm.controls.fromTime.value,
+      false
+    );
+    const to = this.composeBoundaryIso(
+      this.searchForm.controls.toDate.value,
+      this.searchForm.controls.toTime.value,
+      true
+    );
 
     return {
       subject: subject || undefined,
@@ -216,12 +240,28 @@ export class AppointmentsListPageComponent implements OnInit {
     };
   }
 
-  private toIsoOrUndefined(value: string): string | undefined {
-    if (!value) {
+  private composeBoundaryIso(dateValue: string, timeValue: string, isEndBoundary: boolean): string | undefined {
+    const dateParts = this.parseDateValue(dateValue);
+    if (!dateParts) {
       return undefined;
     }
 
-    const date = new Date(value);
+    const resolvedTime = this.parseTimeValue(timeValue);
+    const hours = resolvedTime ? resolvedTime.hours : isEndBoundary ? 23 : 0;
+    const minutes = resolvedTime ? resolvedTime.minutes : isEndBoundary ? 59 : 0;
+    const seconds = resolvedTime ? 0 : isEndBoundary ? 59 : 0;
+    const milliseconds = resolvedTime ? 0 : isEndBoundary ? 999 : 0;
+
+    const date = new Date(
+      dateParts.year,
+      dateParts.month - 1,
+      dateParts.day,
+      hours,
+      minutes,
+      seconds,
+      milliseconds
+    );
+
     return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
   }
 
@@ -262,10 +302,10 @@ export class AppointmentsListPageComponent implements OnInit {
   }
 
   private applyDefaultDateInterval(): void {
-    const fromValue = this.searchForm.controls.from.value;
-    const toValue = this.searchForm.controls.to.value;
+    const fromDate = this.searchForm.controls.fromDate.value;
+    const toDate = this.searchForm.controls.toDate.value;
 
-    if (fromValue || toValue) {
+    if (fromDate || toDate) {
       return;
     }
 
@@ -274,8 +314,10 @@ export class AppointmentsListPageComponent implements OnInit {
 
     this.searchForm.patchValue(
       {
-        from: this.toDateTimeLocalValue(now),
-        to: this.toDateTimeLocalValue(end)
+        fromDate: this.toDateValue(now),
+        fromTime: '',
+        toDate: this.toDateValue(end),
+        toTime: ''
       },
       { emitEvent: false }
     );
@@ -287,14 +329,86 @@ export class AppointmentsListPageComponent implements OnInit {
     return result;
   }
 
-  private toDateTimeLocalValue(date: Date): string {
+  private toDateValue(date: Date): string {
     const year = date.getFullYear();
     const month = `${date.getMonth() + 1}`.padStart(2, '0');
     const day = `${date.getDate()}`.padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private toTimeValue(date: Date): string {
     const hours = `${date.getHours()}`.padStart(2, '0');
     const minutes = `${date.getMinutes()}`.padStart(2, '0');
 
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${hours}:${minutes}`;
+  }
+
+  private parseDateValue(value: string): { year: number; month: number; day: number } | null {
+    if (!value) {
+      return null;
+    }
+
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+    if (!match) {
+      return null;
+    }
+
+    const year = Number.parseInt(match[1], 10);
+    const month = Number.parseInt(match[2], 10);
+    const day = Number.parseInt(match[3], 10);
+
+    const parsedDate = new Date(year, month - 1, day, 12, 0, 0, 0);
+    if (
+      parsedDate.getFullYear() !== year
+      || parsedDate.getMonth() !== month - 1
+      || parsedDate.getDate() !== day
+    ) {
+      return null;
+    }
+
+    return { year, month, day };
+  }
+
+  private parseTimeValue(value: string): { hours: number; minutes: number } | null {
+    if (!value) {
+      return null;
+    }
+
+    const match = /^(\d{2}):(\d{2})$/.exec(value.trim());
+    if (!match) {
+      return null;
+    }
+
+    const hours = Number.parseInt(match[1], 10);
+    const minutes = Number.parseInt(match[2], 10);
+
+    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+      return null;
+    }
+
+    return { hours, minutes };
+  }
+
+  private formatBoundaryForDisplay(dateValue: string, timeValue: string, isEndBoundary: boolean): string | null {
+    const dateParts = this.parseDateValue(dateValue);
+    if (!dateParts) {
+      return null;
+    }
+
+    const resolvedTime = this.parseTimeValue(timeValue);
+    const hours = resolvedTime ? resolvedTime.hours : isEndBoundary ? 23 : 0;
+    const minutes = resolvedTime ? resolvedTime.minutes : isEndBoundary ? 59 : 0;
+
+    const date = new Date(dateParts.year, dateParts.month - 1, dateParts.day, hours, minutes, 0, 0);
+
+    return date.toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   private applyPaginationState(response: PageOf<Browsable<Appointment>>): void {
