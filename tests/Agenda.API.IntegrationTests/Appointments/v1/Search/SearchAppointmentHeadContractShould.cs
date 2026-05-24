@@ -74,7 +74,7 @@ public sealed class SearchAppointmentHeadContractShould(ITestOutputHelper output
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        Instant start = Instant.FromUtc(2026, 05, 24, 08, 00);
+        Instant start = SystemClock.Instance.GetCurrentInstant().Plus(Duration.FromHours(1));
 
         await CreateAppointmentAsync(start, "Planning sync", "Paris", cancellationToken);
         await CreateAppointmentAsync(start.Plus(Duration.FromHours(2)), "Backlog review", "Paris", cancellationToken);
@@ -113,14 +113,16 @@ public sealed class SearchAppointmentHeadContractShould(ITestOutputHelper output
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        Instant matchingStart = Instant.FromUtc(2026, 05, 23, 22, 30);
+        Instant matchingStart = SystemClock.Instance.GetCurrentInstant().Plus(Duration.FromHours(2));
+        Instant from = matchingStart.Minus(Duration.FromHours(1));
+        Instant to = matchingStart.Plus(Duration.FromDays(15));
 
         await CreateAppointmentAsync(matchingStart, "Backend design review", "Paris", cancellationToken);
         await CreateAppointmentAsync(matchingStart.Plus(Duration.FromDays(3)), "Frontend design review", "Lyon", cancellationToken);
 
         string subjectFilter = Uri.EscapeDataString("*design*");
         string locationFilter = Uri.EscapeDataString("*Paris*");
-        string query = $"/appointments?page=1&pageSize=10&subject={subjectFilter}&location={locationFilter}&from=2026-05-23T22:00:00.000Z&to=2026-06-08T21:59:59.999Z";
+        string query = $"/appointments?page=1&pageSize=10&subject={subjectFilter}&location={locationFilter}&from={ToUtcQueryTimestamp(from)}&to={ToUtcQueryTimestamp(to)}";
 
         // Act
         using HttpResponseMessage getResponse = await _client.GetAsync(query, cancellationToken);
@@ -182,5 +184,10 @@ public sealed class SearchAppointmentHeadContractShould(ITestOutputHelper output
         values.Should().NotBeNull();
 
         return values;
+    }
+
+    private static string ToUtcQueryTimestamp(Instant instant)
+    {
+        return instant.ToDateTimeUtc().ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);
     }
 }

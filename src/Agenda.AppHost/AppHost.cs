@@ -23,7 +23,7 @@ var messaging = builder.AddRabbitMQ("messaging")
 IResourceBuilder<ProjectResource> migrationService = builder.AddProject<Agenda_Migrator>("migrations")
     .WithReference(postgres);
 
-if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
+if (builder.ExecutionContext.IsRunMode)
 {
     migrationService = migrationService.WaitFor(postgres);
 }
@@ -38,7 +38,7 @@ if (builder.ExecutionContext.IsPublishMode)
     api = api.PublishAsDockerFile();
 }
 
-if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
+if (builder.ExecutionContext.IsRunMode)
 {
     api = api
         .WaitFor(messaging)

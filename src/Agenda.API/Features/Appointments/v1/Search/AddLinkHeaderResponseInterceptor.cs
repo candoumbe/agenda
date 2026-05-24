@@ -40,10 +40,11 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
             return Task.CompletedTask;
         }
 
-        if (TryGetPageInformation(value, out long total, out long count, out List<Link> pageLinks))
+        if (TryGetPageInformation(value, out long total, out long totalCount, out long count, out List<Link> pageLinks))
         {
             SetLinkHeader(ctx, pageLinks);
             ctx.Response.Headers["total"] = total.ToString(CultureInfo.InvariantCulture);
+            ctx.Response.Headers["totalCount"] = totalCount.ToString(CultureInfo.InvariantCulture);
             ctx.Response.Headers["count"] = count.ToString(CultureInfo.InvariantCulture);
             return Task.CompletedTask;
         }
@@ -77,9 +78,10 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
         return value is not null;
     }
 
-    private static bool TryGetPageInformation(object value, out long total, out long count, out List<Link> links)
+    private static bool TryGetPageInformation(object value, out long total, out long totalCount, out long count, out List<Link> links)
     {
         total = 0;
+        totalCount = 0;
         count = 0;
         links = [];
 
@@ -90,22 +92,25 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
         }
 
         PropertyInfo totalProperty = valueType.GetProperty(nameof(PageOf<Browsable<AppointmentInfo>>.Total));
+        PropertyInfo totalCountProperty = valueType.GetProperty(nameof(PageOf<Browsable<AppointmentInfo>>.TotalCount));
         PropertyInfo countProperty = valueType.GetProperty(nameof(PageOf<Browsable<AppointmentInfo>>.Count));
         PropertyInfo linksProperty = valueType.GetProperty(nameof(PageOf<Browsable<AppointmentInfo>>.Links));
 
-        if (totalProperty is null || countProperty is null || linksProperty is null)
+        if (totalProperty is null || totalCountProperty is null || countProperty is null || linksProperty is null)
         {
             return false;
         }
 
         object totalValue = totalProperty.GetValue(value);
+        object totalCountValue = totalCountProperty.GetValue(value);
         object countValue = countProperty.GetValue(value);
-        if (totalValue is null || countValue is null)
+        if (totalValue is null || totalCountValue is null || countValue is null)
         {
             return false;
         }
 
         total = Convert.ToInt64(totalValue, CultureInfo.InvariantCulture);
+        totalCount = Convert.ToInt64(totalCountValue, CultureInfo.InvariantCulture);
         count = Convert.ToInt64(countValue, CultureInfo.InvariantCulture);
 
         object rawLinks = linksProperty.GetValue(value);
