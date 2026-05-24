@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Agenda.API.Features.Appointments.v1.Search;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.Objects;
 using Candoumbe.DataAccess.Abstractions;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using NodaTime;
 using Optional;
 
@@ -24,6 +26,7 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
     private readonly IUnitOfWorkFactory _unitOfWorkFactory;
     private readonly LinkGenerator _linkGenerator;
     private readonly CurrentRequestMetadataInfoProvider _currentRequestMetadataInfoProvider;
+    private readonly ILoggerFactory _loggerFactory;
 
     /// <summary>
     /// Builds a new <see cref="GetAppointmentByIdEndpoint"/> instance.
@@ -31,11 +34,16 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
     /// <param name="unitOfWorkFactory"></param>
     /// <param name="linkGenerator"></param>
     /// <param name="currentRequestMetadataInfoProvider"></param>
-    public GetAppointmentByIdEndpoint(IUnitOfWorkFactory unitOfWorkFactory, LinkGenerator linkGenerator, CurrentRequestMetadataInfoProvider currentRequestMetadataInfoProvider)
+    /// <param name="loggerFactory"></param>
+    public GetAppointmentByIdEndpoint(IUnitOfWorkFactory unitOfWorkFactory,
+                                      LinkGenerator linkGenerator,
+                                      CurrentRequestMetadataInfoProvider currentRequestMetadataInfoProvider,
+                                      ILoggerFactory loggerFactory)
     {
         _unitOfWorkFactory = unitOfWorkFactory;
         _linkGenerator = linkGenerator;
         _currentRequestMetadataInfoProvider = currentRequestMetadataInfoProvider;
+        _loggerFactory = loggerFactory;
     }
 
     /// <inheritdoc />
@@ -45,6 +53,7 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
         Routes("/appointments/{id}");
 
         AllowAnonymous();
+        ResponseInterceptor(new AddLinkHeaderResponseInterceptor(_loggerFactory.CreateLogger<AddLinkHeaderResponseInterceptor>()));
     }
 
 
