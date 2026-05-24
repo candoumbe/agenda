@@ -13,6 +13,7 @@ Agent Lambert initialized and ready for work.
 ## Recent Updates
 
 📌 Team initialized on 2026-04-24
+📌 Routed by Scribe for issue #545 docs/changelog batch on 2026-05-24
 
 ## Learnings
 
@@ -24,3 +25,6 @@ Agent Lambert initialized and ready for work.
   - Automatic redirect to appointments list after appointment creation
 - Commit: `docs: add CHANGELOG entry for appointments list UI (#502)`
 - Key pattern: Link issue numbers in brackets (#502) for traceability
+
+### 2026-05-24: Issue #545 docs assignment context
+- For coordinated issue batches, keep CHANGELOG wording concise and aligned to validated behavior from implementation/tests.
