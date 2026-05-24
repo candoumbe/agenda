@@ -24,16 +24,30 @@
           class="search-input"
         />
         <input
-          type="datetime-local"
-          formControlName="from"
+          type="date"
+          formControlName="fromDate"
           class="search-input"
-          aria-label="Debut de plage horaire"
+          aria-label="Date de debut"
         />
         <input
-          type="datetime-local"
-          formControlName="to"
+          type="time"
+          formControlName="fromTime"
           class="search-input"
-          aria-label="Fin de plage horaire"
+          aria-label="Heure de debut optionnelle"
+          placeholder="Heure debut (optionnelle)"
+        />
+        <input
+          type="date"
+          formControlName="toDate"
+          class="search-input"
+          aria-label="Date de fin"
+        />
+        <input
+          type="time"
+          formControlName="toTime"
+          class="search-input"
+          aria-label="Heure de fin optionnelle"
+          placeholder="Heure fin (optionnelle)"
         />
         <button type="submit" class="primary">Rechercher</button>
         <button type="button" class="secondary" (click)="clearSearch()">Réinitialiser</button>
