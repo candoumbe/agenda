@@ -38,7 +38,7 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
     private AgendaApplicationTestingBuilder _appHost;
     private static readonly JsonSerializerOptions s_jsonSerializerOptions;
     private DistributedApplication _sut;
-    private const int s_transientInfrastructureMaxAttempts = 3;
+    private const int TransientInfrastructureMaxAttempts = 3;
     private static readonly TimeSpan s_transientInfrastructureRetryDelay = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan s_firstRequestTimeout = TimeSpan.FromSeconds(15);
     private static readonly HttpStatusCode[] s_transientInfrastructureStatusCodes = [HttpStatusCode.InternalServerError, HttpStatusCode.ServiceUnavailable, HttpStatusCode.BadGateway];
@@ -129,7 +129,7 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
         Exception lastTransientException = null;
         HttpResponseMessage finalResponse = null;
 
-        for (int attempt = 1; attempt <= s_transientInfrastructureMaxAttempts; attempt++)
+        for (int attempt = 1; attempt <= TransientInfrastructureMaxAttempts; attempt++)
         {
             try
             {
@@ -145,18 +145,18 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
 
                 response.Dispose();
             }
-            catch (HttpRequestException exception) when (attempt < s_transientInfrastructureMaxAttempts)
+            catch (HttpRequestException exception) when (attempt < TransientInfrastructureMaxAttempts)
             {
                 lastTransientException = exception;
-                outputHelper.WriteLine($"Transient HTTP failure detected on create attempt {attempt}/{s_transientInfrastructureMaxAttempts}: {exception.Message}");
+                outputHelper.WriteLine($"Transient HTTP failure detected on create attempt {attempt}/{TransientInfrastructureMaxAttempts}: {exception.Message}");
             }
-            catch (TaskCanceledException exception) when (!cancellationToken.IsCancellationRequested && attempt < s_transientInfrastructureMaxAttempts)
+            catch (TaskCanceledException exception) when (!cancellationToken.IsCancellationRequested && attempt < TransientInfrastructureMaxAttempts)
             {
                 lastTransientException = exception;
-                outputHelper.WriteLine($"Transient timeout detected on create attempt {attempt}/{s_transientInfrastructureMaxAttempts}: {exception.Message}");
+                outputHelper.WriteLine($"Transient timeout detected on create attempt {attempt}/{TransientInfrastructureMaxAttempts}: {exception.Message}");
             }
 
-            if (attempt < s_transientInfrastructureMaxAttempts)
+            if (attempt < TransientInfrastructureMaxAttempts)
             {
                 await Task.Delay(s_transientInfrastructureRetryDelay, cancellationToken);
             }
@@ -177,10 +177,10 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
 
     private async Task<bool> ShouldRetryBecauseOfTransientInfrastructureFailureAsync(HttpResponseMessage response, int attempt, CancellationToken cancellationToken)
     {
-        if (attempt < s_transientInfrastructureMaxAttempts && s_transientInfrastructureStatusCodes.Contains(response.StatusCode))
+        if (attempt < TransientInfrastructureMaxAttempts && s_transientInfrastructureStatusCodes.Contains(response.StatusCode))
         {
             string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            outputHelper.WriteLine($"Transient infrastructure response detected on create attempt {attempt}/{s_transientInfrastructureMaxAttempts}. Status code: {(int)response.StatusCode}. Body: {responseContent}");
+            outputHelper.WriteLine($"Transient infrastructure response detected on create attempt {attempt}/{TransientInfrastructureMaxAttempts}. Status code: {(int)response.StatusCode}. Body: {responseContent}");
             return true;
         }
 

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.IntegrationTests.Fixtures;
@@ -17,7 +17,7 @@ namespace Agenda.API.IntegrationTests.Appointments.v1.Search;
 [IntegrationTest]
 public sealed class SearchAppointmentQueryBindingShould(ITestOutputHelper outputHelper) : IAsyncLifetime
 {
-    private const int s_transientInfrastructureMaxAttempts = 6;
+    private const int TransientInfrastructureMaxAttempts = 6;
     private static readonly TimeSpan s_transientInfrastructureRetryDelay = TimeSpan.FromSeconds(3);
     private static readonly HashSet<HttpStatusCode> s_transientInfrastructureStatusCodes = [HttpStatusCode.InternalServerError, HttpStatusCode.ServiceUnavailable, HttpStatusCode.BadGateway];
 
@@ -78,16 +78,16 @@ public sealed class SearchAppointmentQueryBindingShould(ITestOutputHelper output
         Exception lastTransientException = null;
         HttpResponseMessage finalResponse = null;
 
-        for (int attempt = 1; attempt <= s_transientInfrastructureMaxAttempts; attempt++)
+        for (int attempt = 1; attempt <= TransientInfrastructureMaxAttempts; attempt++)
         {
             try
             {
                 using HttpRequestMessage request = new(method, "/appointments?page=1&pageSize=10&from=2026-05-23T22:00:00.000Z&to=2026-06-08T21:59:59.999Z");
                 HttpResponseMessage response = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
-                if (attempt < s_transientInfrastructureMaxAttempts && s_transientInfrastructureStatusCodes.Contains(response.StatusCode))
+                if (attempt < TransientInfrastructureMaxAttempts && s_transientInfrastructureStatusCodes.Contains(response.StatusCode))
                 {
-                    outputHelper.WriteLine($"Transient infrastructure response detected on search {method} attempt {attempt}/{s_transientInfrastructureMaxAttempts}. Status code: {(int)response.StatusCode}");
+                    outputHelper.WriteLine($"Transient infrastructure response detected on search {method} attempt {attempt}/{TransientInfrastructureMaxAttempts}. Status code: {(int)response.StatusCode}");
                     response.Dispose();
                 }
                 else
@@ -96,18 +96,18 @@ public sealed class SearchAppointmentQueryBindingShould(ITestOutputHelper output
                     break;
                 }
             }
-            catch (HttpRequestException exception) when (attempt < s_transientInfrastructureMaxAttempts)
+            catch (HttpRequestException exception) when (attempt < TransientInfrastructureMaxAttempts)
             {
                 lastTransientException = exception;
-                outputHelper.WriteLine($"Transient HTTP failure detected on search {method} attempt {attempt}/{s_transientInfrastructureMaxAttempts}: {exception.Message}");
+                outputHelper.WriteLine($"Transient HTTP failure detected on search {method} attempt {attempt}/{TransientInfrastructureMaxAttempts}: {exception.Message}");
             }
-            catch (TaskCanceledException exception) when (!cancellationToken.IsCancellationRequested && attempt < s_transientInfrastructureMaxAttempts)
+            catch (TaskCanceledException exception) when (!cancellationToken.IsCancellationRequested && attempt < TransientInfrastructureMaxAttempts)
             {
                 lastTransientException = exception;
-                outputHelper.WriteLine($"Transient timeout detected on search {method} attempt {attempt}/{s_transientInfrastructureMaxAttempts}: {exception.Message}");
+                outputHelper.WriteLine($"Transient timeout detected on search {method} attempt {attempt}/{TransientInfrastructureMaxAttempts}: {exception.Message}");
             }
 
-            if (attempt < s_transientInfrastructureMaxAttempts)
+            if (attempt < TransientInfrastructureMaxAttempts)
             {
                 await Task.Delay(s_transientInfrastructureRetryDelay, cancellationToken);
             }
