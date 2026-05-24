@@ -68,6 +68,26 @@
 **Decision:** Update `UnitTests` in `build/Build.cs` to use an MTP-compatible test invocation, and decouple `Format` from `UnitTests` or provide a documented skip path.
 **Why:** Restore reliable and actionable unit-test execution in local and CI workflows.
 
+### 2026-05-23T21:10:00Z: Issue #541 interval discovery and jump behavior
+**By:** Dallas
+**What:** For appointment listing issue #541, implement frontend behavior in two explicit steps:
+- Primary query uses the active filter window (default [today, today+15 days] on first load).
+- If interval result is empty, run a secondary query with `from=<selected to>`, `page=1`, `pageSize=1` to discover the first incoming appointment after the window and enable a jump action.
+
+Jump action updates `from` to the discovered appointment start date and `to` to `from + 15 days`, then reloads the list.
+**Why:** Satisfy the UX requirement without backend contract changes while keeping the implementation minimal and testable.
+
+### 2026-05-23T21:10:00Z: Frontend tests for issue #541 must assert two-phase empty-range behavior
+**By:** Hicks
+**What:** When the list interval query returns empty results with a bounded date range, frontend behavior should be validated in two steps: first query for the selected interval, then fallback query for the first incoming appointment (`pageSize: 1`, `from = selected to`). Tests should assert both the main interval request and the fallback request where applicable.
+**Why:** Prevent brittle assertions and ensure acceptance coverage for default 15-day interval, empty-state CTA, and jump-to-first-incoming flow.
+
+### 2026-05-19T00:00:00Z: Testing standards directive - prefer AwesomeAssertions
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** Squad always prefers using AwesomeAssertions over raw xUnit Assert for this project.
+**Why:** User directive for consistent test style across the Agenda project.
+**Applies to:** All test code in the Agenda project.
+
 ## Governance
 
 - All meaningful changes require team consensus
