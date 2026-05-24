@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Agenda.API.Features;
 using Agenda.API.Features.Appointments;
 using Agenda.API.Features.Appointments.v1.Search;
+using Agenda.Ids;
 using AwesomeAssertions;
 using AwesomeAssertions.Execution;
 using Bogus;
@@ -83,6 +86,42 @@ public class AddLinkHeaderResponseInterceptorShould
             .And.ContainSingle(link => link.Like("""
                                                  <*>; rel="last"
                                                  """));
+
+        headers.Should().ContainKey("total")
+            .WhoseValue.Should().ContainSingle("0");
+        headers.Should().ContainKey("count")
+            .WhoseValue.Should().ContainSingle("0");
+
+    }
+
+    [Fact]
+    public async Task Given_a_response_with_a_browsable_resource_When_post_processing_Then_add_link_header()
+    {
+        // Arrange
+        Browsable<AppointmentInfo> browsable = new()
+        {
+            Resource = new AppointmentInfo { Id = AppointmentId.New(), Subject = s_faker.Lorem.Sentence(), Attendees = [] },
+            Links = [new Link { Href = s_faker.Internet.Url(), Relations = [LinkRelation.Self] }]
+        };
+
+        Ok<Browsable<AppointmentInfo>> response = TypedResults.Ok(browsable);
+        HttpContext fakeHttpContext = A.Fake<HttpContext>(x => x.Strict());
+        HttpResponse fakeResponse = A.Fake<HttpResponse>(x => x.Strict());
+        A.CallTo(() => fakeHttpContext.Response).Returns(fakeResponse);
+        Captured<Func<Task>> capturedOnStartingCallback = A.Captured<Func<Task>>();
+        A.CallTo(() => fakeResponse.OnStarting(capturedOnStartingCallback._)).Invokes(() => { });
+        A.CallTo(() => fakeResponse.Headers).Returns(new HeaderDictionary());
+
+        // Act
+        await _sut.InterceptResponseAsync(response, Status200OK, fakeHttpContext, [], TestContext.Current.CancellationToken);
+
+        // Assert
+        IHeaderDictionary headers = fakeHttpContext.Response.Headers;
+        headers.Should().ContainKey("Link");
+        IEnumerable<string> links = headers["Link"].AsEnumerable();
+        links.Should().ContainSingle(link => link.Like("""
+                                                       <*>; rel="self"
+                                                       """));
 
     }
 }

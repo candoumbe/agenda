@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Reflection;
 using Candoumbe.Forms;
 using FastEndpoints;
 using FluentValidation.Results;
@@ -33,32 +35,141 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
                                        IReadOnlyCollection<ValidationFailure> failures,
                                        CancellationToken ct)
     {
-        if (response is not Ok<PageOf<Browsable<AppointmentInfo>>> okResponse || statusCode != Status200OK)
+        if (statusCode != Status200OK || !TryGetOkValue(response, out object value))
         {
             return Task.CompletedTask;
         }
 
-        PageLinks pageLinks = okResponse.Value.Links;
-        Link first = pageLinks.First;
-        Link last = pageLinks.Last;
-        Link next = pageLinks.Next;
-        Link previous = pageLinks.Previous;
-
-        Link[] links = [first, last, next, previous];
-
-        List<string> linkToRender = [];
-        foreach (Link link in links.Where(link => link is not null))
+        if (TryGetPageInformation(value, out long total, out long count, out List<Link> pageLinks))
         {
-            linkToRender.AddRange(link.Relations.Select(relation => $"""
-                                                                        <{link.Href}>; rel="{relation}"
-                                                                        """));
+            SetLinkHeader(ctx, pageLinks);
+            ctx.Response.Headers["total"] = total.ToString(CultureInfo.InvariantCulture);
+            ctx.Response.Headers["count"] = count.ToString(CultureInfo.InvariantCulture);
+            return Task.CompletedTask;
+        }
+
+        if (TryGetBrowsableLinks(value, out IEnumerable<Link> browsableLinks))
+        {
+            SetLinkHeader(ctx, browsableLinks);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private static bool TryGetOkValue(object response, out object value)
+    {
+        value = null;
+        ArgumentNullException.ThrowIfNull(response);
+
+        Type responseType = response.GetType();
+        if (!responseType.IsGenericType || responseType.GetGenericTypeDefinition() != typeof(Ok<>))
+        {
+            return false;
+        }
+
+        PropertyInfo valueProperty = responseType.GetProperty(nameof(Ok<object>.Value));
+        if (valueProperty is null)
+        {
+            return false;
+        }
+
+        value = valueProperty.GetValue(response);
+        return value is not null;
+    }
+
+    private static bool TryGetPageInformation(object value, out long total, out long count, out List<Link> links)
+    {
+        total = 0;
+        count = 0;
+        links = [];
+
+        Type valueType = value.GetType();
+        if (!valueType.IsGenericType || valueType.GetGenericTypeDefinition() != typeof(PageOf<>))
+        {
+            return false;
+        }
+
+        PropertyInfo totalProperty = valueType.GetProperty(nameof(PageOf<Browsable<AppointmentInfo>>.Total));
+        PropertyInfo countProperty = valueType.GetProperty(nameof(PageOf<Browsable<AppointmentInfo>>.Count));
+        PropertyInfo linksProperty = valueType.GetProperty(nameof(PageOf<Browsable<AppointmentInfo>>.Links));
+
+        if (totalProperty is null || countProperty is null || linksProperty is null)
+        {
+            return false;
+        }
+
+        object totalValue = totalProperty.GetValue(value);
+        object countValue = countProperty.GetValue(value);
+        if (totalValue is null || countValue is null)
+        {
+            return false;
+        }
+
+        total = Convert.ToInt64(totalValue, CultureInfo.InvariantCulture);
+        count = Convert.ToInt64(countValue, CultureInfo.InvariantCulture);
+
+        object rawLinks = linksProperty.GetValue(value);
+        if (rawLinks is not PageLinks pageLinks)
+        {
+            return false;
+        }
+
+        List<Link> extractedLinks = new()
+        {
+            pageLinks.First,
+            pageLinks.Last,
+            pageLinks.Next,
+            pageLinks.Previous
+        };
+
+        links = extractedLinks.Where(link => link is not null)
+                              .ToList();
+
+        return true;
+    }
+
+    private static bool TryGetBrowsableLinks(object value, out IEnumerable<Link> links)
+    {
+        links = [];
+
+        Type valueType = value.GetType();
+        if (!valueType.IsGenericType || valueType.GetGenericTypeDefinition() != typeof(Browsable<>))
+        {
+            return false;
+        }
+
+        PropertyInfo linksProperty = valueType.GetProperty(nameof(Browsable<AppointmentInfo>.Links));
+        if (linksProperty?.GetValue(value) is not IEnumerable<Link> browsableLinks)
+        {
+            return false;
+        }
+
+        links = browsableLinks.Where(link => link is not null);
+        return true;
+    }
+
+    private void SetLinkHeader(HttpContext context, IEnumerable<Link> links)
+    {
+        List<string> linkToRender = [];
+        foreach (Link link in links)
+        {
+            if (link?.Relations is null)
+            {
+                continue;
+            }
+
+            linkToRender.AddRange(link.Relations
+                                     .Where(relation => !string.IsNullOrWhiteSpace(relation))
+                                     .Select(relation => $"<{link.Href}>; rel=\"{relation}\""));
+        }
+
+        if (!linkToRender.Any())
+        {
+            return;
         }
 
         LogLinkHeader(string.Join(", ", linkToRender));
-        ctx.Response.Headers.Link = new StringValues([.. linkToRender]);
-
-        return Task.CompletedTask;
-
+        context.Response.Headers.Link = new StringValues([.. linkToRender]);
     }
 
     [ExcludeFromCodeCoverage]
