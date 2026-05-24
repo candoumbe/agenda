@@ -282,8 +282,8 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                     PageSize = PositiveInteger.From(10),
                     Subject = "*design*",
                     Location = "*Paris*",
-                    From = targetStartDate.Minus(Duration.FromHours(1)).InUtc().ToOffsetDateTime(),
-                    To = targetStartDate.Plus(Duration.FromHours(2)).InUtc().ToOffsetDateTime()
+                    From = targetStartDate.Minus(Duration.FromHours(1)).InUtc().ToOffsetDateTime().ToDateTimeOffset(),
+                    To = targetStartDate.Plus(Duration.FromHours(2)).InUtc().ToOffsetDateTime().ToDateTimeOffset()
                 };
 
                 cases.Add(data,
