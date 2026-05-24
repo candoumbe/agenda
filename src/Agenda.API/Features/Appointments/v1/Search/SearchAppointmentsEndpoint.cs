@@ -13,6 +13,7 @@ using DataFilters.Expressions;
 using FastEndpoints;
 using Microsoft.AspNetCore.Http.HttpResults;
 using NodaTime;
+using NodaTime.Extensions;
 
 namespace Agenda.API.Features.Appointments.v1.Search;
 
@@ -278,4 +279,4 @@ file record AttendeeDto
     public string PhoneNumber { get; init; }
 }
 
-file record SearchAppointmentQuery(NonNegativeInteger Page, PositiveInteger PageSize, string Subject, string Location, OffsetDateTime? From, OffsetDateTime? To, string Sort);
+file record SearchAppointmentQuery(NonNegativeInteger Page, PositiveInteger PageSize, string Subject, string Location, DateTimeOffset? From, DateTimeOffset? To, string Sort);
