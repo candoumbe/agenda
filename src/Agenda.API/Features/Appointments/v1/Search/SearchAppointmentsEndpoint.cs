@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Globalization;
 using Agenda.API.Features.Appointments.v1.Delete;
 using Agenda.API.Features.Appointments.v1.GetById;
 using Agenda.Ids;
@@ -12,6 +13,7 @@ using DataFilters.Casing;
 using DataFilters.Expressions;
 using FastEndpoints;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Primitives;
 using NodaTime;
 using NodaTime.Extensions;
 
@@ -147,7 +149,38 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                                   Next: ComputeLinkToNextPage(request, totalPages, HttpContext))
         };
 
+        AddPaginationHeaders(HttpContext.Response, content);
+
         return TypedResults.Ok(content);
+
+        static void AddPaginationHeaders(HttpResponse response, PageOf<Browsable<AppointmentInfo>> page)
+        {
+            response.Headers["total"] = page.Total.ToString(CultureInfo.InvariantCulture);
+            response.Headers["totalCount"] = page.TotalCount.ToString(CultureInfo.InvariantCulture);
+            response.Headers["count"] = page.Count.ToString(CultureInfo.InvariantCulture);
+
+            if (page.Links is null)
+            {
+                return;
+            }
+
+            IEnumerable<string> renderedLinks =
+            new[]
+            {
+                page.Links.First,
+                page.Links.Last,
+                page.Links.Next,
+                page.Links.Previous
+            }
+            .Where(link => link is not null)
+            .SelectMany(link => (link.Relations ?? Array.Empty<string>()).Where(relation => !string.IsNullOrWhiteSpace(relation))
+                                                       .Select(relation => $"<{link.Href}>; rel=\"{relation}\""));
+
+            if (renderedLinks.Any())
+            {
+                response.Headers.Link = new StringValues(renderedLinks.ToArray());
+            }
+        }
 
         IFilter ComputeFilter(SearchAppointmentRequest search)
         {
@@ -237,6 +270,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                     Href = _linkGenerator.GetPathByName(httpContext,
                                                       IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
                                                       new SearchAppointmentQuery(localSearch.Page - 1, localSearch.PageSize, localSearch.Subject, localSearch.Location, localSearch.From, localSearch.To, localSearch.Sort)),
+                    Relations = [LinkRelation.Previous],
                 },
                 _ => null
             };
@@ -250,6 +284,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                            Href = _linkGenerator.GetUriByRouteValues(httpContext,
                                                                      IEndpoint.GetName<SearchAppointmentsEndpoint>(Http.GET),
                                                                      new SearchAppointmentQuery(searchAppointmentRequest.Page + 1, searchAppointmentRequest.PageSize, searchAppointmentRequest.Subject, searchAppointmentRequest.Location, searchAppointmentRequest.From, searchAppointmentRequest.To, searchAppointmentRequest.Sort)),
+                           Relations = [LinkRelation.Next],
                        }
                        : null;
         }
