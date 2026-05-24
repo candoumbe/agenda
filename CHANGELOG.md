@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed appointments listing pagination metadata for UI navigation (`total` now represents total pages, with explicit `totalCount` and `pageSize` fields)
 - Added multi-criteria filtering for appointments listing (`subject`, `location`, and `from`/`to` time range)
 - Fixed appointments search query binding for ISO `OffsetDateTime` range filters so first-load requests return `200` instead of `400`
+- Added `HEAD` support headers on appointments `GET` endpoints: browsable resources now emit `Link`, and paginated collections emit `Link`, `total`, and `count` headers
 - Made appointments search case-insensitive at database level by switching `Subject` and `Location` to PostgreSQL `citext` columns ([#504](https://github.com/candoumbe/agenda/issues/504))
 
 ### 🧹 Housekeeping
