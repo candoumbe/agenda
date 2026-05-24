@@ -24,7 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed appointments listing pagination metadata for UI navigation (`total` now represents total pages, with explicit `totalCount` and `pageSize` fields)
 - Added multi-criteria filtering for appointments listing (`subject`, `location`, and `from`/`to` time range)
 - Fixed appointments search query binding for ISO `OffsetDateTime` range filters so first-load requests return `200` instead of `400`
-- Added `HEAD` support headers on appointments `GET` endpoints: browsable resources now emit `Link`, and paginated collections emit `Link`, `total`, and `count` headers
+- Added `HEAD` support headers on appointments `GET` endpoints: browsable resources now emit `Link`, and paginated collections emit `Link`, `total`, `totalCount`, and `count` headers
+- Added integration coverage for appointments `HEAD` contracts on `GET /appointments/{id}` and paginated `GET /appointments` responses
 - Made appointments search case-insensitive at database level by switching `Subject` and `Location` to PostgreSQL `citext` columns ([#504](https://github.com/candoumbe/agenda/issues/504))
 
 ### 🧹 Housekeeping
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed devcontainer .NET SDK provisioning to install `10.0.300` by default (with `10.0.203` and `10.0.201` as additional SDKs) to match project requirements and unblock Aspire startup
 - Fixed integration test startup hangs by restoring the AppHost/fixture startup flow used on `develop` for integration mode
 - Stabilized appointment creation integration coverage by retrying transient `5xx` responses during startup races
+- Raised Angular `anyComponentStyle` warning budget to `5kB` to align build checks with current UI styles
 - Updated `xRetry` to `1.0.0-rc2`
 - Updated `xunit.v3` to `3.2.0`
 - Updated `Paramore.Brighter.*` packages to `10.0.4`
