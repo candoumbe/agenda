@@ -14,6 +14,7 @@ Agent Lambert initialized and ready for work.
 
 📌 Team initialized on 2026-04-24
 📌 Logged fixture-pattern documentation alignment for AssemblyFixture migration on 2026-05-26
+📌 Routed by Scribe for issue #545 docs/changelog batch on 2026-05-24
 
 ## Learnings
 
@@ -26,3 +27,6 @@ Agent Lambert initialized and ready for work.
 - Commit: `docs: add CHANGELOG entry for appointments list UI (#502)`
 - Key pattern: Link issue numbers in brackets (#502) for traceability
 - Fixture migration documentation is clearer when it explains lifecycle ownership (assembly-level setup) and expected test-host behavior together.
+
+### 2026-05-24: Issue #545 docs assignment context
+- For coordinated issue batches, keep CHANGELOG wording concise and aligned to validated behavior from implementation/tests.
