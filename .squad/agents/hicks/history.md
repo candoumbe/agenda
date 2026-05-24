@@ -127,3 +127,16 @@ import { vi } from 'vitest';
 
 **Residual Risk:**
 - Environment-level container initialization issues can still prevent full targeted backend execution in some contexts; architecture and frontend validations reduce but do not eliminate this risk.
+
+### 2026-05-23: Issue #541 Frontend date-window behavior validation
+
+**What was validated:**
+- Added and stabilized appointments-list frontend tests for default 15-day interval initialization on first load.
+- Added empty-state assertions for interval-scoped messaging and creation CTA visibility when no appointments exist in range.
+- Added jump-to-first-incoming coverage to verify date-window repositioning and second search execution with a +15 day range.
+
+**Important test pattern update:**
+- Multi-criteria searches can trigger an additional fallback call (`pageSize: 1`, `from = selected to`) when the first interval response is empty, so assertions must not rely only on the last call being the main query.
+
+**Execution result:**
+- `npm run test -- --watch false` passed in `src/Agenda.Frontend` with 41/41 tests green.

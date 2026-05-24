@@ -29,3 +29,12 @@ Initial setup complete.
 - Pour une pagination fiable, exploiter d'abord `links.last/next/previous` pour les bornes et la navigation, puis utiliser `response.total` en repli si les liens sont absents.
 - La recherche multi-criteres du listing doit envoyer `subject`, `location`, `from`, `to` (dates en ISO) et reinitialiser la page a 1 a chaque changement de filtre.
 - Pour une coherence durable UI/API, la page affichee doit toujours etre resynchronisee depuis `response.page` et non seulement depuis l'etat local.
+- For the appointments listing, the default date interval should be initialized on first load to [now, now + 15 days] and reused when clearing filters.
+- To support "jump to first incoming appointment" without backend changes, the frontend can issue a focused follow-up query (`page=1`, `pageSize=1`, `from=<current to>`) when the selected interval has no result.
+- The empty-state UX for interval searches should explicitly include the selected bounds and expose contextual actions (create appointment and jump to next available window).
+
+### 2026-05-23: Issue #541 frontend delivery update
+
+- Implemented issue #541 behavior in appointments listing with default 15-day interval initialization and empty-range fallback discovery query.
+- Added jump-to-first-incoming flow that shifts the interval to the discovered appointment start and reloads list data.
+- Frontend validation completed with successful build and test execution for the updated behavior.
