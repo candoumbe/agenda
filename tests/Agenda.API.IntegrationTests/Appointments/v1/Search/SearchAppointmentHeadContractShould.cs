@@ -4,25 +4,18 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.Features;
 using Agenda.API.Features.Appointments;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.API.IntegrationTests.Fixtures;
-using Agenda.Ids;
 using Aspire.Hosting;
 using AwesomeAssertions;
 using Bogus;
-using Candoumbe.Forms;
-using DataFilters.Converters;
-using Json.More;
-using Json.Patch;
 using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
 using xRetry.v3;
 using Xunit;
 using Xunit.OpenCategories.V3;
@@ -36,26 +29,6 @@ public sealed class SearchAppointmentHeadContractShould(ITestOutputHelper output
     private HttpClient _client;
     private AgendaApplicationTestingBuilder _appHost;
     private static readonly Faker s_faker = new();
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions;
-
-    static SearchAppointmentHeadContractShould()
-    {
-        s_jsonSerializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            AllowTrailingCommas = true
-        };
-
-        s_jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-        s_jsonSerializerOptions.Converters.Add(new MultiFilterConverter());
-        s_jsonSerializerOptions.Converters.Add(new FilterConverter());
-        s_jsonSerializerOptions.Converters.Add(new PatchJsonConverter());
-        s_jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<OperationType>());
-        s_jsonSerializerOptions.Converters.Add(new EnumStringConverter<OperationType>());
-        s_jsonSerializerOptions.Converters.Add(new AppointmentId.AppointmentIdSystemTextJsonConverter());
-        s_jsonSerializerOptions.Converters.Add(new AttendeeId.AttendeeIdSystemTextJsonConverter());
-    }
 
     public async ValueTask InitializeAsync()
     {
@@ -146,26 +119,31 @@ public sealed class SearchAppointmentHeadContractShould(ITestOutputHelper output
 
     private async Task CreateAppointmentAsync(Instant startDate, string subject, string location, CancellationToken cancellationToken)
     {
-        AppointmentInfo appointment = new()
-        {
-            Id = AppointmentId.New(),
-            StartDate = startDate.InUtc().ToOffsetDateTime(),
-            EndDate = startDate.Plus(Duration.FromMinutes(45)).InUtc().ToOffsetDateTime(),
-            Subject = subject,
-            Location = location,
-            Attendees =
-            [
-                new AttendeeInfo
-                {
-                    Id = AttendeeId.New(),
-                    Name = s_faker.Name.FullName(),
-                    Email = s_faker.Internet.Email(),
-                    PhoneNumber = s_faker.Phone.PhoneNumber()
-                }
-            ]
-        };
+                string appointmentId = Guid.NewGuid().ToString();
+                string attendeeId = Guid.NewGuid().ToString();
+                DateTimeOffset startDateTime = startDate.ToDateTimeOffset();
+                DateTimeOffset endDateTime = startDate.Plus(Duration.FromMinutes(45)).ToDateTimeOffset();
 
-        using HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/appointments", appointment, s_jsonSerializerOptions, cancellationToken);
+                string payload = $$"""
+                                                 {
+                                                     "id": "{{appointmentId}}",
+                                                     "subject": "{{subject}}",
+                                                     "location": "{{location}}",
+                                                     "startDate": "{{startDateTime:O}}",
+                                                     "endDate": "{{endDateTime:O}}",
+                                                     "attendees": [
+                                                         {
+                                                             "id": "{{attendeeId}}",
+                                                             "name": "{{s_faker.Name.FullName()}}",
+                                                             "email": "{{s_faker.Internet.Email()}}",
+                                                             "phoneNumber": "{{s_faker.Phone.PhoneNumber()}}"
+                                                         }
+                                                     ]
+                                                 }
+                                                 """;
+
+                using StringContent content = new(payload, Encoding.UTF8, "application/json");
+                using HttpResponseMessage createResponse = await _client.PostAsync("/appointments", content, cancellationToken);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 
