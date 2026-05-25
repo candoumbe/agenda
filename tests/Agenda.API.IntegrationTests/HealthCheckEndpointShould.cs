@@ -1,12 +1,9 @@
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.IntegrationTests.Fixtures;
-using Aspire.Hosting;
 using AwesomeAssertions;
-using xRetry.v3;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
@@ -23,7 +20,7 @@ public class HealthCheckEndpointShould
         _client = fixture.ApiClient;
     }
 
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    [Fact]
     public async Task Return_healthy_status_from_health_endpoint()
     {
         // Arrange
@@ -36,7 +33,7 @@ public class HealthCheckEndpointShould
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    [Fact]
     public async Task Return_healthy_status_from_alive_endpoint()
     {
         // Arrange
