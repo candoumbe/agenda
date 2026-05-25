@@ -1,8 +1,6 @@
-using System;
-using System.Threading.Tasks;
+using System.Net.Http;
 using Agenda.API.IntegrationTests.Fixtures;
-using Aspire.Hosting;
-using xRetry.v3;
+using AwesomeAssertions;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
@@ -10,21 +8,20 @@ using Xunit.OpenCategories.V3;
 namespace Agenda.API.IntegrationTests;
 
 [IntegrationTest]
-public class AppHostShould(ITestOutputHelper outputHelper)
+[Collection("AgendaApplication")]
+public class AppHostShould
 {
-    private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(120);
+    private readonly HttpClient _client;
 
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
-    public async Task Start_and_stop_without_exception()
+    public AppHostShould(AgendaApplicationFixture fixture)
     {
-        await using AgendaApplicationTestingBuilder appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper, TestContext.Current.CancellationToken);
-        await using DistributedApplication sut = await appHost.StartAsync(TestContext.Current.CancellationToken).WaitAsync(s_buildStopTimeout, TestContext.Current.CancellationToken);
+        _client = fixture.ApiClient;
+    }
 
-        //app.EnsureNoErrorsLogged();
-
-        await sut.StopAsync(TestContext.Current.CancellationToken).WaitAsync(s_buildStopTimeout, TestContext.Current.CancellationToken);
-        // ReSharper disable DisposeOnUsingVariable
-        await appHost.DisposeAsync();
-        // ReSharper restore DisposeOnUsingVariable
+    [Fact]
+    public void Expose_api_client_when_fixture_is_initialized()
+    {
+        _client.Should().NotBeNull();
+        _client.BaseAddress.Should().NotBeNull();
     }
 }

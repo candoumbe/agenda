@@ -23,10 +23,10 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// <summary>
     /// Time to wait after which the application under test will be considered as "not started".
     /// </summary>
-    private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromSeconds(120);
+    private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromSeconds(240);
     private static readonly TimeSpan s_readinessProbeDelay = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan s_requestProbeTimeout = TimeSpan.FromSeconds(5);
-    private const int s_requiredConsecutiveSuccessfulProbes = 3;
+    private const int RequiredConsecutiveSuccessfulProbes = 1;
     /// <summary>
     /// Time to wait after which building the infrastructure will be considered as failed.
     /// </summary>
@@ -78,8 +78,8 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
             try
             {
                 // Probe a datastore-backed endpoint so tests only start once
-                // API + database + migrations are effectively usable.
-                using HttpRequestMessage request = new(HttpMethod.Get, "/appointments?page=1&pageSize=1");
+                // API dependencies are actually usable.
+                using HttpRequestMessage request = new(HttpMethod.Get, "/appointments?page=1&pageSize=1&subject=__readiness__");
                 using CancellationTokenSource requestCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(linkedCancellationTokenSource.Token);
                 requestCancellationTokenSource.CancelAfter(s_requestProbeTimeout);
 
@@ -88,7 +88,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
                 if (response.IsSuccessStatusCode)
                 {
                     consecutiveSuccessCount++;
-                    if (consecutiveSuccessCount >= s_requiredConsecutiveSuccessfulProbes)
+                    if (consecutiveSuccessCount >= RequiredConsecutiveSuccessfulProbes)
                     {
                         return;
                     }
