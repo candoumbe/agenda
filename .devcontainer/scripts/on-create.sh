@@ -18,3 +18,21 @@ fi
 echo "[create] Installing Aspire CLI"
 curl -sSL https://aspire.dev/install.sh | bash
 echo "[create] Aspire CLI installation complete"
+
+# install rg command for searching code
+if ! command -v rg >/dev/null 2>&1; then
+    echo "[create] rg (ripgrep) not found in PATH, installing from apt"
+    sudo apt-get update
+    sudo apt-get install -y ripgrep
+    sudo apt-get clean
+    sudo rm -rf /var/lib/apt/lists/*
+fi
+
+# validate dotnet dev certs and trust if necessary
+if ! dotnet dev-certs https --check >/dev/null 2>&1; then
+    echo "[create] ASP.NET Core development certificate not found, generating and trusting"
+    dotnet dev-certs https --trust
+    echo "[create] ASP.NET Core development certificate generated and trusted"
+else
+    echo "[create] ASP.NET Core development certificate already exists and is trusted"
+fi
