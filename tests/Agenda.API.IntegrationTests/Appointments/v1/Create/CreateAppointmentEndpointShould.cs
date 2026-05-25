@@ -38,7 +38,9 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
     private AgendaApplicationTestingBuilder _appHost;
     private static readonly JsonSerializerOptions s_jsonSerializerOptions;
     private DistributedApplication _sut;
+#pragma warning disable IDE1006 // Styles d'affectation de noms
     private const int s_transientInfrastructureMaxAttempts = 3;
+#pragma warning restore IDE1006 // Styles d'affectation de noms
     private static readonly TimeSpan s_transientInfrastructureRetryDelay = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan s_firstRequestTimeout = TimeSpan.FromSeconds(15);
     private static readonly HttpStatusCode[] s_transientInfrastructureStatusCodes = [HttpStatusCode.InternalServerError, HttpStatusCode.ServiceUnavailable, HttpStatusCode.BadGateway];
