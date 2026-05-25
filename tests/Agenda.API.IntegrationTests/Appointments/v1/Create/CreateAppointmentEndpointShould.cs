@@ -10,12 +10,10 @@ using Agenda.API.Features.Appointments;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.API.IntegrationTests.Fixtures;
 using Agenda.Ids;
-using Aspire.Hosting;
 using AwesomeAssertions;
 using Bogus;
 using Candoumbe.Forms;
 using NodaTime;
-using xRetry.v3;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
@@ -39,7 +37,7 @@ public class CreateAppointmentEndpointShould
     }
 
 
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    [Fact]
     public async Task Returns_the_appointment_when_created_successfully()
     {
         // Arrange
