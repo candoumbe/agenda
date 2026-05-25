@@ -13,26 +13,14 @@ using Xunit.OpenCategories.V3;
 namespace Agenda.API.IntegrationTests;
 
 [IntegrationTest]
-public class HealthCheckEndpointShould(ITestOutputHelper outputHelper) : IAsyncLifetime
+[Collection("AgendaApplication")]
+public class HealthCheckEndpointShould
 {
-    private HttpClient _client;
-    private AgendaApplicationTestingBuilder _appHost;
-    private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(60);
-    
-    /// <inheritdoc />
-    public async ValueTask InitializeAsync()
-    {
-        _appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper, TestContext.Current.CancellationToken);
-        await _appHost.StartAsync(TestContext.Current.CancellationToken);
-        _client = _appHost.ApiClient;
-    }
+    private readonly HttpClient _client;
 
-    /// <inheritdoc />
-    public async ValueTask DisposeAsync()
+    public HealthCheckEndpointShould(AgendaApplicationFixture fixture)
     {
-        // ReSharper disable DisposeOnUsingVariable
-        await _appHost.DisposeAsync();
-        // ReSharper restore DisposeOnUsingVariable
+        _client = fixture.ApiClient;
     }
 
     [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
