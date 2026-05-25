@@ -53,8 +53,9 @@ public static class DistributedApplicationTestingBuilderFactory
         
         builder.WithRandomParameterValues();
         builder.WithRandomVolumeNames();
-        // Containers should be re-created for each test.
-        builder.WithContainersLifetime(ContainerLifetime.Session);
+        // Persistent lifetime avoids cross-apphost interference when one test
+        // disposes its own AppHost while a shared fixture is still running.
+        builder.WithContainersLifetime(ContainerLifetime.Persistent);
 
         builder.Services.ConfigureHttpClientDefaults(clientBuilder =>
                                                      {

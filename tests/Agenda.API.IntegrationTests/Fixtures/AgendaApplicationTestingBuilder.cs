@@ -26,6 +26,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan s_readinessProbeDelay = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan s_requestProbeTimeout = TimeSpan.FromSeconds(5);
+    private const int s_requiredConsecutiveSuccessfulProbes = 3;
     /// <summary>
     /// Time to wait after which building the infrastructure will be considered as failed.
     /// </summary>
@@ -67,6 +68,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     private async Task WaitUntilApiIsReachableAsync(CancellationToken cancellationToken)
     {
         Exception lastException = null;
+        int consecutiveSuccessCount = 0;
 
         using CancellationTokenSource timeoutCancellationTokenSource = new(s_startStopTimeout);
         using CancellationTokenSource linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellationTokenSource.Token);
@@ -75,20 +77,31 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         {
             try
             {
-                using HttpRequestMessage request = new(HttpMethod.Get, "/alive");
+                // Probe a datastore-backed endpoint so tests only start once
+                // API + database + migrations are effectively usable.
+                using HttpRequestMessage request = new(HttpMethod.Get, "/appointments?page=1&pageSize=1");
                 using CancellationTokenSource requestCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(linkedCancellationTokenSource.Token);
                 requestCancellationTokenSource.CancelAfter(s_requestProbeTimeout);
 
                 using HttpResponseMessage response = await ApiClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, requestCancellationTokenSource.Token);
 
-                if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.NotFound)
+                if (response.IsSuccessStatusCode)
                 {
-                    return;
+                    consecutiveSuccessCount++;
+                    if (consecutiveSuccessCount >= s_requiredConsecutiveSuccessfulProbes)
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    consecutiveSuccessCount = 0;
                 }
             }
             catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
             {
                 lastException = exception;
+                consecutiveSuccessCount = 0;
             }
 
             await Task.Delay(s_readinessProbeDelay, linkedCancellationTokenSource.Token);
