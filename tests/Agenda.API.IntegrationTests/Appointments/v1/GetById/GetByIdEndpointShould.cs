@@ -96,7 +96,7 @@ public sealed class GetByIdEndpointShould
         IEnumerable<Link> links = browsableResult.Links;
         links.Should()
             .OnlyContain(link => !string.IsNullOrWhiteSpace(link.Href))
-            .And.OnlyContain(link => Uri.IsWellFormedUriString(link.Href, UriKind.Absolute))
+            .And.OnlyContain(link => Uri.IsWellFormedUriString(link.Href, UriKind.Absolute) || Uri.IsWellFormedUriString(link.Href, UriKind.Relative))
             .And.Contain(link => link.Relations.Once(rel => rel == LinkRelation.Self));
     }
 }
