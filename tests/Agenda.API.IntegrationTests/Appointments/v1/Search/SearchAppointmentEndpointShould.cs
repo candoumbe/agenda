@@ -10,12 +10,10 @@ using Agenda.API.Features;
 using Agenda.API.Features.Appointments;
 using Agenda.API.IntegrationTests.Fixtures;
 using Agenda.Ids;
-using Aspire.Hosting;
 using AwesomeAssertions;
 using Bogus;
 using Candoumbe.Forms;
 using NodaTime;
-using xRetry.v3;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
@@ -36,7 +34,7 @@ public sealed class SearchAppointmentEndpointShould
         _client = fixture.ApiClient;
     }
 
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    [Fact]
     public async Task Returns_an_empty_page_when_no_appointments_match_the_filter()
     {
         // Arrange
@@ -56,7 +54,7 @@ public sealed class SearchAppointmentEndpointShould
         page.Count.Should().Be(0);
     }
 
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    [Fact]
     public async Task Returns_the_created_appointment_when_searching_by_subject()
     {
         // Arrange

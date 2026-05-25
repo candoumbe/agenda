@@ -10,12 +10,10 @@ using Agenda.API.Features.Appointments;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.API.IntegrationTests.Fixtures;
 using Agenda.Ids;
-using Aspire.Hosting;
 using AwesomeAssertions;
 using Bogus;
 using Candoumbe.Forms;
 using NodaTime;
-using xRetry.v3;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
@@ -36,7 +34,7 @@ public sealed class GetByIdEndpointShould
         _client = fixture.ApiClient;
     }
 
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    [Fact]
     public async Task Returns_NotFound_when_Id_does_not_exist()
     {
         // Arrange
@@ -50,7 +48,7 @@ public sealed class GetByIdEndpointShould
         getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    [Fact]
     public async Task Returns_the_appointment_when_Id_exists()
     {
         // Arrange
