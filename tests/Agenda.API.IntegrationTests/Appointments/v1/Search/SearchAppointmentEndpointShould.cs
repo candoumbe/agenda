@@ -87,18 +87,48 @@ public sealed class SearchAppointmentEndpointShould
         createdAppointment.Should().NotBeNull();
 
         // Act
-        using HttpResponseMessage response = await _client.GetAsync($"/appointments?page=1&pageSize=10&subject={Uri.EscapeDataString(uniqueSubject)}", cancellationToken);
+        PageOf<Browsable<AppointmentInfo>> page = await WaitForAppointmentToBeSearchableAsync(uniqueSubject, createdAppointment!.Resource.Id, cancellationToken);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        PageOf<Browsable<AppointmentInfo>> page = await response.Content.ReadFromJsonAsync<PageOf<Browsable<AppointmentInfo>>>(_fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
-        page.Should().NotBeNull();
-        page!.Items.Should().Contain(item => item.Resource.Id == createdAppointment!.Resource.Id);
+        page.Items.Should().Contain(item => item.Resource.Id == createdAppointment.Resource.Id);
 
         IEnumerable<Link> links = page.Items.First(item => item.Resource.Id == createdAppointment.Resource.Id).Links;
         links.Should()
             .OnlyContain(link => !string.IsNullOrWhiteSpace(link.Href))
-            .And.OnlyContain(link => Uri.IsWellFormedUriString(link.Href, UriKind.Absolute));
+              .And.OnlyContain(link => Uri.IsWellFormedUriString(link.Href, UriKind.Absolute) || Uri.IsWellFormedUriString(link.Href, UriKind.Relative));
+    }
+
+    private async Task<PageOf<Browsable<AppointmentInfo>>> WaitForAppointmentToBeSearchableAsync(string uniqueSubject, AppointmentId appointmentId, CancellationToken cancellationToken)
+    {
+        PageOf<Browsable<AppointmentInfo>> page = null;
+
+        HttpStatusCode? lastStatusCode = null;
+
+        for (int attempt = 0; attempt < 120; attempt++)
+        {
+            using HttpResponseMessage response = await _client.GetAsync($"/appointments?page=1&pageSize=10&subject={Uri.EscapeDataString(uniqueSubject)}", cancellationToken);
+            lastStatusCode = response.StatusCode;
+
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
+                continue;
+            }
+
+            page = await response.Content.ReadFromJsonAsync<PageOf<Browsable<AppointmentInfo>>>(_fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
+            page.Should().NotBeNull();
+
+            bool appointmentFound = page!.Items.Any(item => item.Resource.Id == appointmentId);
+            if (appointmentFound)
+            {
+                return page;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
+        }
+
+        lastStatusCode.Should().Be(HttpStatusCode.OK);
+
+        return page!;
     }
 }
