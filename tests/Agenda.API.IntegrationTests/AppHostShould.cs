@@ -8,7 +8,7 @@ using Xunit.OpenCategories.V3;
 namespace Agenda.API.IntegrationTests;
 
 [IntegrationTest]
-public class AppHostShould : IClassFixture<AgendaApplicationFixture>
+public class AppHostShould
 {
     private readonly HttpClient _client;
 

@@ -10,7 +10,7 @@ using Xunit.OpenCategories.V3;
 namespace Agenda.API.IntegrationTests;
 
 [IntegrationTest]
-public class HealthCheckEndpointShould : IClassFixture<AgendaApplicationFixture>
+public class HealthCheckEndpointShould
 {
     private readonly HttpClient _client;
 

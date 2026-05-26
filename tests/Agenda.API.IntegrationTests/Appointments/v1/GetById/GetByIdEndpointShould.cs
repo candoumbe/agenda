@@ -21,7 +21,7 @@ namespace Agenda.API.IntegrationTests.Appointments.v1.GetById;
 
 [IntegrationTest]
 [Feature(nameof(Appointments))]
-public sealed class GetByIdEndpointShould : IClassFixture<AgendaApplicationFixture>
+public sealed class GetByIdEndpointShould
 {
     private readonly HttpClient _client;
     private readonly AgendaApplicationFixture _fixture;
