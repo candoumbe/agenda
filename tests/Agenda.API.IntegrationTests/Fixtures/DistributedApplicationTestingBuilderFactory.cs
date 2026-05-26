@@ -42,9 +42,6 @@ public static class DistributedApplicationTestingBuilderFactory
     public static async Task<AgendaApplicationTestingBuilder> CreateBuilderAsync(ITestOutputHelper outputHelper = null, CancellationToken cancellationToken = default)
     {
         EnsureDeveloperHttpsCertificate();
-
-        string previousRunningIntegrationTestsValue = Environment.GetEnvironmentVariable("RunningIntegrationTests");
-        Environment.SetEnvironmentVariable("RunningIntegrationTests", bool.TrueString);
         IDistributedApplicationTestingBuilder builder = await DistributedApplicationTestingBuilder.CreateAsync<Agenda_AppHost>(cancellationToken);
 
 
@@ -76,7 +73,7 @@ public static class DistributedApplicationTestingBuilderFactory
                                         logging.AddFilter(builder.Environment.ApplicationName, LogLevel.Information);
                                     });
 
-        return new AgendaApplicationTestingBuilder(builder, previousRunningIntegrationTestsValue);
+        return new AgendaApplicationTestingBuilder(builder);
     }
 
     private static void EnsureDeveloperHttpsCertificate()

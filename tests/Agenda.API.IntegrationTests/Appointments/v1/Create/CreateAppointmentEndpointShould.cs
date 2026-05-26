@@ -21,8 +21,7 @@ namespace Agenda.API.IntegrationTests.Appointments.v1.Create;
 
 [IntegrationTest]
 [Feature(nameof(Appointments))]
-[Collection("AgendaApplication")]
-public class CreateAppointmentEndpointShould
+public class CreateAppointmentEndpointShould : IClassFixture<AgendaApplicationFixture>
 {
     private readonly HttpClient _client;
     private readonly ITestOutputHelper _outputHelper;

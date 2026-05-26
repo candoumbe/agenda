@@ -10,8 +10,7 @@ using Xunit.OpenCategories.V3;
 namespace Agenda.API.IntegrationTests.Appointments.v1.Search;
 
 [IntegrationTest]
-[Collection("AgendaApplication")]
-public sealed class SearchAppointmentQueryBindingShould
+public sealed class SearchAppointmentQueryBindingShould : IClassFixture<AgendaApplicationFixture>
 {
     private readonly HttpClient _client;
 
