@@ -21,8 +21,7 @@ namespace Agenda.API.IntegrationTests.Appointments.v1.Search;
 
 [IntegrationTest]
 [Feature(nameof(Appointments))]
-[Collection("AgendaApplication")]
-public sealed class SearchAppointmentEndpointShould
+public sealed class SearchAppointmentEndpointShould : IClassFixture<AgendaApplicationFixture>
 {
     private readonly HttpClient _client;
     private readonly AgendaApplicationFixture _fixture;

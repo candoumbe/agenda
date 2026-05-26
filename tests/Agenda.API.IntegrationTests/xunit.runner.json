@@ -3,5 +3,6 @@
   "methodDisplay": "method",
   "methodDisplayOptions": "all",
   "shadowCopy": false,
-  "parallelizeTestCollections": false
+  "parallelizeTestCollections": true,
+  "maxParallelThreads": 2
 }
