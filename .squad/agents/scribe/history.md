@@ -18,9 +18,11 @@ Agent Scribe initialized and ready for work.
 📌 Consolidated decision inbox into `.squad/decisions.md` on 2026-04-24
 📌 Logged orchestration batch for listing pagination + multi-criteria search on 2026-04-26
 📌 Consolidated decision inbox for pagination/search contract alignment on 2026-04-26
+📌 Logged and consolidated AssemblyFixture migration coordination artifacts on 2026-05-26
 
 ## Learnings
 
 Initial setup complete.
 - Decision hygiene: merge inbox decisions quickly to keep one authoritative decision ledger.
 - Cross-agent decision quality improves when API pagination semantics and UI link behavior are codified together.
+- Coordination closes faster when per-agent orchestration logs, decision deduplication, and history updates are completed in one pass.

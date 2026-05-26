@@ -82,6 +82,17 @@ Jump action updates `from` to the discovered appointment start date and `to` to 
 **What:** When the list interval query returns empty results with a bounded date range, frontend behavior should be validated in two steps: first query for the selected interval, then fallback query for the first incoming appointment (`pageSize: 1`, `from = selected to`). Tests should assert both the main interval request and the fallback request where applicable.
 **Why:** Prevent brittle assertions and ensure acceptance coverage for default 15-day interval, empty-state CTA, and jump-to-first-incoming flow.
 
+### 2026-05-24T07:29:04Z: User directive - separate commits for Squad files
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** Always create a specific and separate commit for all Squad files.
+**Why:** User request — captured for team memory.
+
+### 2026-05-26T20:22:42Z: HEAD parity response-header strategy for GET endpoints
+**By:** Bishop (via Scribe)
+**What:** Standardize GET and HEAD response-header parity through a shared interceptor pattern that emits navigation metadata consistently (`Link`, and pagination headers where applicable).
+**Why:** Keep behavior aligned across current and future GET endpoints while avoiding duplicated header logic per feature slice.
+**Scope:** Appointment GET endpoints and related response metadata.
+
 ### 2026-05-19T00:00:00Z: Testing standards directive - prefer AwesomeAssertions
 **By:** Cyrille NDOUMBE (via Copilot)
 **What:** Squad always prefers using AwesomeAssertions over raw xUnit Assert for this project.

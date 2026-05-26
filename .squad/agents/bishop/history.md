@@ -14,6 +14,7 @@ Agent Bishop initialized and ready for work.
 
 📌 Team initialized on 2026-04-24
 📌 Null-attendees normalization decision centralized in `.squad/decisions.md` on 2026-04-24
+📌 Logged AssemblyFixture migration completion and silent-success verification on 2026-05-26
 
 ## Learnings
 
@@ -24,3 +25,4 @@ Initial setup complete.
 - Les liens de pagination (`previous`/`next`/`last`) ne doivent jamais dependre du nombre d'elements de la page courante; ils doivent dependre du nombre total de pages calcule a partir de `totalCount` et `pageSize`.
 - Le support du filtre `location` dans la recherche doit rester preserve dans les liens de pagination pour garantir la coherence de navigation.
 - AppHost startup can fail before compilation if `global.json` pins an SDK that is not installed locally; aligning the pinned SDK to an available patch/feature band is a minimal and safe unblocker when `rollForward` is already configured.
+- For GET/HEAD parity work, centralizing navigation headers in a shared response interceptor prevents header drift across slices and reduces maintenance cost.

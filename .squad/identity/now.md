@@ -1,11 +1,11 @@
 ---
-updated_at: 2026-05-23T21:10:54Z
-focus_area: Issue #541 frontend behavior
+updated_at: 2026-05-26T20:22:42Z
+focus_area: Integration tests assembly fixture migration final consistency and consolidation
 active_issues:
-	- 541
+	- 548
 ---
 
 # What We're Focused On
 
-Finalizing issue #541 frontend appointments list behavior: default 15-day interval discovery,
-empty-range fallback query, and jump-to-first-incoming navigation with green frontend validations.
+Finalizing the integration test infrastructure migration toward a shared xUnit v3 assembly fixture lifecycle,
+including consistency checks, squad decision consolidation, and documentation alignment tracking.
