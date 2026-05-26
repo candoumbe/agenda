@@ -42,6 +42,7 @@ public static class DistributedApplicationTestingBuilderFactory
     public static async Task<AgendaApplicationTestingBuilder> CreateBuilderAsync(ITestOutputHelper outputHelper = null, CancellationToken cancellationToken = default)
     {
         EnsureDeveloperHttpsCertificate();
+        Environment.SetEnvironmentVariable("RunningIntegrationTests", bool.TrueString);
         IDistributedApplicationTestingBuilder builder = await DistributedApplicationTestingBuilder.CreateAsync<Agenda_AppHost>(cancellationToken);
 
 
