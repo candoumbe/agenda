@@ -1,10 +1,12 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Agenda.API.IntegrationTests.Fixtures;
@@ -58,9 +60,11 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         _app  = await _sutBuilder.BuildAsync(cancellationToken).WaitAsync(s_buildStopTimeout, cancellationToken);
 
         await _app.StartAsync(cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
-
-        ApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http");
-        await WaitUntilApiIsReachableAsync(cancellationToken);
+        await _app.ResourceNotifications.WaitForResourceHealthyAsync(ApiResourceName, cancellationToken);
+        ApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http", provider =>  {
+            
+        });
+        //await WaitUntilApiIsReachableAsync(cancellationToken);
 
         return _app;
     }
