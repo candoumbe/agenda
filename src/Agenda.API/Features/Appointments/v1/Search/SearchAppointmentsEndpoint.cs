@@ -173,13 +173,21 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             string subject = search.Subject?.Trim();
             if (!string.IsNullOrWhiteSpace(subject))
             {
-                filters.Add(new Filter(nameof(Appointment.Subject), FilterOperator.EqualTo, subject));
+                Filter subjectFilter = BuildStringFilter(nameof(Appointment.Subject), subject);
+                if (subjectFilter is not null)
+                {
+                    filters.Add(subjectFilter);
+                }
             }
 
             string location = search.Location?.Trim();
             if (!string.IsNullOrWhiteSpace(location))
             {
-                filters.Add(new Filter(nameof(Appointment.Location), FilterOperator.EqualTo, location));
+                Filter locationFilter = BuildStringFilter(nameof(Appointment.Location), location);
+                if (locationFilter is not null)
+                {
+                    filters.Add(locationFilter);
+                }
             }
 
             return filters.Count switch
@@ -188,6 +196,34 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                 > 1 => new MultiFilter { Logic = FilterLogic.And, Filters = filters },
                 _   => Filter.True
             };
+
+            static Filter BuildStringFilter(string fieldName, string value)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    return null;
+                }
+
+                string trimmed = value.Trim();
+                bool startsWithWildcard = trimmed.StartsWith("*", StringComparison.Ordinal);
+                bool endsWithWildcard = trimmed.EndsWith("*", StringComparison.Ordinal);
+                string normalized = trimmed.Trim('*').Trim();
+
+                if (string.IsNullOrWhiteSpace(normalized))
+                {
+                    return null;
+                }
+
+                FilterOperator filterOperator = (startsWithWildcard, endsWithWildcard) switch
+                {
+                    (true, true) => FilterOperator.Contains,
+                    (true, false) => FilterOperator.EndsWith,
+                    (false, true) => FilterOperator.StartsWith,
+                    _ => FilterOperator.EqualTo
+                };
+
+                return new Filter(fieldName, filterOperator, normalized);
+            }
         }
 
         Link ComputeLinkToPreviousPage(SearchAppointmentRequest localSearch, int totalPages, HttpContext httpContext)
