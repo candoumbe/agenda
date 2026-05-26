@@ -142,7 +142,7 @@ Patron de base pour tests:
 - Les migrations seront déjà appliquées car migrator est une StartupTask dans le graphe.
 
 Parallélisme:
-- Si exécution en parallèle, envisager bases isolées par test (ex: suffixe db) ou re-création des schémas par test collection.
+- Si exécution en parallèle, envisager bases isolées par test (ex: suffixe db) ou re-création des schémas par lot d'exécution.
 
 ---
 
