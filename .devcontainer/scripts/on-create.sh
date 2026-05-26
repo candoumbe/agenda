@@ -19,6 +19,12 @@ echo "[create] Installing Aspire CLI"
 curl -sSL https://aspire.dev/install.sh | bash
 echo "[create] Aspire CLI installation complete"
 
+ # trust aspire local development certificate for secure local development
+echo "[create] Trusting Aspire local development certificate"
+aspire certs clean
+aspire certs trust
+echo "[create] Aspire local development certificate trusted"
+
 # install rg command for searching code
 if ! command -v rg >/dev/null 2>&1; then
     echo "[create] rg (ripgrep) not found in PATH, installing from apt"
