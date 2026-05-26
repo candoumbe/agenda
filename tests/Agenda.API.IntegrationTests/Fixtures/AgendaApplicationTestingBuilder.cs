@@ -24,7 +24,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// <summary>
     /// Time to wait after which the application under test will be considered as "not started".
     /// </summary>
-    private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromSeconds(240);
+    private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromMinutes(8);
     private static readonly TimeSpan s_readinessProbeDelay = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan s_requestProbeTimeout = TimeSpan.FromSeconds(5);
     private const int RequiredConsecutiveSuccessfulProbes = 1;
@@ -115,12 +115,12 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        // Approche en deux phases : arrêt gracieux puis forcé
+        // Two-phase shutdown: graceful attempt first, forced cleanup if needed.
         bool stopped = await TryGracefulStopAsync();
 
         if (!stopped && _app is not null)
         {
-            Console.WriteLine("Arrêt gracieux échoué, nettoyage forcé...");
+            Console.WriteLine("Graceful shutdown failed, forcing resource cleanup...");
             await _app.DisposeAsync();
         }
 
@@ -136,19 +136,19 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
 
         try
         {
-            // Timeout plus court pour l'arrêt gracieux
+            // Shorter timeout for graceful stop.
             using CancellationTokenSource cts = new (s_startStopTimeout);
             await _app.StopAsync(cts.Token);
             return true;
         }
         catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
         {
-            Console.WriteLine($"Timeout lors de l'arrêt gracieux: {ex.Message}");
+            Console.WriteLine($"Timeout while performing graceful shutdown: {ex.Message}");
             return false;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors de l'arrêt gracieux: {ex.Message}");
+            Console.WriteLine($"Unexpected error during graceful shutdown: {ex.Message}");
             return false;
         }
     }

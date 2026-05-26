@@ -21,7 +21,7 @@ namespace Agenda.API.IntegrationTests.Appointments.v1.Search;
 
 [IntegrationTest]
 [Feature(nameof(Appointments))]
-public sealed class SearchAppointmentEndpointShould : IClassFixture<AgendaApplicationFixture>
+public sealed class SearchAppointmentEndpointShould
 {
     private readonly HttpClient _client;
     private readonly AgendaApplicationFixture _fixture;
@@ -84,7 +84,11 @@ public sealed class SearchAppointmentEndpointShould : IClassFixture<AgendaApplic
         createdAppointment.Should().NotBeNull();
 
         // Act
-        PageOf<Browsable<AppointmentInfo>> page = await WaitForAppointmentToBeSearchableAsync(uniqueSubject, createdAppointment!.Resource.Id, cancellationToken);
+        using HttpResponseMessage searchResponse = await _client.GetAsync($"/appointments?page=1&pageSize=10&subject={Uri.EscapeDataString(uniqueSubject)}", cancellationToken);
+
+        searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        PageOf<Browsable<AppointmentInfo>> page = await searchResponse.Content.ReadFromJsonAsync<PageOf<Browsable<AppointmentInfo>>>(_fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
+        page.Should().NotBeNull();
 
         // Assert
         page.Items.Should().Contain(item => item.Resource.Id == createdAppointment.Resource.Id);
@@ -126,48 +130,14 @@ public sealed class SearchAppointmentEndpointShould : IClassFixture<AgendaApplic
         createdAppointment.Should().NotBeNull();
 
         // Act
-        PageOf<Browsable<AppointmentInfo>> page = await WaitForAppointmentToBeSearchableAsync(uniqueSubject, createdAppointment!.Resource.Id, cancellationToken);
+        using HttpResponseMessage searchResponse = await _client.GetAsync($"/appointments?page=1&pageSize=10&subject={Uri.EscapeDataString(uniqueSubject)}", cancellationToken);
+
+        searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        PageOf<Browsable<AppointmentInfo>> page = await searchResponse.Content.ReadFromJsonAsync<PageOf<Browsable<AppointmentInfo>>>(_fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
+        page.Should().NotBeNull();
 
         // Assert
         page.Items.Should().Contain(item => item.Resource.Id == createdAppointment.Resource.Id);
     }
 
-    private async Task<PageOf<Browsable<AppointmentInfo>>> WaitForAppointmentToBeSearchableAsync(string uniqueSubject, AppointmentId appointmentId, CancellationToken cancellationToken)
-    {
-        PageOf<Browsable<AppointmentInfo>> page = null;
-
-        HttpStatusCode? lastStatusCode = null;
-        long? lastObservedCount = null;
-
-        for (int attempt = 0; attempt < 120; attempt++)
-        {
-            using HttpResponseMessage response = await _client.GetAsync($"/appointments?page=1&pageSize=10&subject={Uri.EscapeDataString(uniqueSubject)}", cancellationToken);
-            lastStatusCode = response.StatusCode;
-
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
-                continue;
-            }
-
-            page = await response.Content.ReadFromJsonAsync<PageOf<Browsable<AppointmentInfo>>>(_fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
-            page.Should().NotBeNull();
-            lastObservedCount = page!.Count;
-
-            bool appointmentFound = page.Items.Any(item => item.Resource.Id == appointmentId);
-            if (appointmentFound)
-            {
-                return page;
-            }
-
-            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
-        }
-
-        lastStatusCode.Should().Be(HttpStatusCode.OK);
-        page.Should().NotBeNull($"a successful search payload should be returned for subject '{uniqueSubject}'.");
-        page!.Items.Should().Contain(item => item.Resource.Id == appointmentId,
-            $"appointment '{appointmentId}' should be searchable by subject '{uniqueSubject}' after retries. Last observed status: '{lastStatusCode}', last observed count: '{lastObservedCount?.ToString() ?? "null"}'.");
-
-        return page;
-    }
 }
