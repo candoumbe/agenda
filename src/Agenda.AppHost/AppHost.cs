@@ -1,10 +1,10 @@
+using System.Data.Common;
+using System.Net.Sockets;
 using Aspire.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Projects;
-using System.Data.Common;
-using System.Net.Sockets;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
