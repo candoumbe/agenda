@@ -173,13 +173,13 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             string subject = search.Subject?.Trim();
             if (!string.IsNullOrWhiteSpace(subject))
             {
-                filters.Add($"{nameof(Appointment.Subject)}={subject}".ToFilter<Appointment>());
+                filters.Add(new Filter(nameof(Appointment.Subject), FilterOperator.EqualTo, subject));
             }
 
             string location = search.Location?.Trim();
             if (!string.IsNullOrWhiteSpace(location))
             {
-                filters.Add($"{nameof(Appointment.Location)}={location}".ToFilter<Appointment>());
+                filters.Add(new Filter(nameof(Appointment.Location), FilterOperator.EqualTo, location));
             }
 
             return filters.Count switch
