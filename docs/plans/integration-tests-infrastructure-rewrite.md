@@ -5,6 +5,8 @@
 > **Date :** 2026-05-25
 > **Statut :** En cours
 
+> **Mise à jour 2026-05-26 :** la stratégie de partage de fixture est désormais alignée sur **xUnit v3 AssemblyFixture** (registration assembly-level), pas sur un pattern collection fixture.
+
 ---
 
 ## Contexte
@@ -34,10 +36,10 @@ entraîne des temps d'exécution excessifs, des conflits de ressources et de la 
 tests/Agenda.API.IntegrationTests/
   Fixtures/
     AgendaApplicationFixture.cs        ← IAsyncLifetime partagé (1 seule instance par suite)
-    AgendaApplicationCollection.cs     ← Définition de la collection xUnit
     AgendaApplicationTestingBuilder.cs ← Conservé, simplifié (utilisé par AppHostShould)
     DistributedApplicationTestingBuilderFactory.cs ← Conservé tel quel
-  AppHostShould.cs                     ← EXCEPTION : garde son propre cycle de vie
+  GlobalRegistrations.cs               ← Enregistrement AssemblyFixture xUnit v3
+  AppHostShould.cs                     ← Consomme la fixture d'assembly partagée
   HealthCheckEndpointShould.cs         ← Migré : injecte AgendaApplicationFixture
   Appointments/v1/Create/
     CreateAppointmentEndpointShould.cs ← Migré : injecte AgendaApplicationFixture
@@ -49,7 +51,7 @@ tests/Agenda.API.IntegrationTests/
 ```
 
 **Principe clé** : une seule instance d'AppHost Aspire pour toute la suite de tests, partagée via
-`ICollectionFixture<AgendaApplicationFixture>`.
+`[assembly: AssemblyFixture(typeof(AgendaApplicationFixture))]` (xUnit v3).
 
 ---
 
@@ -67,12 +69,11 @@ tests/Agenda.API.IntegrationTests/
 
 ---
 
-### Étape 2 — Créer la définition de collection xUnit
+### Étape 2 — Enregistrer la fixture au niveau assembly (xUnit v3)
 
-- [x] Créer `Fixtures/AgendaApplicationCollection.cs` avec :
+- [x] Ajouter l’enregistrement assembly-level de la fixture dans `GlobalRegistrations.cs` :
   ```csharp
-  [CollectionDefinition("AgendaApplication")]
-  public class AgendaApplicationCollection : ICollectionFixture<AgendaApplicationFixture> { }
+  [assembly: AssemblyFixture(typeof(AgendaApplicationFixture))]
   ```
 
 > **Référence :** [Write your first tests — aspire.dev](https://aspire.dev/testing/write-your-first-test/)
@@ -97,7 +98,6 @@ tests/Agenda.API.IntegrationTests/
 
 ### Étape 4 — Migrer `HealthCheckEndpointShould`
 
-- [x] Ajouter `[Collection("AgendaApplication")]`
 - [x] Remplacer `IAsyncLifetime` par l'injection de `AgendaApplicationFixture` dans le constructeur
 - [x] Supprimer les champs `_appHost` et l'implémentation de `InitializeAsync()` / `DisposeAsync()`
 - [x] Utiliser `fixture.ApiClient` à la place de `_client`
@@ -106,7 +106,6 @@ tests/Agenda.API.IntegrationTests/
 
 ### Étape 5 — Migrer `CreateAppointmentEndpointShould`
 
-- [x] Ajouter `[Collection("AgendaApplication")]`
 - [x] Remplacer `IAsyncLifetime` par l'injection de `AgendaApplicationFixture` dans le constructeur
 - [x] Supprimer les champs `_appHost`, `_sut` et l'implémentation de `InitializeAsync()` / `DisposeAsync()`
 - [x] Supprimer le constructeur statique `s_jsonSerializerOptions` → utiliser `fixture.ApiJsonSerializerOptions`
@@ -117,7 +116,6 @@ tests/Agenda.API.IntegrationTests/
 
 ### Étape 6 — Migrer `SearchAppointmentQueryBindingShould`
 
-- [x] Ajouter `[Collection("AgendaApplication")]`
 - [x] Remplacer `IAsyncLifetime` par l'injection de `AgendaApplicationFixture` dans le constructeur
 - [x] Supprimer les champs `_appHost` et l'implémentation de `InitializeAsync()` / `DisposeAsync()`
 - [x] Utiliser `fixture.ApiClient` à la place de `_client`
@@ -129,7 +127,6 @@ tests/Agenda.API.IntegrationTests/
 Ce fichier est entièrement commenté. Le réécrire avec la nouvelle infrastructure.
 
 - [x] Décommenter et adapter la classe pour utiliser `AgendaApplicationFixture`
-- [x] Ajouter `[Collection("AgendaApplication")]`
 - [x] Implémenter le scénario **404 quand l'ID n'existe pas**
 - [x] Implémenter le scénario **200 avec la ressource quand l'ID existe** (créer un rendez-vous au préalable puis le récupérer par son ID)
 - [x] Valider les liens HATEOAS retournés (présence de `self`, URLs absolues)
@@ -143,7 +140,6 @@ Ce fichier est entièrement commenté. Le réécrire avec la nouvelle infrastruc
 Ce fichier est entièrement commenté. Le réécrire avec la nouvelle infrastructure.
 
 - [x] Décommenter et adapter la classe pour utiliser `AgendaApplicationFixture`
-- [x] Ajouter `[Collection("AgendaApplication")]`
 - [x] Implémenter le scénario **résultat vide** (page 1, pageSize 10, 0 résultats)
 - [x] Implémenter le scénario **résultat avec données** (créer un rendez-vous, vérifier qu'il apparaît dans la recherche)
 
@@ -156,7 +152,7 @@ Ce fichier est entièrement commenté. Le réécrire avec la nouvelle infrastruc
 
 - [ ] Exécuter `./build.sh integration-tests` : tous les tests passent
 - [ ] Vérifier qu'un seul AppHost est démarré pour la suite (via les logs de conteneurs Docker)
-- [ ] Vérifier que `AppHostShould` fonctionne toujours indépendamment (son propre AppHost)
+- [ ] Vérifier que `AppHostShould` reste stable avec le cycle de vie partagé de la fixture d'assembly
 - [ ] Valider sur CI (push sur la branche de travail, vérifier les GitHub Actions)
 
 ---
@@ -165,7 +161,7 @@ Ce fichier est entièrement commenté. Le réécrire avec la nouvelle infrastruc
 
 | Élément | Raison |
 |---------|--------|
-| `AppHostShould` | Teste explicitement le cycle de vie start/stop de l'AppHost — doit garder son propre `IAsyncLifetime` |
+| `AppHostShould` | Vérifie la disponibilité du client API exposé par la fixture d'assembly |
 | `DistributedApplicationTestingBuilderFactory` | Conservé et utilisé par `AgendaApplicationFixture` et `AppHostShould` |
 | `DistributedApplicationExtensions` | Conservé tel quel |
 | Organisation des dossiers `v1/Feature/` | Aucun changement structurel |
