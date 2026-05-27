@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added task issue template
 - Updated bug issue template
 - Added Codecov configuration file
+- Fixed Aspire AppHost resource startup blocking by removing custom TCP health checks wired to PostgreSQL and RabbitMQ resources
 - Fixed devcontainer .NET SDK provisioning to install `10.0.300` by default (with `10.0.203` and `10.0.201` as additional SDKs) to match project requirements and unblock Aspire startup
 - Fixed integration test startup hangs by restoring the AppHost/fixture startup flow used on `develop` for integration mode
 - Stabilized appointment creation integration coverage by retrying transient `5xx` responses during startup races
