@@ -109,6 +109,11 @@ Jump action updates `from` to the discovered appointment start date and `to` to 
 **What:** For this public repository, pull request titles and descriptions must be written in English.
 **Why:** User request captured for collaboration and external readability consistency.
 
+### 2026-05-27T00:00:00Z: Replace RetryFact with Fact in test suite
+**By:** Hicks
+**What:** Replace remaining `RetryFact` usage in integration tests with plain `Fact` and remove the corresponding `xRetry.v3` usings from touched files.
+**Why:** Keep test execution deterministic and avoid hiding flakiness behind automatic retries now that the affected integration tests run reliably without retry wrappers.
+
 ## Governance
 
 - All meaningful changes require team consensus

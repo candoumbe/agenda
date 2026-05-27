@@ -22,6 +22,19 @@ Agent Hicks initialized and ready for work.
 Initial setup complete.
 - Les tentatives de validation sont plus utiles quand elles sont journalisees avec contexte et resultat attendu.
 
+### 2026-05-27: RetryFact removal validation
+
+**What changed:**
+- Replaced the remaining `RetryFact` attributes in the integration test suite with plain `Fact`.
+- Removed `xRetry.v3` usings from the touched files once they became unused.
+
+**Validation outcome:**
+- A repo-wide search confirmed no `RetryFact` usage remained under `tests/` after the edit.
+- `dotnet test tests/Agenda.API.IntegrationTests/Agenda.API.IntegrationTests.csproj --no-restore` passed locally after the change.
+
+**Learning:**
+- For targeted reliability cleanups, a fast post-edit text search is an effective discriminating check before running the broader test pipeline.
+
 ### 2026-04-25: Issue #502 Validation (Appointments List UI)
 
 **Key Findings:**
