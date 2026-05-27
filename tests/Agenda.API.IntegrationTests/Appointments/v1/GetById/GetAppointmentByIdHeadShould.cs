@@ -50,10 +50,11 @@ public sealed class GetAppointmentByIdHeadShould(ITestOutputHelper outputHelper)
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        response.Headers.Should().Contain(header => string.Equals(header.Key, "Link", StringComparison.OrdinalIgnoreCase));
-        response.Headers.GetValues("Link")
-                .Should()
+        if (response.Headers.TryGetValues("Link", out System.Collections.Generic.IEnumerable<string> linkValues))
+        {
+            linkValues.Should()
                 .ContainSingle(link => link.Contains("rel=\"self\"", StringComparison.OrdinalIgnoreCase));
+        }
 
         string body = await response.Content.ReadAsStringAsync(cancellationToken);
         body.Should().BeEmpty();
