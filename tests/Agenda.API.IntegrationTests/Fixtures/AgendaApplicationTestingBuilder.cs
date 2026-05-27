@@ -24,7 +24,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// <summary>
     /// Time to wait after which the application under test will be considered as "not started".
     /// </summary>
-    private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromMinutes(8);
+    public static readonly TimeSpan StartStopTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan s_readinessProbeDelay = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan s_requestProbeTimeout = TimeSpan.FromSeconds(5);
     private const int RequiredConsecutiveSuccessfulProbes = 1;
@@ -56,9 +56,13 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     {
         _app  = await _sutBuilder.BuildAsync(cancellationToken).WaitAsync(s_buildStopTimeout, cancellationToken);
 
-        await _app.StartAsync(cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
-        ApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http");
-        await WaitUntilApiIsReachableAsync(cancellationToken);
+        await _app.StartAsync(cancellationToken).WaitAsync(StartStopTimeout, cancellationToken);
+        await _app.ResourceNotifications.WaitForResourceHealthyAsync(ApiResourceName, cancellationToken).WaitAsync(StartStopTimeout, cancellationToken);
+        ApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http", builder =>
+        {
+            builder.AddStandardResilienceHandler();
+        });
+        //await WaitUntilApiIsReachableAsync(cancellationToken);
 
         return _app;
     }
@@ -68,7 +72,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         Exception lastException = null;
         int consecutiveSuccessCount = 0;
 
-        using CancellationTokenSource timeoutCancellationTokenSource = new(s_startStopTimeout);
+        using CancellationTokenSource timeoutCancellationTokenSource = new(StartStopTimeout);
         using CancellationTokenSource linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellationTokenSource.Token);
 
         while (!linkedCancellationTokenSource.IsCancellationRequested)
@@ -137,7 +141,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         try
         {
             // Shorter timeout for graceful stop.
-            using CancellationTokenSource cts = new (s_startStopTimeout);
+            using CancellationTokenSource cts = new (StartStopTimeout);
             await _app.StopAsync(cts.Token);
             return true;
         }
