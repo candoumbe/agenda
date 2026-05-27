@@ -77,7 +77,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         {
             builder.AddStandardResilienceHandler();
         });
-        //await WaitUntilApiIsReachableAsync(cancellationToken);
+        await WaitUntilApiIsReachableAsync(cancellationToken);
 
         return _app;
     }
