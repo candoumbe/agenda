@@ -44,7 +44,8 @@ public sealed class AgendaApplicationFixture : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         _appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(cancellationToken: TestContext.Current.CancellationToken);
-        await _appHost.StartAsync(TestContext.Current.CancellationToken);
+        var app = await _appHost.StartAsync(TestContext.Current.CancellationToken);
+        await app.ResourceNotifications.WaitForResourceHealthyAsync(AgendaApplicationTestingBuilder.ApiResourceName, TestContext.Current.CancellationToken).WaitAsync(AgendaApplicationTestingBuilder.StartStopTimeout, TestContext.Current.CancellationToken);
         ApiClient = _appHost.ApiClient;
     }
 
