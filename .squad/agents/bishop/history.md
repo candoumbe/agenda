@@ -34,3 +34,5 @@ Initial setup complete.
 - Preserve active filters (including `location`) in pagination links to keep navigation coherent.
 - AppHost startup can fail before compilation when `global.json` pins an unavailable SDK; aligning to an available patch/feature band is a minimal unblocker when `rollForward` is already configured.
 - Reusing one response interceptor for both `Browsable<T>` and `PageOf<T>` keeps `GET`/`HEAD` metadata behavior consistent and prevents header drift between slices.
+## Learning — 2026-05-27T19:56:18Z: Aspire health check endpoint binding
+`WithHttpHealthCheck("/health")` without `endpointName` defaults to the first endpoint declared in `launchSettings.json` (HTTPS first in this repo). On a CI Linux runner without ASP.NET Core dev cert, that probe fails and — combined with `WaitForResourceHealthyAsync` — blocks integration test bootstrap. Always pass `endpointName: "http"` for Aspire health checks in integration test scenarios. Context: PR #546 diagnostic with Hicks.

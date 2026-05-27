@@ -164,3 +164,5 @@ import { vi } from 'vitest';
 
 **Validation Expectation:**
 - Report executed commands and outcomes with enough detail for quick session-log consolidation.
+## Learning — 2026-05-27T19:56:18Z: Aspire health check endpoint binding
+`WithHttpHealthCheck` without `endpointName` defaults to the first endpoint in `launchSettings.json` (HTTPS first) → fails on CI Linux without dev cert. Always pass `endpointName: "http"` for Aspire health checks in integration test scenarios. The failure was previously silent until `WaitForResourceHealthyAsync` was introduced in PR #546, which turned it into a blocking bootstrap error. Cross-checked with Bishop.

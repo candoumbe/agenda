@@ -2,6 +2,11 @@
 
 ## Active Decisions
 
+### 2026-05-26T21:08:36Z: User directive — English-only user-facing docs
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** Keep every user-facing documentation in English for this public repository.
+**Why:** User request — captured for team memory.
+
 ### 2026-04-24T00:00:00Z: User directive - Follow CONTRIBUTING.md
 **By:** vscode (via Copilot)
 **What:** All squad members must follow CONTRIBUTING.md at all times. Key rules:
