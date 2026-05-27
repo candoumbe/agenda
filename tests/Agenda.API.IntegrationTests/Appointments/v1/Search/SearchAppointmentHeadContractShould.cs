@@ -31,10 +31,9 @@ namespace Agenda.API.IntegrationTests.Appointments.v1.Search;
 
 [IntegrationTest]
 [Feature(nameof(Appointments))]
-public sealed class SearchAppointmentHeadContractShould(ITestOutputHelper outputHelper) : IAsyncLifetime
+public sealed class SearchAppointmentHeadContractShould
 {
-    private HttpClient _client;
-    private AgendaApplicationTestingBuilder _appHost;
+    private readonly HttpClient _client;
     private static readonly Faker s_faker = new();
     private static readonly JsonSerializerOptions s_jsonSerializerOptions;
 
@@ -57,16 +56,9 @@ public sealed class SearchAppointmentHeadContractShould(ITestOutputHelper output
         s_jsonSerializerOptions.Converters.Add(new AttendeeId.AttendeeIdSystemTextJsonConverter());
     }
 
-    public async ValueTask InitializeAsync()
+    public SearchAppointmentHeadContractShould(AgendaApplicationFixture fixture)
     {
-        _appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper, TestContext.Current.CancellationToken);
-        await _appHost.StartAsync(TestContext.Current.CancellationToken);
-        _client = _appHost.ApiClient;
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await _appHost.DisposeAsync();
+        _client = fixture.ApiClient;
     }
 
     [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
