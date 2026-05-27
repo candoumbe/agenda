@@ -10,7 +10,6 @@ using Agenda.API.IntegrationTests.Fixtures;
 using Aspire.Hosting;
 using AwesomeAssertions;
 using Bogus;
-using xRetry.v3;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
@@ -27,7 +26,7 @@ public sealed class GetAppointmentByIdHeadShould
         _client = fixture.ApiClient;
     }
 
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    [Fact]
     public async Task Return_ok_and_link_header_when_resource_exists()
     {
         // Arrange

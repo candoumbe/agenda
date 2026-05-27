@@ -23,7 +23,6 @@ using Json.Patch;
 using NodaTime;
 using NodaTime.Extensions;
 using NodaTime.Serialization.SystemTextJson;
-using xRetry.v3;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
@@ -61,7 +60,7 @@ public sealed class SearchAppointmentHeadContractShould
         _client = fixture.ApiClient;
     }
 
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    [Fact]
     public async Task Return_headers_for_head_with_pagination_contract_semantics()
     {
         // Arrange
@@ -107,7 +106,7 @@ public sealed class SearchAppointmentHeadContractShould
         }
     }
 
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    [Fact]
     public async Task Accept_same_query_syntax_for_head_as_get_with_filters_and_pagination()
     {
         // Arrange
