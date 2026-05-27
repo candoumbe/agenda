@@ -1,9 +1,9 @@
-﻿using Agenda.DataStores;
+﻿using System.Globalization;
+using Agenda.DataStores;
 using Agenda.Events;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;
 using Candoumbe.Types.Numerics;
-using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Paramore.Brighter;
