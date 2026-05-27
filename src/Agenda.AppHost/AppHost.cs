@@ -27,7 +27,7 @@ IResourceBuilder<ProjectResource> migrationService = builder.AddProject<Agenda_M
     
 
 IResourceBuilder<ProjectResource> api = builder.AddProject<Agenda_API>("api")
-    .WithHttpHealthCheck("/health")
+    .WithHttpHealthCheck("/health", endpointName:"http")
     .WithExternalHttpEndpoints()
     .WithReference(postgres).WaitFor(postgres)
     .WithReference(messaging).WaitFor(messaging)
