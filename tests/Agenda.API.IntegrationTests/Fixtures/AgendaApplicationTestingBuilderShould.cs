@@ -9,10 +9,10 @@ public sealed class AgendaApplicationTestingBuilderShould
     [InlineData(null, null, 30)]
     [InlineData("false", null, 30)]
     [InlineData(null, "false", 30)]
-    [InlineData("true", null, 120)]
-    [InlineData(null, "true", 120)]
-    [InlineData("TRUE", null, 120)]
-    [InlineData(null, "TRUE", 120)]
+    [InlineData("true", null, 300)]
+    [InlineData(null, "true", 300)]
+    [InlineData("TRUE", null, 300)]
+    [InlineData(null, "TRUE", 300)]
     public void Resolve_start_stop_timeout_based_on_ci_signals(string ci,
                                                                 string githubActions,
                                                                 int expectedSeconds)
