@@ -18,9 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### API
 - Added `DELETE /appointments/{id}/attendees/{id}` endpoint
 - Added RabbitMQ integration and related configuration.
-- Added publication of `AppointmentScheduled` and `AppointmentCreated` events when a new appointment is created; `AppointmentCreated` contains appointment ID, start/end dates (ISO 8601), location, attendees list, and creator ID (#329)
+- Added publication of `AppointmentScheduled` event when a new appointment is scheduled : 
+- Added publication of `AppointmentCreated` event when a new appointment is created, containing appointment ID, start/end dates (ISO 8601), location, attendees list, and creator ID (#329)
 - Added healthchecks for PostgreSQL and RabbitMQ
-- Improved appointments listing/search for UI navigation and query reliability: `total` now represents total pages (with explicit `totalCount` and `pageSize`), multi-criteria filtering is supported (`subject`, `location`, and `from`/`to` time range), and ISO `OffsetDateTime` range filters now bind correctly so first-load requests return `200` instead of `400`
+- Fixed appointments listing pagination metadata for UI navigation (`total` now represents total pages, with explicit `totalCount` and `pageSize` fields)
+- Added multi-criteria filtering for appointments listing (`subject`, `location`, and `from`/`to` time range)
+- Fixed appointments search query binding for ISO `OffsetDateTime` range filters so first-load requests return `200` instead of `400`
 - Made appointments search case-insensitive at database level by switching `Subject` and `Location` to PostgreSQL `citext` columns ([#504](https://github.com/candoumbe/agenda/issues/504))
 
 ### 🧹 Housekeeping
@@ -28,7 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated bug issue template
 - Added Codecov configuration file
 - Fixed devcontainer .NET SDK provisioning to install `10.0.300` by default (with `10.0.203` and `10.0.201` as additional SDKs) to match project requirements and unblock Aspire startup
-- Stabilized integration test startup and appointment creation coverage by restoring the AppHost/fixture startup flow used on `develop` for integration mode and retrying transient `5xx` responses during startup races
+- Fixed integration test startup hangs by restoring the AppHost/fixture startup flow used on `develop` for integration mode
+- Stabilized appointment creation integration coverage by retrying transient `5xx` responses during startup races
 - Updated `xRetry` to `1.0.0-rc2`
 - Updated `xunit.v3` to `3.2.0`
 - Updated `Paramore.Brighter.*` packages to `10.0.4`
