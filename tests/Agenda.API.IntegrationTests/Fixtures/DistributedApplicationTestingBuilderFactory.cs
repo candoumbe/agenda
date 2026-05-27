@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting.ApplicationModel;
@@ -9,6 +10,8 @@ using AwesomeAssertions.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NodaTime;
+using NodaTime.Extensions;
 using Projects;
 using Xunit;
 
@@ -29,6 +32,7 @@ namespace Agenda.API.IntegrationTests.Fixtures;
 public static class DistributedApplicationTestingBuilderFactory
 {
     private static readonly TimeSpan s_defaultTimeout = 30.Seconds();
+    public const string TestingNowConfigKey = "Testing:Now";
 #pragma warning disable IDE1006 // Styles d'affectation de noms
     private static int s_httpsCertificateChecked;
 #pragma warning restore IDE1006 // Styles d'affectation de noms
@@ -39,14 +43,30 @@ public static class DistributedApplicationTestingBuilderFactory
     /// <param name="outputHelper"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<AgendaApplicationTestingBuilder> CreateBuilderAsync(ITestOutputHelper outputHelper = null, CancellationToken cancellationToken = default)
+    public static async Task<AgendaApplicationTestingBuilder> CreateBuilderAsync(ITestOutputHelper outputHelper = null,
+                                                                                  CancellationToken cancellationToken = default,
+                                                                                  Instant? now = null)
     {
         EnsureDeveloperHttpsCertificate();
         Environment.SetEnvironmentVariable("RunningIntegrationTests", bool.TrueString);
         IDistributedApplicationTestingBuilder builder = await DistributedApplicationTestingBuilder.CreateAsync<Agenda_AppHost>(cancellationToken);
 
+        IEnumerable<KeyValuePair<string, string>> testingConfiguration =
+        [
+            new KeyValuePair<string, string>("RunningIntegrationTests", bool.TrueString)
+        ];
 
-        builder.Configuration.AddInMemoryCollection([new KeyValuePair<string, string>("RunningIntegrationTests", bool.TrueString)]);
+        if (now is Instant fixedNow)
+        {
+            string serializedNow = fixedNow.ToDateTimeOffset().ToString("O", CultureInfo.InvariantCulture);
+            testingConfiguration =
+            [
+                new KeyValuePair<string, string>("RunningIntegrationTests", bool.TrueString),
+                new KeyValuePair<string, string>(TestingNowConfigKey, serializedNow)
+            ];
+        }
+
+        builder.Configuration.AddInMemoryCollection(testingConfiguration);
         builder.Configuration["ConnectionStrings:postgres"] += ";SSL Mode=Disable";
         
         builder.WithRandomParameterValues();

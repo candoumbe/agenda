@@ -3,6 +3,7 @@ using Agenda.Events;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;
 using Candoumbe.Types.Numerics;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Paramore.Brighter;
@@ -22,6 +23,8 @@ namespace Agenda.API;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    private const string TestingNowConfigKey = "Testing:Now";
+
     extension(IServiceCollection services)
     {
         /// <summary>
@@ -81,9 +84,11 @@ public static class ServiceCollectionExtensions
         /// <summary>
         /// Configure dependency injection container
         /// </summary>
-        public void AddCustomizedDependencyInjection()
+        public void AddCustomizedDependencyInjection(IConfiguration configuration)
         {
-            services.AddSingleton<IClock>(SystemClock.Instance);
+            ArgumentNullException.ThrowIfNull(configuration);
+
+            services.AddSingleton<IClock>(_ => ResolveClock(configuration));
             services.AddHttpContextAccessor();
             services.AddTransient<CurrentRequestMetadataInfoProvider>();
         }
@@ -140,5 +145,33 @@ public static class ServiceCollectionExtensions
                 brighterBuilder.UseOutboxSweeper();
             }
         }
+    }
+
+    private static IClock ResolveClock(IConfiguration configuration)
+    {
+        string configuredNow = configuration.GetValue<string>(TestingNowConfigKey);
+        if (string.IsNullOrWhiteSpace(configuredNow))
+        {
+            return SystemClock.Instance;
+        }
+
+        bool parsed = DateTimeOffset.TryParse(configuredNow,
+                                              CultureInfo.InvariantCulture,
+                                              DateTimeStyles.RoundtripKind,
+                                              out DateTimeOffset now);
+
+        return parsed ? new FrozenClock(Instant.FromDateTimeOffset(now)) : SystemClock.Instance;
+    }
+
+    private sealed class FrozenClock : IClock
+    {
+        private readonly Instant _instant;
+
+        public FrozenClock(Instant instant)
+        {
+            _instant = instant;
+        }
+
+        public Instant GetCurrentInstant() => _instant;
     }
 }

@@ -6,6 +6,7 @@ IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(ar
 
 bool isRunningIntegrationTests = builder.Configuration.GetValue(RunningIntegrationTestsConfigName, false);
 bool shouldTrackResourceHealth = !isRunningIntegrationTests;
+string testingNow = builder.Configuration.GetValue<string>("Testing:Now");
 
 var postgres = builder.AddPostgres("postgres")
     .WithImage("postgres:17-alpine");
@@ -28,9 +29,14 @@ IResourceBuilder<ProjectResource> migrationService = builder.AddProject<Agenda_M
 IResourceBuilder<ProjectResource> api = builder.AddProject<Agenda_API>("api")
     .WithHttpHealthCheck("/health")
     .WithExternalHttpEndpoints()
-    .WithReference(postgres)
+    .WithReference(postgres).WaitFor(postgres)
     .WithReference(messaging).WaitFor(messaging)
     .WaitForCompletion(migrationService);
+
+if (!string.IsNullOrWhiteSpace(testingNow))
+{
+    api = api.WithEnvironment("Testing__Now", testingNow);
+}
 
 if (builder.ExecutionContext.IsPublishMode)
 {
