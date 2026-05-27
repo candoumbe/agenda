@@ -17,24 +17,14 @@ using Xunit.OpenCategories.V3;
 namespace Agenda.API.IntegrationTests.Appointments.v1.GetById;
 
 [IntegrationTest]
-public sealed class GetAppointmentByIdHeadShould(ITestOutputHelper outputHelper) : IAsyncLifetime
+public sealed class GetAppointmentByIdHeadShould
 {
     private static readonly Faker s_faker = new();
-    private HttpClient _client;
-    private AgendaApplicationTestingBuilder _appHost;
+    private readonly HttpClient _client;
 
-    /// <inheritdoc />
-    public async ValueTask InitializeAsync()
+    public GetAppointmentByIdHeadShould(AgendaApplicationFixture fixture)
     {
-        _appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper, TestContext.Current.CancellationToken);
-        await _appHost.StartAsync(TestContext.Current.CancellationToken);
-        _client = _appHost.ApiClient;
-    }
-
-    /// <inheritdoc />
-    public async ValueTask DisposeAsync()
-    {
-        await _appHost.DisposeAsync();
+        _client = fixture.ApiClient;
     }
 
     [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
