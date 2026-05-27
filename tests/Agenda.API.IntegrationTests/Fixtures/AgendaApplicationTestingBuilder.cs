@@ -24,7 +24,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// <summary>
     /// Time to wait after which the application under test will be considered as "not started".
     /// </summary>
-    public static readonly TimeSpan StartStopTimeout = TimeSpan.FromSeconds(30);
+    public static readonly TimeSpan StartStopTimeout = ResolveStartStopTimeout();
     private static readonly TimeSpan s_readinessProbeDelay = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan s_requestProbeTimeout = TimeSpan.FromSeconds(5);
     private const int RequiredConsecutiveSuccessfulProbes = 1;
@@ -32,6 +32,21 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// Time to wait after which building the infrastructure will be considered as failed.
     /// </summary>
     private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(60);
+
+    internal static TimeSpan ResolveStartStopTimeout(string ci, string githubActions)
+    {
+        bool isCi = string.Equals(ci, bool.TrueString, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(githubActions, bool.TrueString, StringComparison.OrdinalIgnoreCase);
+
+        return isCi ? TimeSpan.FromMinutes(2) : TimeSpan.FromSeconds(30);
+    }
+
+    private static TimeSpan ResolveStartStopTimeout()
+    {
+        string ci = Environment.GetEnvironmentVariable("CI");
+        string githubActions = Environment.GetEnvironmentVariable("GITHUB_ACTIONS");
+        return ResolveStartStopTimeout(ci, githubActions);
+    }
 
 
     /// <summary>
