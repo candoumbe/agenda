@@ -312,6 +312,33 @@ describe('ApiService with HTTP', () => {
     req.flush({ message: 'Validation error' }, { status: 400, statusText: 'Bad Request' });
   });
 
+  it('should return total appointment count from HEAD response total header', () => {
+    // countAppointments() will be implemented by Dallas — tests prepared ahead of time
+    return new Promise<void>((resolve) => {
+      (apiService as any).countAppointments().subscribe((count: number) => {
+        expect(count).toBe(5);
+        resolve();
+      });
+
+      const req = httpMock.expectOne('/api/appointments');
+      expect(req.request.method).toBe('HEAD');
+      req.flush(null, { headers: { total: '5' } });
+    });
+  });
+
+  it('should return 0 when total header is absent from HEAD response', () => {
+    return new Promise<void>((resolve) => {
+      (apiService as any).countAppointments().subscribe((count: number) => {
+        expect(count).toBe(0);
+        resolve();
+      });
+
+      const req = httpMock.expectOne('/api/appointments');
+      expect(req.request.method).toBe('HEAD');
+      req.flush(null, { headers: {} });
+    });
+  });
+
     afterEach(() => {
       httpMock.verify();
     });
