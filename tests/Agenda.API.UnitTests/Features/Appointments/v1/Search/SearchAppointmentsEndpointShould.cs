@@ -402,6 +402,30 @@ public sealed class SearchAppointmentsEndpointShould : IClassFixture<PostgresSql
                           });
             }
 
+            // Search with default page and pageSize values (no explicit values provided)
+            {
+                List<Appointment> data = s_appointementFaker.Generate(15);
+                SearchAppointmentRequest request = new(); // Uses default values: Page = 1, PageSize = 10
+
+                cases.Add(data,
+                          request,
+                          new XunitSerializableExpression<PageOf<Browsable<AppointmentInfo>>>
+                          {
+                              Value = pageOfAppointments => pageOfAppointments.Total == 2
+                                                            && pageOfAppointments.TotalCount == 15
+                                                            && pageOfAppointments.PageSize == 10
+                                                            && pageOfAppointments.Count == 10
+                                                            && pageOfAppointments.Items != null
+                                                            && pageOfAppointments.Items.Exactly(10)
+                                                            && pageOfAppointments.Page == 1
+                                                            && pageOfAppointments.Links != null
+                                                            && pageOfAppointments.Links.First != null
+                                                            && pageOfAppointments.Links.Previous == null
+                                                            && pageOfAppointments.Links.Next != null
+                                                            && pageOfAppointments.Links.Last != null
+                          });
+            }
+
             return cases;
         }
     }
