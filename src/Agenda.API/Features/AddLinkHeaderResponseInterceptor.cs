@@ -35,30 +35,37 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
                                        IReadOnlyCollection<ValidationFailure> failures,
                                        CancellationToken ct)
     {
-        if (!HttpMethods.IsGet(ctx.Request.Method)
-            && !HttpMethods.IsHead(ctx.Request.Method)
-            && !HttpMethods.IsPost(ctx.Request.Method))
-        {
-            return Task.CompletedTask;
-        }
+        LogInterceptingResponseWithStatusCode(statusCode, ctx.Request.Method,ctx.Request.Path);
 
-        if ((statusCode != Status200OK && statusCode != Status201Created && statusCode != Status204NoContent) || !TryGetOkValue(response, out object value))
-        {
-            return Task.CompletedTask;
-        }
+        bool isSupportedMethod = HttpMethods.IsGet(ctx.Request.Method)
+                                 || HttpMethods.IsHead(ctx.Request.Method)
+                                 || HttpMethods.IsPost(ctx.Request.Method);
 
-        if (TryGetPageInformation(value, out long total, out long totalCount, out long count, out List<Link> pageLinks))
+        if (isSupportedMethod)
         {
-            SetLinkHeader(ctx, pageLinks);
-            ctx.Response.Headers["total"] = total.ToString(CultureInfo.InvariantCulture);
-            ctx.Response.Headers["totalCount"] = totalCount.ToString(CultureInfo.InvariantCulture);
-            ctx.Response.Headers["count"] = count.ToString(CultureInfo.InvariantCulture);
-            return Task.CompletedTask;
-        }
+            bool hasSuccessfulStatusCode = statusCode == Status200OK
+                                           || statusCode == Status201Created
+                                           || statusCode == Status204NoContent;
 
-        if (TryGetBrowsableLinks(value, out IEnumerable<Link> browsableLinks))
-        {
-            SetLinkHeader(ctx, browsableLinks);
+            if (hasSuccessfulStatusCode && TryGetOkValue(response, out object value))
+            {
+                bool hasPageInformation = TryGetPageInformation(value, out long total, out long totalCount, out long count, out List<Link> pageLinks);
+                if (hasPageInformation)
+                {
+                    SetLinkHeader(ctx, pageLinks);
+                    ctx.Response.Headers["total"] = total.ToString(CultureInfo.InvariantCulture);
+                    ctx.Response.Headers["totalCount"] = totalCount.ToString(CultureInfo.InvariantCulture);
+                    ctx.Response.Headers["count"] = count.ToString(CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    bool hasBrowsableLinks = TryGetBrowsableLinks(value, out IEnumerable<Link> browsableLinks);
+                    if (hasBrowsableLinks)
+                    {
+                        SetLinkHeader(ctx, browsableLinks);
+                    }
+                }
+            }
         }
 
         return Task.CompletedTask;
@@ -70,19 +77,25 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
         ArgumentNullException.ThrowIfNull(response);
 
         Type responseType = response.GetType();
-        if (!responseType.IsGenericType || responseType.GetGenericTypeDefinition() != typeof(Ok<>))
+        bool isOkResponseType = responseType.IsGenericType
+                                && responseType.GetGenericTypeDefinition() == typeof(Ok<>);
+
+        bool hasValue = false;
+        if (isOkResponseType)
         {
-            return false;
+            PropertyInfo valueProperty = responseType.GetProperty(nameof(Ok<object>.Value));
+            if (valueProperty is not null)
+            {
+                object extractedValue = valueProperty.GetValue(response);
+                if (extractedValue is not null)
+                {
+                    value = extractedValue;
+                    hasValue = true;
+                }
+            }
         }
 
-        PropertyInfo valueProperty = responseType.GetProperty(nameof(Ok<object>.Value));
-        if (valueProperty is null)
-        {
-            return false;
-        }
-
-        value = valueProperty.GetValue(response);
-        return value is not null;
+        return hasValue;
     }
 
     private static bool TryGetPageInformation(object value, out long total, out long totalCount, out long count, out List<Link> links)
@@ -144,19 +157,21 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
         links = [];
 
         Type valueType = value.GetType();
-        if (!valueType.IsGenericType || valueType.GetGenericTypeDefinition() != typeof(Browsable<>))
+        bool isBrowsableType = valueType.IsGenericType
+                               && valueType.GetGenericTypeDefinition() == typeof(Browsable<>);
+
+        bool hasBrowsableLinks = false;
+        if (isBrowsableType)
         {
-            return false;
+            PropertyInfo linksProperty = valueType.GetProperty(nameof(Browsable<object>.Links));
+            if (linksProperty?.GetValue(value) is IEnumerable<Link> browsableLinks)
+            {
+                links = browsableLinks.Where(link => link is not null);
+                hasBrowsableLinks = true;
+            }
         }
 
-        PropertyInfo linksProperty = valueType.GetProperty(nameof(Browsable<object>.Links));
-        if (linksProperty?.GetValue(value) is not IEnumerable<Link> browsableLinks)
-        {
-            return false;
-        }
-
-        links = browsableLinks.Where(link => link is not null);
-        return true;
+        return hasBrowsableLinks;
     }
 
     private void SetLinkHeader(HttpContext context, IEnumerable<Link> links)
@@ -174,16 +189,19 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
                                      .Select(relation => $"<{link.Href}>; rel=\"{relation}\""));
         }
 
-        if (!linkToRender.Any())
+        if (linkToRender.Any())
         {
-            return;
+            LogLinkHeader(string.Join(", ", linkToRender));
+            context.Response.Headers.Link = new StringValues([.. linkToRender]);
         }
-
-        LogLinkHeader(string.Join(", ", linkToRender));
-        context.Response.Headers.Link = new StringValues([.. linkToRender]);
     }
 
     [ExcludeFromCodeCoverage]
     [LoggerMessage(LogLevel.Trace, "Link header: {LinkHeader}")]
     private partial void LogLinkHeader(string linkHeader);
+
+
+    [ExcludeFromCodeCoverage]
+    [LoggerMessage(LogLevel.Information, "Intercepting response with status code {StatusCode} for request {Method} {Path}")]
+    private partial void LogInterceptingResponseWithStatusCode(int statusCode, string method, string path);
 }
