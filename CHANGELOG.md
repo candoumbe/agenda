@@ -21,10 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added publication of `AppointmentScheduled` event when a new appointment is scheduled : 
 - Added publication of `AppointmentCreated` event when a new appointment is created, containing appointment ID, start/end dates (ISO 8601), location, attendees list, and creator ID (#329)
 - Added healthchecks for PostgreSQL and RabbitMQ
-- Fixed appointments listing pagination metadata for UI navigation (`total` now represents total pages, with explicit `totalCount` and `pageSize` fields)
+- Updated appointments paginated headers contract for UI navigation: `total` now represents the total number of matching elements, `count` represents the number of elements in the current page, and redundant `totalCount` was removed
 - Added multi-criteria filtering for appointments listing (`subject`, `location`, and `from`/`to` time range)
 - Fixed appointments search query binding for ISO `OffsetDateTime` range filters so first-load requests return `200` instead of `400`
-- Added `HEAD` support headers on appointments `GET` endpoints: browsable resources now emit `Link`, and paginated collections emit `Link`, `total`, `totalCount`, and `count` headers
+- Added `HEAD` support headers on appointments `GET` endpoints: `Link` remains the navigation header, and paginated collections emit `Link`, `total`, and `count` headers
 - Added integration coverage for appointments `HEAD` contracts on `GET /appointments/{id}` and paginated `GET /appointments` responses
 - Made appointments search case-insensitive at database level by switching `Subject` and `Location` to PostgreSQL `citext` columns ([#504](https://github.com/candoumbe/agenda/issues/504))
 
