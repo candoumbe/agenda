@@ -154,8 +154,7 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
 
         static void AddPaginationHeaders(HttpResponse response, PageOf<Browsable<AppointmentInfo>> page)
         {
-            response.Headers["total"] = page.Total.ToString(CultureInfo.InvariantCulture);
-            response.Headers["totalCount"] = page.TotalCount.ToString(CultureInfo.InvariantCulture);
+            response.Headers["total"] = page.TotalCount.ToString(CultureInfo.InvariantCulture);
             response.Headers["count"] = page.Count.ToString(CultureInfo.InvariantCulture);
 
             if (page.Links is null)
