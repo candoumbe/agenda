@@ -97,10 +97,9 @@ public class AddLinkHeaderResponseInterceptorShould
 
         headers.Should().ContainKey("total")
             .WhoseValue.Should().ContainSingle("0");
-        headers.Should().ContainKey("totalCount")
-            .WhoseValue.Should().ContainSingle("0");
         headers.Should().ContainKey("count")
             .WhoseValue.Should().ContainSingle("0");
+        headers.Should().NotContainKey("totalCount");
 
     }
 
