@@ -1,5 +1,5 @@
-﻿using System.Linq.Expressions;
-using System.Globalization;
+﻿using System.Globalization;
+using System.Linq.Expressions;
 using Agenda.API.Features.Appointments.v1.Delete;
 using Agenda.API.Features.Appointments.v1.GetById;
 using Agenda.Ids;
@@ -9,7 +9,6 @@ using Candoumbe.DataAccess.Repositories;
 using Candoumbe.Forms;
 using Candoumbe.Types.Numerics;
 using DataFilters;
-using DataFilters.Casing;
 using DataFilters.Expressions;
 using FastEndpoints;
 using Microsoft.AspNetCore.Http.HttpResults;
