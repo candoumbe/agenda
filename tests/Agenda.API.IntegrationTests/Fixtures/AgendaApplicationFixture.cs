@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 
 using Agenda.API.Features;
 using Agenda.Ids;
+using Aspire.Hosting;
 using DataFilters.Converters;
 using Json.More;
 using Json.Patch;
+using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Xunit;
@@ -41,14 +43,16 @@ public sealed class AgendaApplicationFixture : IAsyncLifetime
         ApiJsonSerializerOptions.Converters.Add(new AttendeeId.AttendeeIdSystemTextJsonConverter());
     }
 
+    ///<inheritdoc />
     public async ValueTask InitializeAsync()
     {
         _appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(cancellationToken: TestContext.Current.CancellationToken);
-        var app = await _appHost.StartAsync(TestContext.Current.CancellationToken);
+        DistributedApplication app = await _appHost.StartAsync(TestContext.Current.CancellationToken);
         await app.ResourceNotifications.WaitForResourceHealthyAsync(AgendaApplicationTestingBuilder.ApiResourceName, TestContext.Current.CancellationToken).WaitAsync(AgendaApplicationTestingBuilder.StartStopTimeout, TestContext.Current.CancellationToken);
         ApiClient = _appHost.ApiClient;
     }
 
+    ///<inheritdoc />
     public async ValueTask DisposeAsync()
     {
         if (_appHost is not null)

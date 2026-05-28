@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -79,5 +80,36 @@ public class CreateAppointmentEndpointShould
         resource.StartDate.Should().Be(newAppointmentInfo.StartDate);
         resource.EndDate.Should().Be(newAppointmentInfo.EndDate);
         resource.Attendees.Should().BeEquivalentTo(newAppointmentInfo.Attendees);
+    }
+
+    [Fact]
+    public async Task Return_no_pagination_headers_when_creating_an_appointment()
+    {
+        // Arrange
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+
+        Instant startDate = s_faker.Noda().Instant.Soon();
+        Instant endDate = s_faker.Noda().Instant.Future(reference: startDate);
+
+        AppointmentInfo newAppointmentInfo = new()
+        {
+            Id = AppointmentId.New(),
+            StartDate = startDate.InUtc().ToOffsetDateTime(),
+            EndDate = endDate.InUtc().ToOffsetDateTime(),
+            Location = s_faker.Address.City(),
+            Attendees = [.. s_faker.Make(2, () => new AttendeeInfo { Name = s_faker.Name.FullName(), Email = s_faker.Internet.Email(), PhoneNumber = s_faker.Phone.PhoneNumber() })],
+            Subject = s_faker.Lorem.Sentence()
+        };
+
+        // Act
+        using HttpResponseMessage response = await _client.PostAsJsonAsync("/appointments", newAppointmentInfo, _fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        response.Headers.Should().NotContain(header => string.Equals(header.Key, "total", StringComparison.OrdinalIgnoreCase));
+        response.Headers.Should().NotContain(header => string.Equals(header.Key, "totalCount", StringComparison.OrdinalIgnoreCase));
+        response.Headers.Should().NotContain(header => string.Equals(header.Key, "count", StringComparison.OrdinalIgnoreCase));
+        response.Headers.Should().NotContain(header => string.Equals(header.Key, "Link", StringComparison.OrdinalIgnoreCase));
+        response.Headers.Should().Contain(header => string.Equals(header.Key, "Location", StringComparison.OrdinalIgnoreCase));
     }
 }

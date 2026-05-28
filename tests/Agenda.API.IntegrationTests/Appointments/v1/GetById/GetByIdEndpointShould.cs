@@ -52,7 +52,7 @@ public sealed class GetByIdEndpointShould
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        Instant startDate = s_faker.Noda().Instant.Soon();
+        Instant startDate = s_faker.Noda().Instant.Future(reference: SystemClock.Instance.GetCurrentInstant());
         Instant endDate = s_faker.Noda().Instant.Future(reference: startDate);
 
         AppointmentInfo newAppointmentInfo = new()
@@ -81,6 +81,8 @@ public sealed class GetByIdEndpointShould
 
         // Assert
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        getResponse.Headers.Should().ContainKey("Link")
+            .WhoseValue.Should().ContainSingle(link => link.Contains("rel=\"self\"", StringComparison.OrdinalIgnoreCase));
 
         Browsable<GetAppointmentByIdResponse> browsableResult = await getResponse.Content.ReadFromJsonAsync<Browsable<GetAppointmentByIdResponse>>(_fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
         browsableResult.Should().NotBeNull();
