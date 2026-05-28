@@ -11,6 +11,12 @@ export interface PageOf<T> {
   /** Number of items in the current page */
   count: number;
 
+  /** Requested page size (when provided by backend) */
+  pageSize?: number;
+
+  /** Total number of matching items across all pages (when provided by backend) */
+  totalCount?: number;
+
   /** Items in the current page */
   items: T[];
 
