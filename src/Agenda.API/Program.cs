@@ -89,16 +89,16 @@ app.UseFastEndpoints(config =>
 
                          config.Endpoints.GlobalResponseModifierAsync = (httpContext, response) =>
                          {
-                             if (response is null)
-                             {
-                                 return Task.CompletedTask;
-                             }
+                            if (response is null)
+                            {
+                                return Task.CompletedTask;
+                            }
 
-                             return addLinkHeaderResponseInterceptor.InterceptResponseAsync(response,
-                                                                                             httpContext.Response.StatusCode,
-                                                                                             httpContext,
-                                                                                             Array.Empty<ValidationFailure>(),
-                                                                                             httpContext.RequestAborted);
+                            return addLinkHeaderResponseInterceptor.InterceptResponseAsync(response,
+                                                                                            httpContext.Response.StatusCode,
+                                                                                            httpContext,
+                                                                                            Array.Empty<ValidationFailure>(),
+                                                                                            httpContext.RequestAborted);
                          };
 
                          config.Errors.UseProblemDetails(detailsConfig =>

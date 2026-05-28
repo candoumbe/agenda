@@ -94,6 +94,7 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
                                                                                                                   ]
                                                                                                               };
 
+
                                                                                                               return TypedResults.Ok(resource);
                                                                                                           },
                                                                                                     none: () => TypedResults.NotFound());
