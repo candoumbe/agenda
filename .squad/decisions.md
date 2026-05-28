@@ -119,6 +119,11 @@ Jump action updates `from` to the discovered appointment start date and `to` to 
 **What:** Replace remaining `RetryFact` usage in integration tests with plain `Fact` and remove the corresponding `xRetry.v3` usings from touched files.
 **Why:** Keep test execution deterministic and avoid hiding flakiness behind automatic retries now that the affected integration tests run reliably without retry wrappers.
 
+### 2026-05-28T01:12:06Z: User directive - Always use single entry/single exit when coding
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** When the team writes code, always use the single entry / single exit approach.
+**Why:** User request - captured for team memory.
+
 ## Governance
 
 - All meaningful changes require team consensus

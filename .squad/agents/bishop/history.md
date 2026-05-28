@@ -36,3 +36,6 @@ Initial setup complete.
 - Reusing one response interceptor for both `Browsable<T>` and `PageOf<T>` keeps `GET`/`HEAD` metadata behavior consistent and prevents header drift between slices.
 ## Learning — 2026-05-27T19:56:18Z: Aspire health check endpoint binding
 `WithHttpHealthCheck("/health")` without `endpointName` defaults to the first endpoint declared in `launchSettings.json` (HTTPS first in this repo). On a CI Linux runner without ASP.NET Core dev cert, that probe fails and — combined with `WaitForResourceHealthyAsync` — blocks integration test bootstrap. Always pass `endpointName: "http"` for Aspire health checks in integration test scenarios. Context: PR #546 diagnostic with Hicks.
+
+## Learning — 2026-05-28T00:00:00Z: Single-entry/single-exit refactor in response interceptor
+For `AddLinkHeaderResponseInterceptor`, a safe single-entry/single-exit refactor can be applied by replacing early returns with explicit guard booleans and structured branching in `InterceptResponseAsync`, while keeping helper behavior and header output unchanged. Targeted xUnit class filtering via MTP-compatible arguments (`-- --filter-class`) validates behavior without broad test execution.
