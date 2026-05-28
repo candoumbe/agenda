@@ -98,6 +98,70 @@ describe('ApiService with HTTP', () => {
     req.flush(mockResponse);
   });
 
+  it('should merge pagination metadata from HATEOAS headers when body links are missing', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 2,
+      total: 1,
+      count: 0,
+      items: [],
+      links: {}
+    };
+
+    apiService.getAppointments({ page: 2, pageSize: 10 }).subscribe((response) => {
+      expect(response.page).toBe(2);
+      expect(response.total).toBe(4);
+      expect(response.count).toBe(10);
+      expect(response.links.previous?.href).toContain('page=1');
+      expect(response.links.next?.href).toContain('page=3');
+      expect(response.links.last?.href).toContain('page=4');
+    });
+
+    const req = httpMock.expectOne((request) =>
+      request.url === '/api/appointments'
+      && request.params.get('page') === '2'
+      && request.params.get('pageSize') === '10'
+    );
+
+    req.flush(mockResponse, {
+      headers: {
+        total: '40',
+        count: '10',
+        Link: [
+          '</api/appointments?page=1&pageSize=10>; rel="first"',
+          '</api/appointments?page=1&pageSize=10>; rel="previous"',
+          '</api/appointments?page=3&pageSize=10>; rel="next"',
+          '</api/appointments?page=4&pageSize=10>; rel="last"'
+        ]
+      }
+    });
+  });
+
+  it('should support rel="prev" alias from link headers', () => {
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 2,
+      total: 2,
+      count: 1,
+      items: [],
+      links: {}
+    };
+
+    apiService.getAppointments({ page: 2, pageSize: 10 }).subscribe((response) => {
+      expect(response.links.previous?.href).toContain('page=1');
+    });
+
+    const req = httpMock.expectOne((request) =>
+      request.url === '/api/appointments'
+      && request.params.get('page') === '2'
+      && request.params.get('pageSize') === '10'
+    );
+
+    req.flush(mockResponse, {
+      headers: {
+        Link: '</api/appointments?page=1&pageSize=10>; rel="prev"'
+      }
+    });
+  });
+
   it('should filter appointments by subject', () => {
     const mockResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
