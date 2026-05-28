@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agenda.API;
+using Agenda.API.Features;
 using Agenda.API.TypeMappers;
 using Agenda.DataStores;
 using Agenda.Ids;
@@ -10,6 +11,7 @@ using Candoumbe.Types.Numerics;
 using FastEndpoints;
 using FastEndpoints.AspVersioning;
 using FastEndpoints.Swagger;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
@@ -71,6 +73,7 @@ builder.Services.AddFastEndpoints(options => options.IncludeAbstractValidators =
 
 
 WebApplication app = builder.Build();
+AddLinkHeaderResponseInterceptor addLinkHeaderResponseInterceptor = new(app.Services.GetRequiredService<ILogger<AddLinkHeaderResponseInterceptor>>());
 
 // app.UseSerilogRequestLogging(opts => opts.EnrichDiagnosticContext = (diagnosticContext, httpContext) => diagnosticContext.Set("CorrelationId", httpContext.TraceIdentifier));
 app.UseFastEndpoints(config =>
@@ -83,6 +86,20 @@ app.UseFastEndpoints(config =>
                                                                                                       && PositiveInteger.MinValue <= value
                                                                                                       && value <= PositiveInteger.MaxValue,
                                                                                                   PositiveInteger.From(value)));
+
+                         config.Endpoints.GlobalResponseModifierAsync = (httpContext, response) =>
+                         {
+                             if (response is null)
+                             {
+                                 return Task.CompletedTask;
+                             }
+
+                             return addLinkHeaderResponseInterceptor.InterceptResponseAsync(response,
+                                                                                             httpContext.Response.StatusCode,
+                                                                                             httpContext,
+                                                                                             Array.Empty<ValidationFailure>(),
+                                                                                             httpContext.RequestAborted);
+                         };
 
                          config.Errors.UseProblemDetails(detailsConfig =>
                                                          {

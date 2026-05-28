@@ -8,10 +8,10 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Primitives;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 
-namespace Agenda.API.Features.Appointments.v1.Search;
+namespace Agenda.API.Features;
 
 /// <summary>
-/// Post processor for handling responses from <see cref="SearchAppointmentsEndpoint"/>.
+/// Adds navigational and pagination headers to successful GET, HEAD, and POST responses.
 /// </summary>
 public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
 {
@@ -35,7 +35,14 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
                                        IReadOnlyCollection<ValidationFailure> failures,
                                        CancellationToken ct)
     {
-        if (statusCode != Status200OK || !TryGetOkValue(response, out object value))
+        if (!HttpMethods.IsGet(ctx.Request.Method)
+            && !HttpMethods.IsHead(ctx.Request.Method)
+            && !HttpMethods.IsPost(ctx.Request.Method))
+        {
+            return Task.CompletedTask;
+        }
+
+        if ((statusCode != Status200OK && statusCode != Status201Created && statusCode != Status204NoContent) || !TryGetOkValue(response, out object value))
         {
             return Task.CompletedTask;
         }
@@ -91,10 +98,10 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
             return false;
         }
 
-        PropertyInfo totalProperty = valueType.GetProperty(nameof(PageOf<Browsable<AppointmentInfo>>.Total));
-        PropertyInfo totalCountProperty = valueType.GetProperty(nameof(PageOf<Browsable<AppointmentInfo>>.TotalCount));
-        PropertyInfo countProperty = valueType.GetProperty(nameof(PageOf<Browsable<AppointmentInfo>>.Count));
-        PropertyInfo linksProperty = valueType.GetProperty(nameof(PageOf<Browsable<AppointmentInfo>>.Links));
+        PropertyInfo totalProperty = valueType.GetProperty(nameof(PageOf<Browsable<object>>.Total));
+        PropertyInfo totalCountProperty = valueType.GetProperty(nameof(PageOf<Browsable<object>>.TotalCount));
+        PropertyInfo countProperty = valueType.GetProperty(nameof(PageOf<Browsable<object>>.Count));
+        PropertyInfo linksProperty = valueType.GetProperty(nameof(PageOf<Browsable<object>>.Links));
 
         if (totalProperty is null || totalCountProperty is null || countProperty is null || linksProperty is null)
         {
@@ -119,16 +126,15 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
             return false;
         }
 
-        List<Link> extractedLinks = new()
-        {
+        List<Link> extractedLinks =
+        [
             pageLinks.First,
             pageLinks.Last,
             pageLinks.Next,
             pageLinks.Previous
-        };
+        ];
 
-        links = extractedLinks.Where(link => link is not null)
-                              .ToList();
+        links = [.. extractedLinks.Where(link => link is not null)];
 
         return true;
     }
@@ -143,7 +149,7 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
             return false;
         }
 
-        PropertyInfo linksProperty = valueType.GetProperty(nameof(Browsable<AppointmentInfo>.Links));
+        PropertyInfo linksProperty = valueType.GetProperty(nameof(Browsable<object>.Links));
         if (linksProperty?.GetValue(value) is not IEnumerable<Link> browsableLinks)
         {
             return false;
