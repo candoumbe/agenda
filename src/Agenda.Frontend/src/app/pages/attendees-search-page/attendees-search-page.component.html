@@ -1,0 +1,42 @@
+<section class="attendees-page">
+  <div class="glow glow-left" aria-hidden="true"></div>
+  <div class="glow glow-right" aria-hidden="true"></div>
+
+  <article class="card">
+    <header class="page-header">
+      <p class="kicker">Participants</p>
+      <h1>Recherche de participants</h1>
+      <p class="subtitle">Rechercher un participant par nom ou adresse email.</p>
+    </header>
+
+    <div class="search-section">
+      <form [formGroup]="searchForm" (ngSubmit)="searchAttendees()" class="search-form">
+        <input
+          type="text"
+          formControlName="name"
+          placeholder="Rechercher par nom..."
+          class="search-input"
+          aria-label="Nom du participant"
+        />
+        <input
+          type="email"
+          formControlName="email"
+          placeholder="Rechercher par email..."
+          class="search-input"
+          aria-label="Email du participant"
+        />
+        <button type="submit" class="primary">Rechercher</button>
+      </form>
+    </div>
+
+    <div class="coming-soon">
+      <p class="coming-soon__icon" aria-hidden="true">🔍</p>
+      <p class="coming-soon__message">Fonctionnalité à venir</p>
+      <p class="coming-soon__detail">La recherche de participants sera disponible prochainement.</p>
+    </div>
+
+    <div class="back-section">
+      <button type="button" class="secondary" (click)="goToHome()">← Retour à l'accueil</button>
+    </div>
+  </article>
+</section>
