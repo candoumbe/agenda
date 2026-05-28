@@ -42,6 +42,8 @@ export class AppointmentsListPageComponent implements OnInit {
   public hasError = signal(false);
   public errorMessage = signal('');
   public firstIncomingAppointmentOutsideInterval = signal<Browsable<Appointment> | null>(null);
+  public totalResultsCount = signal<number | null>(null);
+  public hasCountError = signal(false);
 
   public readonly searchForm = this._formBuilder.nonNullable.group({
     subject: [''],
@@ -78,6 +80,8 @@ export class AppointmentsListPageComponent implements OnInit {
     this.isLoading.set(true);
     this.hasError.set(false);
     this.errorMessage.set('');
+    this.totalResultsCount.set(null);
+    this.hasCountError.set(false);
 
     const targetPage = this.normalizePage(page ?? this.currentPage());
     const filters = this.buildFilters();
@@ -90,6 +94,17 @@ export class AppointmentsListPageComponent implements OnInit {
       from: filters.from,
       to: filters.to
     };
+
+    this._apiService.countAppointments(searchParams)
+      .pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe({
+        next: (count) => {
+          this.totalResultsCount.set(count);
+        },
+        error: () => {
+          this.hasCountError.set(true);
+        }
+      });
 
     this._apiService.getAppointments(searchParams)
       .pipe(

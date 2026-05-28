@@ -63,6 +63,41 @@ export class ApiService {
     return this.http.post<Browsable<Appointment>>('/api/appointments', payload);
   }
 
+  /** Counts appointments matching the given parameters via HEAD request. Returns an Observable of the total from the `total` response header. */
+  public countAppointments(params?: SearchAppointmentsParams): Observable<number> {
+    let httpParams: HttpParams = new HttpParams();
+
+    if (params) {
+      if (params.page !== undefined) {
+        httpParams = httpParams.set('page', params.page.toString());
+      }
+      if (params.pageSize !== undefined) {
+        httpParams = httpParams.set('pageSize', params.pageSize.toString());
+      }
+      if (params.subject !== undefined && params.subject.trim()) {
+        httpParams = httpParams.set('subject', params.subject);
+      }
+      if (params.location !== undefined && params.location.trim()) {
+        httpParams = httpParams.set('location', params.location);
+      }
+      if (params.from !== undefined) {
+        httpParams = httpParams.set('from', params.from);
+      }
+      if (params.to !== undefined) {
+        httpParams = httpParams.set('to', params.to);
+      }
+    }
+
+    return this.http
+      .head<void>('/api/appointments', {
+        params: httpParams,
+        observe: 'response'
+      })
+      .pipe(
+        map((response) => this.parsePositiveInteger(response.headers.get('total')) ?? 0)
+      );
+  }
+
   private toPaginatedAppointmentsResponse(
     response: HttpResponse<PageOf<Browsable<Appointment>>>,
     requestedPageSize?: number

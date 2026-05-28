@@ -25,7 +25,7 @@ function toDateValue(date: Date): string {
 describe('AppointmentsListPageComponent', () => {
   let component: AppointmentsListPageComponent;
   let fixture: ComponentFixture<AppointmentsListPageComponent>;
-  let apiServiceSpy: { getAppointments: ReturnType<typeof vi.fn> };
+  let apiServiceSpy: { getAppointments: ReturnType<typeof vi.fn>; countAppointments: ReturnType<typeof vi.fn> };
   let routerSpy: { navigate: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
@@ -36,7 +36,8 @@ describe('AppointmentsListPageComponent', () => {
         count: 1,
         items: [],
         links: {}
-      }))
+      })),
+      countAppointments: vi.fn().mockReturnValue(of(0))
     };
 
     routerSpy = {
@@ -956,5 +957,53 @@ describe('AppointmentsListPageComponent', () => {
     expect(component.searchForm.controls.toDate.value).toBe(toDateValue(new Date('2026-05-16T08:00:00Z')));
     expect(component.searchForm.controls.fromTime.value).toBe('');
     expect(component.searchForm.controls.toTime.value).toBe('');
+  });
+
+  it('should call countAppointments in parallel with getAppointments and expose the total count', () => {
+    // Arrange
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 2,
+      items: [],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+    apiServiceSpy.countAppointments.mockReturnValue(of(42));
+
+    // Act
+    fixture.detectChanges();
+
+    // Assert
+    expect(apiServiceSpy.countAppointments).toHaveBeenCalledWith(
+      expect.objectContaining({
+        page: 1,
+        pageSize: 10
+      })
+    );
+    expect(component.totalResultsCount()).toBe(42);
+    expect(component.hasCountError()).toBe(false);
+  });
+
+  it('should set hasCountError when countAppointments fails', () => {
+    // Arrange
+    const mockResponse: PageOf<Browsable<Appointment>> = {
+      page: 1,
+      total: 1,
+      count: 0,
+      items: [],
+      links: {}
+    };
+
+    apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
+    apiServiceSpy.countAppointments.mockReturnValue(throwError(() => new Error('HEAD failed')));
+
+    // Act
+    fixture.detectChanges();
+
+    // Assert
+    expect(component.totalResultsCount()).toBeNull();
+    expect(component.hasCountError()).toBe(true);
   });
 });
