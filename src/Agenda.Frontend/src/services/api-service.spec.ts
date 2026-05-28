@@ -162,6 +162,48 @@ describe('ApiService with HTTP', () => {
     });
   });
 
+  it('should normalize PascalCase paginated payload to frontend camelCase contract', () => {
+    apiService.getAppointments({ page: 1, pageSize: 10 }).subscribe((response) => {
+      expect(response.page).toBe(1);
+      expect(response.total).toBe(3);
+      expect(response.count).toBe(1);
+      expect(response.items.length).toBe(1);
+      expect(response.items[0].resource.id).toBe('appt_pascal_001');
+      expect(response.items[0].resource.subject).toBe('Pascal payload');
+      expect(response.links.last?.href).toContain('page=3');
+      expect(response.links.next?.href).toContain('page=2');
+    });
+
+    const req = httpMock.expectOne((request) =>
+      request.url === '/api/appointments'
+      && request.params.get('page') === '1'
+      && request.params.get('pageSize') === '10'
+    );
+
+    req.flush({
+      Page: 1,
+      Total: 3,
+      Count: 1,
+      Items: [
+        {
+          Resource: {
+            Id: 'appt_pascal_001',
+            Subject: 'Pascal payload',
+            Location: 'Room E',
+            StartDate: '2026-05-30T09:00:00Z',
+            EndDate: '2026-05-30T10:00:00Z',
+            Attendees: []
+          },
+          Links: []
+        }
+      ],
+      Links: {
+        Next: { Href: '/appointments?page=2', Relations: ['next'] },
+        Last: { Href: '/appointments?page=3', Relations: ['last'] }
+      }
+    });
+  });
+
   it('should filter appointments by subject', () => {
     const mockResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
