@@ -52,8 +52,11 @@ public class AddLinkHeaderResponseInterceptorShould
         creatingInstanceWithLoggerNull.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
-    public async Task Given_a_response_with_an_empty_page_When_post_processing_Then_return_expected_response()
+    [Theory]
+     [InlineData("GET")]
+     [InlineData("HEAD")]
+     [InlineData("POST")]
+    public async Task Given_a_response_with_an_empty_page_When_post_processing_Then_return_expected_response(string method)
     {
         // Arrange
         Link firstPageLink = new() { Href = s_faker.Internet.Url(), Relations = [LinkRelation.First] };
@@ -64,6 +67,10 @@ public class AddLinkHeaderResponseInterceptorShould
         };
         Ok<PageOf<Browsable<AppointmentInfo>>> response = TypedResults.Ok(emptyPage);
         HttpContext fakeHttpContext = A.Fake<HttpContext>(x => x.Strict());
+        HttpRequest fakeRequest = A.Fake<HttpRequest>(x => x.Strict());
+        A.CallTo(() => fakeHttpContext.Request).Returns(fakeRequest);
+        A.CallTo(() => fakeRequest.Method).Returns(method);
+
         HttpResponse fakeResponse = A.Fake<HttpResponse>(x => x.Strict());
         A.CallTo(() => fakeHttpContext.Response).Returns(fakeResponse);
         Captured<Func<Task>> capturedOnStartingCallback = A.Captured<Func<Task>>();
@@ -96,8 +103,11 @@ public class AddLinkHeaderResponseInterceptorShould
 
     }
 
-    [Fact]
-    public async Task Given_a_response_with_a_browsable_resource_When_post_processing_Then_add_link_header()
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("POST")]
+    [InlineData("HEAD")]
+    public async Task Given_a_response_with_a_browsable_resource_When_post_processing_Then_add_link_header(string method)
     {
         // Arrange
         Browsable<AppointmentInfo> browsable = new()
@@ -108,7 +118,11 @@ public class AddLinkHeaderResponseInterceptorShould
 
         Ok<Browsable<AppointmentInfo>> response = TypedResults.Ok(browsable);
         HttpContext fakeHttpContext = A.Fake<HttpContext>(x => x.Strict());
+        HttpRequest fakeRequest = A.Fake<HttpRequest>(x => x.Strict());
+        A.CallTo(() => fakeRequest.Method).Returns(method);
+
         HttpResponse fakeResponse = A.Fake<HttpResponse>(x => x.Strict());
+        A.CallTo(() => fakeHttpContext.Request).Returns(fakeRequest);
         A.CallTo(() => fakeHttpContext.Response).Returns(fakeResponse);
         Captured<Func<Task>> capturedOnStartingCallback = A.Captured<Func<Task>>();
         A.CallTo(() => fakeResponse.OnStarting(capturedOnStartingCallback._)).Invokes(() => { });
