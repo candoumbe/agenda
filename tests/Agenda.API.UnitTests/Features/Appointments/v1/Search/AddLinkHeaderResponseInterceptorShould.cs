@@ -70,6 +70,7 @@ public class AddLinkHeaderResponseInterceptorShould
         HttpRequest fakeRequest = A.Fake<HttpRequest>(x => x.Strict());
         A.CallTo(() => fakeHttpContext.Request).Returns(fakeRequest);
         A.CallTo(() => fakeRequest.Method).Returns(method);
+        A.CallTo(() => fakeRequest.Path).Returns("/");
 
         HttpResponse fakeResponse = A.Fake<HttpResponse>(x => x.Strict());
         A.CallTo(() => fakeHttpContext.Response).Returns(fakeResponse);
@@ -120,6 +121,7 @@ public class AddLinkHeaderResponseInterceptorShould
         HttpContext fakeHttpContext = A.Fake<HttpContext>(x => x.Strict());
         HttpRequest fakeRequest = A.Fake<HttpRequest>(x => x.Strict());
         A.CallTo(() => fakeRequest.Method).Returns(method);
+        A.CallTo(() => fakeRequest.Path).Returns("/");
 
         HttpResponse fakeResponse = A.Fake<HttpResponse>(x => x.Strict());
         A.CallTo(() => fakeHttpContext.Request).Returns(fakeRequest);
@@ -134,7 +136,7 @@ public class AddLinkHeaderResponseInterceptorShould
         // Assert
         IHeaderDictionary headers = fakeHttpContext.Response.Headers;
         headers.Should().ContainKey("Link");
-        IEnumerable<string> links = headers["Link"].AsEnumerable();
+        IEnumerable<string> links = headers.Link.AsEnumerable();
         links.Should().ContainSingle(link => link.Like("""
                                                        <*>; rel="self"
                                                        """));
