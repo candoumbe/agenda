@@ -59,10 +59,9 @@ public sealed class SearchAppointmentHeadContractShould
         HttpResponseHeaders headers = headResponse.Headers;
         headers.Should().ContainKey("total")
             .WhoseValue.Should().ContainSingle("3");
-        headers.Should().ContainKey("totalCount")
-            .WhoseValue.Should().ContainSingle("3");
         headers.Should().ContainKey("count")
             .WhoseValue.Should().ContainSingle("2");
+        headers.Should().NotContainKey("totalCount");
 
         headers.Should().ContainKey("Link")
             .WhoseValue.Should().ContainSingle(link => link.Contains("rel=\"first\"", StringComparison.OrdinalIgnoreCase))
@@ -103,7 +102,6 @@ public sealed class SearchAppointmentHeadContractShould
 
         string expectedCount = root.GetProperty("count").GetInt64().ToString(CultureInfo.InvariantCulture);
         string expectedTotal = root.GetProperty("total").GetInt64().ToString(CultureInfo.InvariantCulture);
-        string expectedTotalCount = root.GetProperty("totalCount").GetInt64().ToString(CultureInfo.InvariantCulture);
         string expectedFirstRelation = "rel=\"first\"";
         string expectedLastRelation = "rel=\"last\"";
 
@@ -111,8 +109,7 @@ public sealed class SearchAppointmentHeadContractShould
             .WhoseValue.Should().ContainSingle(expectedCount);
         getResponse.Headers.Should().ContainKey("total")
             .WhoseValue.Should().ContainSingle(expectedTotal);
-        getResponse.Headers.Should().ContainKey("totalCount")
-            .WhoseValue.Should().ContainSingle(expectedTotalCount);
+        getResponse.Headers.Should().NotContainKey("totalCount");
         getResponse.Headers.Should().ContainKey("Link")
             .WhoseValue.Should().ContainSingle(link => link.Contains(expectedFirstRelation, StringComparison.OrdinalIgnoreCase))
             .And.ContainSingle(link => link.Contains(expectedLastRelation, StringComparison.OrdinalIgnoreCase));
@@ -121,8 +118,7 @@ public sealed class SearchAppointmentHeadContractShould
             .WhoseValue.Should().ContainSingle(expectedCount);
         headResponse.Headers.Should().ContainKey("total")
             .WhoseValue.Should().ContainSingle(expectedTotal);
-        headResponse.Headers.Should().ContainKey("totalCount")
-            .WhoseValue.Should().ContainSingle(expectedTotalCount);
+        headResponse.Headers.Should().NotContainKey("totalCount");
         headResponse.Headers.Should().ContainKey("Link")
             .WhoseValue.Should().ContainSingle(link => link.Contains(expectedFirstRelation, StringComparison.OrdinalIgnoreCase))
             .And.ContainSingle(link => link.Contains(expectedLastRelation, StringComparison.OrdinalIgnoreCase));
