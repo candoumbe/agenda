@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -28,10 +29,12 @@ public sealed class SearchAppointmentHeadContractShould
 {
     private readonly HttpClient _client;
     private static readonly Faker s_faker = new();
+    private readonly IClock _clock;
     
     public SearchAppointmentHeadContractShould(AgendaApplicationFixture fixture)
     {
         _client = fixture.ApiClient;
+        _clock = SystemClock.Instance;
     }
 
     [Fact]
@@ -39,20 +42,21 @@ public sealed class SearchAppointmentHeadContractShould
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        Instant start = Instant.FromUtc(2026, 05, 24, 08, 00);
+        Instant start = _clock.GetCurrentInstant().Plus(Duration.FromDays(1));
 
         await CreateAppointmentAsync(start, "Planning sync", "Paris", cancellationToken);
         await CreateAppointmentAsync(start.Plus(Duration.FromHours(2)), "Backlog review", "Paris", cancellationToken);
         await CreateAppointmentAsync(start.Plus(Duration.FromHours(4)), "Release checkpoint", "Paris", cancellationToken);
 
         string query = "/appointments?page=1&pageSize=2";
+        HttpRequestMessage request = new(HttpMethod.Head, query);
 
         // Act
-        using HttpResponseMessage headResponse = await _client.SendAsync(new HttpRequestMessage(HttpMethod.Head, query), HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        using HttpResponseMessage headResponse = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
         // Assert
         headResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        System.Net.Http.Headers.HttpResponseHeaders headers = headResponse.Headers;
+        HttpResponseHeaders headers = headResponse.Headers;
         headers.Should().ContainKey("total")
             .WhoseValue.Should().ContainSingle("3");
         headers.Should().ContainKey("totalCount")
@@ -73,13 +77,13 @@ public sealed class SearchAppointmentHeadContractShould
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-        Instant matchingStart = Instant.FromUtc(2026, 05, 23, 22, 30);
+        Instant matchingStart = _clock.GetCurrentInstant().Plus(Duration.FromDays(1));
 
         await CreateAppointmentAsync(matchingStart, "Backend design review", "Paris", cancellationToken);
         await CreateAppointmentAsync(matchingStart.Plus(Duration.FromDays(3)), "Frontend design review", "Lyon", cancellationToken);
 
-        string subjectFilter = Uri.EscapeDataString("*design*");
-        string locationFilter = Uri.EscapeDataString("*Paris*");
+        string subjectFilter = "*design*";
+        string locationFilter = "*Paris*";
         DateTimeOffset from = matchingStart.Minus(Duration.FromMinutes(30)).ToDateTimeOffset();
         DateTimeOffset to = matchingStart.Plus(Duration.FromDays(7)).ToDateTimeOffset();
         string fromParam = Uri.EscapeDataString(from.ToString("O", CultureInfo.InvariantCulture));
@@ -100,15 +104,28 @@ public sealed class SearchAppointmentHeadContractShould
         string expectedCount = root.GetProperty("count").GetInt64().ToString(CultureInfo.InvariantCulture);
         string expectedTotal = root.GetProperty("total").GetInt64().ToString(CultureInfo.InvariantCulture);
         string expectedTotalCount = root.GetProperty("totalCount").GetInt64().ToString(CultureInfo.InvariantCulture);
+        string expectedFirstRelation = "rel=\"first\"";
+        string expectedLastRelation = "rel=\"last\"";
 
-        if (headResponse.Headers.TryGetValues("count", out IEnumerable<string> headCountValues)
-            && headResponse.Headers.TryGetValues("total", out IEnumerable<string> headTotalValues)
-            && headResponse.Headers.TryGetValues("totalCount", out IEnumerable<string> headTotalCountValues))
-        {
-            headCountValues.Should().ContainSingle().Which.Should().Be(expectedCount);
-            headTotalValues.Should().ContainSingle().Which.Should().Be(expectedTotal);
-            headTotalCountValues.Should().ContainSingle().Which.Should().Be(expectedTotalCount);
-        }
+        getResponse.Headers.Should().ContainKey("count")
+            .WhoseValue.Should().ContainSingle(expectedCount);
+        getResponse.Headers.Should().ContainKey("total")
+            .WhoseValue.Should().ContainSingle(expectedTotal);
+        getResponse.Headers.Should().ContainKey("totalCount")
+            .WhoseValue.Should().ContainSingle(expectedTotalCount);
+        getResponse.Headers.Should().ContainKey("Link")
+            .WhoseValue.Should().ContainSingle(link => link.Contains(expectedFirstRelation, StringComparison.OrdinalIgnoreCase))
+            .And.ContainSingle(link => link.Contains(expectedLastRelation, StringComparison.OrdinalIgnoreCase));
+
+        headResponse.Headers.Should().ContainKey("count")
+            .WhoseValue.Should().ContainSingle(expectedCount);
+        headResponse.Headers.Should().ContainKey("total")
+            .WhoseValue.Should().ContainSingle(expectedTotal);
+        headResponse.Headers.Should().ContainKey("totalCount")
+            .WhoseValue.Should().ContainSingle(expectedTotalCount);
+        headResponse.Headers.Should().ContainKey("Link")
+            .WhoseValue.Should().ContainSingle(link => link.Contains(expectedFirstRelation, StringComparison.OrdinalIgnoreCase))
+            .And.ContainSingle(link => link.Contains(expectedLastRelation, StringComparison.OrdinalIgnoreCase));
     }
 
     private async Task CreateAppointmentAsync(Instant startDate, string subject, string location, CancellationToken cancellationToken)

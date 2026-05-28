@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -31,7 +27,7 @@ public sealed class SearchAppointmentQueryBindingShould
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
 
-        // Actawait ExecuteRequestWithTransientInfrastructureRetryAsync(HttpMethod.Get, cancellationToken);
+        // Act
         using HttpResponseMessage response = await _client.GetAsync("/appointments?page=1&pageSize=10&from=2026-05-23T22:00:00.000Z&to=2026-06-08T21:59:59.999Z", cancellationToken);   
 
         // Assert
