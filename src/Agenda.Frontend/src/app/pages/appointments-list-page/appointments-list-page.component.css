@@ -98,6 +98,24 @@
   width: 100%;
 }
 
+.results-count-badge {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid #bfdbfe;
+}
+
+.results-count-badge.count-error {
+  background: #f9fafb;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+}
+
 .loading {
   text-align: center;
   padding: 3rem 1rem;

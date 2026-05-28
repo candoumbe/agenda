@@ -58,6 +58,16 @@
       + Nouveau rendez-vous
     </button>
 
+    <div class="results-count-badge" [class.count-error]="hasCountError()">
+      @if (hasCountError()) {
+        <span>Résultats non disponibles</span>
+      } @else if (totalResultsCount() === null) {
+        <span>Chargement...</span>
+      } @else {
+        <span>{{ totalResultsCount() }} résultat(s) trouvé(s)</span>
+      }
+    </div>
+
     @if (hasError()) {
       <p class="feedback failure">{{ errorMessage() }}</p>
     }
