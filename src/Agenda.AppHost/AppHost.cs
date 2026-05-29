@@ -21,6 +21,18 @@ if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
 var messaging = builder.AddRabbitMQ("messaging")
     .WithManagementPlugin();
 
+IResourceBuilder<ParameterResource> keycloakAdminUser = builder.AddParameter("keycloak-admin-user", secret: true);
+IResourceBuilder<ParameterResource> keycloakAdminPassword = builder.AddParameter("keycloak-admin-password", secret: true);
+
+IResourceBuilder<KeycloakResource> keycloak = builder.AddKeycloak("keycloak", adminUsername: keycloakAdminUser, adminPassword: keycloakAdminPassword)
+    .WithImageTag("26.x")
+    .WithRealmImport("./keycloak/agenda-realm.json");
+
+if (!isRunningIntegrationTests)
+{
+    keycloak = keycloak.WithDataVolume("keycloak-data");
+}
+
 IResourceBuilder<ProjectResource> migrationService = builder.AddProject<Agenda_Migrator>("migrations")
     .WithReference(postgres)
     .WaitFor(postgres);
@@ -31,6 +43,7 @@ IResourceBuilder<ProjectResource> api = builder.AddProject<Agenda_API>("api")
     .WithExternalHttpEndpoints()
     .WithReference(postgres).WaitFor(postgres)
     .WithReference(messaging).WaitFor(messaging)
+    .WithReference(keycloak).WaitFor(keycloak)
     .WaitForCompletion(migrationService);
 
 if (!string.IsNullOrWhiteSpace(testingNow))
@@ -56,6 +69,8 @@ if (!isRunningIntegrationTests)
               .WithDeveloperCertificateTrust(trust: true)
               .WithReference(api)
               .WaitFor(api)
+              .WithReference(keycloak)
+              .WaitFor(keycloak)
                 // Demande à Aspire d’allouer un port et de le passer à l’app via la variable d’env PORT
               .WithHttpEndpoint(env: "PORT")
               .WithExternalHttpEndpoints()
