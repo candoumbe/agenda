@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agenda.API;
@@ -45,6 +46,7 @@ builder.Services.AddCustomizedDependencyInjection(builder.Configuration);
 
 builder.Services.AddDataStores();
 builder.Services.AddCustomBrighter(builder.Configuration, builder.Environment);
+builder.Services.AddCustomAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddSerilog();
 builder.Services.Configure<JsonOptions>(c => optionsSerializerSettings.Invoke(c.SerializerOptions));
 builder.Services
@@ -77,8 +79,11 @@ WebApplication app = builder.Build();
 AddLinkHeaderResponseInterceptor addLinkHeaderResponseInterceptor = new(app.Services.GetRequiredService<ILogger<AddLinkHeaderResponseInterceptor>>());
 
 // app.UseSerilogRequestLogging(opts => opts.EnrichDiagnosticContext = (diagnosticContext, httpContext) => diagnosticContext.Set("CorrelationId", httpContext.TraceIdentifier));
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseFastEndpoints(config =>
                      {
+                         config.Security.RoleClaimType = ClaimTypes.Role;
                          config.Binding.ValueParserFor<AppointmentId>(values => new ParseResult(AppointmentId.TryParse(values.ToString(), CultureInfo.InvariantCulture, out AppointmentId id), id));
                          config.Binding.ValueParserFor<AttendeeId>(values => new ParseResult(AttendeeId.TryParse(values.ToString(), CultureInfo.InvariantCulture, out AttendeeId id), id));
                          config.Binding.ValueParserFor<NonNegativeInteger>(values => new ParseResult(int.TryParse(values.ToString(), out int value)
@@ -120,7 +125,12 @@ app.UseFastEndpoints(config =>
                      });
 
 app.UseOpenApi(options => options.Path = "/openapi/{documentName}.json");
-app.MapScalarApiReference(options => options.AddDocument("v1"));
+IEndpointConventionBuilder scalarEndpoint = app.MapScalarApiReference(options => options.AddDocument("v1"));
+
+if (!app.Environment.IsProduction())
+{
+    scalarEndpoint.AllowAnonymous();
+}
 
 app.MapDefaultEndpoints();
 
