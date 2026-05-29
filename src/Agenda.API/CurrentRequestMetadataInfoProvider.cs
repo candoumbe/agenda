@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
@@ -53,5 +54,49 @@ public class CurrentRequestMetadataInfoProvider
         }
 
         return dateTimeZone;
+    }
+
+    /// <summary>
+    /// Gets the current authenticated user identifier by parsing the <c>sub</c> claim as a <see cref="Guid"/>.
+    /// </summary>
+    /// <returns>The user identifier or <see langword="null"/> when the claim is missing or malformed.</returns>
+    public Guid? GetCurrentUserId()
+    {
+        Guid? userId = null;
+        ClaimsPrincipal user = _httpContextAccessor.HttpContext?.User;
+
+        if (user is not null)
+        {
+            Claim subClaim = user.FindFirst("sub") ?? user.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (subClaim is not null && Guid.TryParse(subClaim.Value, out Guid parsed))
+            {
+                userId = parsed;
+            }
+        }
+
+        return userId;
+    }
+
+    /// <summary>
+    /// Gets the current authenticated user name from the <c>preferred_username</c> claim.
+    /// </summary>
+    /// <returns>The user name or an empty string when no claim is available.</returns>
+    public string GetCurrentUserName()
+    {
+        string userName = string.Empty;
+        ClaimsPrincipal user = _httpContextAccessor.HttpContext?.User;
+
+        if (user is not null)
+        {
+            Claim nameClaim = user.FindFirst("preferred_username");
+
+            if (nameClaim is not null && !string.IsNullOrWhiteSpace(nameClaim.Value))
+            {
+                userName = nameClaim.Value;
+            }
+        }
+
+        return userName;
     }
 }
