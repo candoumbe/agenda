@@ -10,7 +10,7 @@ Proposed
 
 ## Context
 
-ADR-001 established Keycloak as the identity provider for Agenda. The Angular frontend now needs a concrete authentication implementation strategy that:
+[ADR-001](001-authentication-provider.md) established Keycloak as the identity provider for Agenda. The Angular frontend now needs a concrete authentication implementation strategy that:
 
 - Uses OpenID Connect Authorization Code Flow with PKCE.
 - Integrates cleanly with Keycloak realms, clients, and standard JWT access tokens.
@@ -20,7 +20,7 @@ ADR-001 established Keycloak as the identity provider for Agenda. The Angular fr
 
 ## Options Considered
 
-### 1. angular-auth-oidc-client (recommended in ADR-001 rationale)
+### 1. angular-auth-oidc-client (recommended in [ADR-001](001-authentication-provider.md) rationale)
 
 A mature Angular OIDC client focused on standards-based integration with providers such as Keycloak.
 
@@ -110,7 +110,7 @@ We choose **angular-auth-oidc-client** for the Angular frontend, using Authoriza
 
 ## Rationale
 
-1. **Alignment with ADR-001:** ADR-001 already identifies this library as a good ecosystem fit for Angular with Keycloak.
+1. **Alignment with [ADR-001](001-authentication-provider.md):** [ADR-001](001-authentication-provider.md) already identifies this library as a good ecosystem fit for Angular with Keycloak.
 2. **Standards-first interoperability:** It supports OIDC standards expected by Keycloak without introducing provider lock-in at the frontend integration layer.
 3. **Complexity control:** It avoids introducing a new BFF/auth platform unless clear future requirements justify it.
 4. **Security posture:** It supports secure SPA practices (PKCE, token renewal patterns, route-guard integration) with established community usage.
@@ -129,7 +129,7 @@ We choose **angular-auth-oidc-client** for the Angular frontend, using Authoriza
 2. What is the target session model (idle timeout, absolute timeout, silent renew policy, and behavior when renewal fails)?
 3. How should Keycloak realms be structured across environments and tenants (one realm per environment, per organization, or hybrid)?
 4. If Agenda evolves to multiple frontends, when does a BFF become mandatory instead of direct SPA-to-Keycloak integration?
-5. How do we keep frontend auth decoupled from Keycloak-specific implementation details while Keycloak remains imposed by ADR-001?
+5. How do we keep frontend auth decoupled from Keycloak-specific implementation details while Keycloak remains imposed by [ADR-001](001-authentication-provider.md)?
 6. What is the canonical mapping strategy between Keycloak roles/claims and frontend authorization rules?
 7. Where should tokens be stored in the browser context (memory only, session storage, local storage) given the XSS and UX trade-offs?
 8. What logout semantics are required (local app logout, Keycloak SSO logout, back-channel revocation expectations)?
