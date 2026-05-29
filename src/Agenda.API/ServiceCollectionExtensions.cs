@@ -71,13 +71,6 @@ public static class ServiceCollectionExtensions
                 options.MessagingOptions = new MessagingOptions() { OutboxTablename = configuration.GetValue<string>($"ApiOptions:{nameof(AgendaApiOptions.MessagingOptions.OutboxTablename)}") };
             });
 
-            services.Configure<JwtOptions>(options =>
-            {
-                options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
-                options.Audience = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}");
-                options.Key = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}");
-            });
-
             return services;
         }
 
