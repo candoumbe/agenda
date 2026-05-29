@@ -42,6 +42,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the symmetric `JwtOptions` configuration in favor of Keycloak OIDC discovery. ([#577](https://github.com/candoumbe/agenda/issues/577))
 - All API endpoints now require authentication by default; `DELETE /appointments/{id}` additionally requires the `agenda-admin` realm role. ([#578](https://github.com/candoumbe/agenda/issues/578), [#323](https://github.com/candoumbe/agenda/issues/323))
 
+### 🧪 Tests
+- Added architectural rules enforcing endpoint authentication, authentication-type placement outside `Agenda.API.Features`, and Keycloak SDK isolation. ([#579](https://github.com/candoumbe/agenda/issues/579), [#323](https://github.com/candoumbe/agenda/issues/323))
+- Added `TokenFactory` test helper producing valid, expired, wrong-audience, wrong-issuer, and tampered RS256 JWTs (with a public JWKS) for unit and integration tests. ([#579](https://github.com/candoumbe/agenda/issues/579))
+- Added unit tests for current-user metadata extraction (`sub`, `preferred_username`) and `realm_access.roles` claim flattening. ([#579](https://github.com/candoumbe/agenda/issues/579))
+- Added integration tests covering `401`/`403`/success paths via an authenticated fixture client and a new `AnonymousApiClient`. ([#579](https://github.com/candoumbe/agenda/issues/579))
+- Added a Keycloak smoke test (`[Trait("Category","Smoke")]`) validating OIDC discovery and Direct Access Grant against the real Aspire-hosted Keycloak. ([#579](https://github.com/candoumbe/agenda/issues/579))
+
 ### 📝 Documentation
 - Added ADR-001: Authentication provider selection (Keycloak) ([#323](https://github.com/candoumbe/agenda/issues/323))
 
