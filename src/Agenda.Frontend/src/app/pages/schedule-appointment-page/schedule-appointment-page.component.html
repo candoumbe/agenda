@@ -73,13 +73,17 @@
         <p class="feedback success">Rendez-vous créé avec succès (id: {{ createdAppointmentId }}).</p>
       }
 
-      <button class="primary" type="submit" [disabled]="isSubmitting">
-        @if (isSubmitting) {
-          <span>Planification...</span>
-        } @else {
-          <span>Planifier le rendez-vous</span>
-        }
-      </button>
+      <div class="form-actions">
+        <button class="ghost cancel-button" type="button" (click)="cancel()">Annuler</button>
+
+        <button class="primary" type="submit" [disabled]="isSubmitting">
+          @if (isSubmitting) {
+            <span>Planification...</span>
+          } @else {
+            <span>Planifier le rendez-vous</span>
+          }
+        </button>
+      </div>
     </form>
   </article>
 </section>

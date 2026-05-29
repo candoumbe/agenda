@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { ApiService } from '../../../services/api-service';
@@ -8,6 +9,7 @@ describe('ScheduleAppointmentPageComponent', () => {
   let component: ScheduleAppointmentPageComponent;
   let fixture: ComponentFixture<ScheduleAppointmentPageComponent>;
   let apiServiceSpy: { scheduleAppointment: ReturnType<typeof vi.fn> };
+  let routerSpy: { navigate: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     apiServiceSpy = {
@@ -23,6 +25,9 @@ describe('ScheduleAppointmentPageComponent', () => {
         links: []
       }))
     };
+    routerSpy = {
+      navigate: vi.fn()
+    };
 
     await TestBed.configureTestingModule({
       imports: [ScheduleAppointmentPageComponent],
@@ -30,6 +35,10 @@ describe('ScheduleAppointmentPageComponent', () => {
         {
           provide: ApiService,
           useValue: apiServiceSpy
+        },
+        {
+          provide: Router,
+          useValue: routerSpy
         }
       ]
     }).compileComponents();
@@ -37,6 +46,10 @@ describe('ScheduleAppointmentPageComponent', () => {
     fixture = TestBed.createComponent(ScheduleAppointmentPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('should create', () => {
@@ -76,5 +89,42 @@ describe('ScheduleAppointmentPageComponent', () => {
     }));
 
     expect(component.createdAppointmentId).toBe('appt_001');
+  });
+
+  it('does not show a confirmation when cancelling a pristine form', () => {
+    const confirmSpy = vi.spyOn(window, 'confirm');
+
+    const cancelButton = fixture.nativeElement.querySelector('.cancel-button') as HTMLButtonElement;
+    cancelButton.click();
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/']);
+  });
+
+  it('keeps the user on the page when cancelling a dirty form and the confirmation is rejected', () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    component.appointmentForm.controls.subject.setValue('Comite produit');
+    component.appointmentForm.controls.subject.markAsDirty();
+    fixture.detectChanges();
+
+    const cancelButton = fixture.nativeElement.querySelector('.cancel-button') as HTMLButtonElement;
+    cancelButton.click();
+
+    expect(confirmSpy).toHaveBeenCalledOnce();
+    expect(routerSpy.navigate).not.toHaveBeenCalled();
+    expect(component.appointmentForm.controls.subject.value).toBe('Comite produit');
+  });
+
+  it('shows a confirmation when cancelling a dirty form and navigates home after approval', () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    component.appointmentForm.controls.subject.setValue('Comite produit');
+    component.appointmentForm.controls.subject.markAsDirty();
+    fixture.detectChanges();
+
+    const cancelButton = fixture.nativeElement.querySelector('.cancel-button') as HTMLButtonElement;
+    cancelButton.click();
+
+    expect(confirmSpy).toHaveBeenCalledOnce();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/']);
   });
 });
