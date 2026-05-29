@@ -122,3 +122,18 @@ We choose **angular-auth-oidc-client** for the Angular frontend, using Authoriza
 - Angular route guards and HTTP interceptors will be implemented through this library's recommended patterns.
 - Keycloak client configuration must include SPA settings (redirect URIs, post-logout redirect URIs, PKCE-enabled public client).
 - If future requirements demand centralized session management, SSO orchestration across heterogeneous clients, or non-SPA-first auth flows, a follow-up ADR can evaluate Better Auth + BFF as a targeted evolution.
+
+## Open questions
+
+1. Which frontend security baseline must be mandatory at go-live (PKCE-only, strict redirect URI policy, CSP, token lifetime constraints, clock skew tolerance)?
+2. What is the target session model (idle timeout, absolute timeout, silent renew policy, and behavior when renewal fails)?
+3. How should Keycloak realms be structured across environments and tenants (one realm per environment, per organization, or hybrid)?
+4. If Agenda evolves to multiple frontends, when does a BFF become mandatory instead of direct SPA-to-Keycloak integration?
+5. How do we keep frontend auth decoupled from Keycloak-specific implementation details while Keycloak remains imposed by ADR-001?
+6. What is the canonical mapping strategy between Keycloak roles/claims and frontend authorization rules?
+7. Where should tokens be stored in the browser context (memory only, session storage, local storage) given the XSS and UX trade-offs?
+8. What logout semantics are required (local app logout, Keycloak SSO logout, back-channel revocation expectations)?
+9. What is the minimum automated test strategy for authentication behavior (unit, integration, E2E, contract tests)?
+10. Which objective criteria should trigger a future reevaluation of Better Auth in front of Keycloak?
+11. What are the top implementation risks and mitigation plans (misconfiguration, token leakage, drift between realms, outage handling)?
+12. What weighted decision matrix should be used to compare implementation evolutions over time and avoid ad-hoc decisions?
