@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Superseded by [ADR-003](003-frontend-authentication-implementation.md)
 
 ## Date
 
