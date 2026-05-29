@@ -33,6 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added integration coverage for appointments `HEAD` contracts on `GET /appointments/{id}` and paginated `GET /appointments` responses
 - Made appointments search case-insensitive at database level by switching `Subject` and `Location` to PostgreSQL `citext` columns ([#504](https://github.com/candoumbe/agenda/issues/504))
 
+#### AppHost
+- Aspire AppHost now provisions a Keycloak resource (`keycloak`) with an imported `agenda` realm including dev users `alice` and `admin`. ([#576](https://github.com/candoumbe/agenda/issues/576), [#323](https://github.com/candoumbe/agenda/issues/323))
+
 ### 📝 Documentation
 - Added ADR-001: Authentication provider selection (Keycloak) ([#323](https://github.com/candoumbe/agenda/issues/323))
 
