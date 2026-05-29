@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -19,7 +20,19 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// HTTP client for the API.
     /// </summary>
     public HttpClient ApiClient { get; private set; }
+
+    /// <summary>
+    /// HTTP client for the API that does not attach any bearer token.
+    /// </summary>
+    public HttpClient AnonymousApiClient { get; private set; }
+
+    /// <summary>
+    /// HTTP client for the Keycloak resource used to mint real access tokens.
+    /// </summary>
+    public HttpClient KeycloakClient { get; private set; }
+
     public const string ApiResourceName = "api";
+    public const string KeycloakResourceName = "keycloak";
 
     /// <summary>
     /// Time to wait after which the application under test will be considered as "not started".
@@ -77,9 +90,46 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         {
             builder.AddStandardResilienceHandler();
         });
+        AnonymousApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http", builder =>
+        {
+            builder.AddStandardResilienceHandler();
+        });
+        KeycloakClient = _app.CreateHttpClient(KeycloakResourceName);
         await WaitUntilApiIsReachableAsync(cancellationToken);
 
         return _app;
+    }
+
+    /// <summary>
+    /// Issues a real Keycloak access token via the Resource Owner Password Grant
+    /// against the <c>agenda-frontend</c> client.
+    /// </summary>
+    /// <param name="username">Keycloak user.</param>
+    /// <param name="password">Keycloak user password.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The issued access token.</returns>
+    public async Task<string> IssueAccessTokenAsync(string username, string password, CancellationToken cancellationToken)
+    {
+        Dictionary<string, string> form = new()
+        {
+            ["grant_type"] = "password",
+            ["client_id"] = "agenda-frontend",
+            ["username"] = username,
+            ["password"] = password,
+            ["scope"] = "openid"
+        };
+
+        using HttpRequestMessage request = new(HttpMethod.Post, "/realms/agenda/protocol/openid-connect/token")
+        {
+            Content = new FormUrlEncodedContent(form)
+        };
+
+        using HttpResponseMessage response = await KeycloakClient.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        string payload = await response.Content.ReadAsStringAsync(cancellationToken);
+        using JsonDocument document = JsonDocument.Parse(payload);
+        return document.RootElement.GetProperty("access_token").GetString();
     }
 
     private async Task WaitUntilApiIsReachableAsync(CancellationToken cancellationToken)
