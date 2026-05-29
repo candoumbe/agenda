@@ -43,9 +43,16 @@ using Project = Nuke.Common.ProjectModel.Project;
         nameof(IReportCoverage.CodecovToken),
         nameof(IMutationTest.StrykerDashboardApiKey)
     ],
+    OnPushExcludePaths =
+    [
+        "docs/**",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE"
+    ],
     OnPullRequestExcludePaths =
     [
-        "docs/*",
+        "docs/**",
         "README.md",
         "CHANGELOG.md",
         "LICENSE"
@@ -67,9 +74,16 @@ using Project = Nuke.Common.ProjectModel.Project;
         nameof(IReportCoverage.CodecovToken),
         nameof(IMutationTest.StrykerDashboardApiKey)
     ],
+    OnPushExcludePaths =
+    [
+        "docs/**",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE"
+    ],
     OnPullRequestExcludePaths =
     [
-        "docs/*",
+        "docs/**",
         "README.md",
         "CHANGELOG.md",
         "LICENSE"
