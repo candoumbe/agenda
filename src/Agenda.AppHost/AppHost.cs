@@ -25,7 +25,6 @@ IResourceBuilder<ParameterResource> keycloakAdminUser = builder.AddParameter("ke
 IResourceBuilder<ParameterResource> keycloakAdminPassword = builder.AddParameter("keycloak-admin-password", secret: true);
 
 IResourceBuilder<KeycloakResource> keycloak = builder.AddKeycloak("keycloak", adminUsername: keycloakAdminUser, adminPassword: keycloakAdminPassword)
-    .WithImageTag("26.x")
     .WithRealmImport("./keycloak/agenda-realm.json");
 
 if (!isRunningIntegrationTests)
