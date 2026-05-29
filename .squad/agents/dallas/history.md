@@ -38,3 +38,28 @@ Initial setup complete.
 - Implemented issue #541 behavior in appointments listing with default 15-day interval initialization and empty-range fallback discovery query.
 - Added jump-to-first-incoming flow that shifts the interval to the discovered appointment start and reloads list data.
 - Frontend validation completed with successful build and test execution for the updated behavior.
+
+### 2026-05-28: Pagination + HATEOAS header alignment
+
+- The Angular `ApiService` now reads pagination/HATEOAS metadata from response headers (`Link`, `total`, `count`) and merges it with the legacy body contract.
+- Link parsing must support both `rel="previous"` and `rel="prev"` and normalize to the frontend `links.previous` property for stable list-page navigation.
+- For robustness, total pages should prioritize HATEOAS-derived values (`links.last` or `total` header + page size) before the legacy `body.total` value.
+- Updated files: `src/Agenda.Frontend/src/services/api-service.ts`, `src/Agenda.Frontend/src/services/api-service.spec.ts`, `src/Agenda.Frontend/src/models/page-of.ts`.
+- Pagination link query parsing should support both camelCase and PascalCase key variants (`page`/`Page`) because browser URL parsing is case-sensitive while backend-generated links may use PascalCase.
+
+### 2026-05-28: HEAD counter, Homepage, Attendees stub
+
+- Added `countAppointments(params)` to `ApiService` — makes HEAD to `/api/appointments`, returns `Observable<number>` from `total` response header; returns 0 when header absent.
+- Added `totalResultsCount = signal<number | null>(null)` and `hasCountError = signal(false)` to `AppointmentsListPageComponent`; HEAD fires in parallel with GET inside `loadAppointments` (not sequential).
+- The results count badge is always visible in the list page (loading state → "Chargement…", error → "Résultats non disponibles", resolved → "X résultat(s) trouvé(s)").
+- Created `HomePageComponent` (3 navigation cards — primary gradient to `/appointments`, accent gradient to `/appointments/new`, tertiary gradient to `/attendees`); route `''` now points to the homepage instead of a redirect.
+- Created `AttendeesSearchPageComponent` stub — search form (name + email) renders with a "Fonctionnalité à venir" placeholder; route `/attendees` registered in `app.routes.ts`.
+- All existing tests remain green (30/30 list-page, 13/13 api-service); new tests added: 2 for HEAD counter in list-page spec, 10 for homepage spec (100 % coverage on homepage).
+- When adding `countAppointments` to the component spy, update the spy type declaration AND the `beforeEach` mock in the spec file — otherwise existing tests fail at runtime.
+
+### 2026-05-29: Schedule appointment cancel navigation
+
+- Added a cancel action to the schedule appointment page with conditional confirmation based on unsaved form input.
+- Updated the component, template, stylesheet, and spec together to keep the UX and test coverage aligned.
+- Validation reported by Dallas: targeted schedule-appointment-page test passed and `npm run build` passed.
+- Delivery commit: `ec44a3ce1a1e00c8ca01e592ab76fea4757d1a60`.

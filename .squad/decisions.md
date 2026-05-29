@@ -124,6 +124,25 @@ Jump action updates `from` to the discovered appointment start date and `to` to 
 **What:** When the team writes code, always use the single entry / single exit approach.
 **Why:** User request - captured for team memory.
 
+### 2026-05-28T20:08:30Z: Frontend pagination should prioritize HATEOAS headers
+**By:** Dallas
+**What:** Frontend pagination/navigation metadata should be resolved from HTTP response headers first (`Link`, `total`, `count`) and only fallback to legacy body pagination fields when headers are absent.
+**Why:** The backend now emits canonical HATEOAS/count metadata in headers; header-first parsing avoids stale or partial body metadata.
+
+### 2026-05-28T20:09:00Z: Frontend pagination link parser must support parameter case variants
+**By:** Bishop
+**What:** Frontend extraction of pagination query values from HATEOAS links must handle both lowercase and PascalCase query parameter names (for example `page` and `Page`) when reading link URLs.
+**Why:** `URLSearchParams` is case-sensitive and backend-generated links may use PascalCase, which can otherwise force incorrect page fallback behavior.
+
+### 2026-05-28: Homepage route and HEAD counter pattern
+**By:** Dallas
+**What:**
+- Route `''` now loads `HomePageComponent` directly (no more `redirectTo: 'appointments'`).
+- `ApiService.countAppointments()` uses HTTP HEAD to retrieve the `total` header independently of GET — both calls fire in parallel in `AppointmentsListPageComponent.loadAppointments()`.
+- Route `/attendees` added and served by `AttendeesSearchPageComponent` (stub).
+**Why:** User request — three distinct frontend features shipped atomically.
+**Impact:** Entry URL lands on the new homepage; appointments list shows a persistent result count badge; attendees route is registered for future implementation.
+
 ## Governance
 
 - All meaningful changes require team consensus
