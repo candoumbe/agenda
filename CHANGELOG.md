@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added publication of `AppointmentScheduled` event when a new appointment is scheduled : 
 - Added publication of `AppointmentCreated` event when a new appointment is created, containing appointment ID, start/end dates (ISO 8601), location, attendees list, and creator ID (#329)
 - Added healthchecks for PostgreSQL and RabbitMQ
+- Migrated API documentation UI from Swagger UI to Scalar while keeping the OpenAPI JSON document available ([#571](https://github.com/candoumbe/agenda/issues/571))
 - Updated appointments paginated headers contract for UI navigation: `total` now represents the total number of matching elements, `count` represents the number of elements in the current page, and redundant `totalCount` was removed
 - Added multi-criteria filtering for appointments listing (`subject`, `location`, and `from`/`to` time range)
 - Fixed appointments search query binding for ISO `OffsetDateTime` range filters so first-load requests return `200` instead of `400`
