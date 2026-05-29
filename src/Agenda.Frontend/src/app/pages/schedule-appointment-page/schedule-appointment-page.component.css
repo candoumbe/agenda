@@ -213,6 +213,16 @@ button:disabled {
   color: color-mix(in srgb, var(--danger) 84%, black);
 }
 
+.form-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.cancel-button,
+.form-actions .primary {
+  width: 100%;
+}
+
 /* ── ≥ 480px: restore floating card ─────────────────────────────────────── */
 @media (min-width: 480px) {
   .schedule-page {
@@ -255,8 +265,13 @@ button:disabled {
 
   .attendees,
   .feedback,
-  .primary {
+  .form-actions {
     grid-column: 1 / -1;
+  }
+
+  .form-actions {
+    grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+    align-items: stretch;
   }
 
   /* name | email | phone | [remove] in a single row */

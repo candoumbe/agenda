@@ -17,6 +17,7 @@ export class ScheduleAppointmentPageComponent {
   private readonly _formBuilder = inject(FormBuilder);
   private readonly _apiService = inject(ApiService);
   private readonly _router = inject(Router);
+  private readonly _cancelConfirmationMessage = 'Les modifications non enregistrees seront perdues. Voulez-vous vraiment quitter cette page ?';
 
   public isSubmitting = false;
   public createdAppointmentId: string | null = null;
@@ -41,6 +42,18 @@ export class ScheduleAppointmentPageComponent {
   public removeAttendee(index: number): void {
     if (this.attendees.length > 1) {
       this.attendees.removeAt(index);
+    }
+  }
+
+  public cancel(): void {
+    let shouldNavigate = true;
+
+    if (this.appointmentForm.dirty) {
+      shouldNavigate = window.confirm(this._cancelConfirmationMessage);
+    }
+
+    if (shouldNavigate) {
+      this._router.navigate(['/']);
     }
   }
 
