@@ -1,3 +1,4 @@
+using Agenda.AppHost;
 using Aspire.Hosting;
 using Microsoft.Extensions.Configuration;
 using Projects;
@@ -8,8 +9,9 @@ bool isRunningIntegrationTests = builder.Configuration.GetValue(RunningIntegrati
 bool shouldTrackResourceHealth = !isRunningIntegrationTests;
 string testingNow = builder.Configuration.GetValue<string>("Testing:Now");
 
+PinnedContainerImage postgresImage = ContainerImages.Postgres;
 var postgres = builder.AddPostgres("postgres")
-    .WithImage("postgres:17-alpine");
+    .WithImage(postgresImage.Image, postgresImage.Tag);
 
 if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
 {
@@ -18,13 +20,17 @@ if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
             .WithPgWeb(containerName: "pg-web");
 }
 
+PinnedContainerImage rabbitImage = ContainerImages.RabbitMq;
 var messaging = builder.AddRabbitMQ("messaging")
+    .WithImage(rabbitImage.Image, rabbitImage.Tag)
     .WithManagementPlugin();
 
 IResourceBuilder<ParameterResource> keycloakAdminUser = builder.AddParameter("keycloak-admin-user", secret: true);
 IResourceBuilder<ParameterResource> keycloakAdminPassword = builder.AddParameter("keycloak-admin-password", secret: true);
 
+PinnedContainerImage keycloakImage = ContainerImages.Keycloak;
 IResourceBuilder<KeycloakResource> keycloak = builder.AddKeycloak("keycloak", adminUsername: keycloakAdminUser, adminPassword: keycloakAdminPassword)
+    .WithImage(keycloakImage.Image, keycloakImage.Tag)
     .WithRealmImport("./keycloak/agenda-realm.json");
 
 if (!isRunningIntegrationTests)
