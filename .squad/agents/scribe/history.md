@@ -38,3 +38,9 @@ Initial setup complete.
 - Recorded Dallas' frontend change for schedule-page cancel navigation in both orchestration and session logs.
 - Merged the remaining Dallas inbox entry covering homepage routing, HEAD count retrieval, and attendees stub registration into `decisions.md`.
 - Cross-agent history should capture validation evidence when the agent reports both targeted tests and build status, even if the Squad task itself is documentation-only.
+
+### 2026-05-29: Logged Swagger UI to Scalar documentation migration batch
+
+- Recorded one orchestration entry for Bishop (backend migration) and one for Hicks (integration test coverage/validation).
+- Created a concise session log linking migration scope and targeted validation outcomes.
+- Merged all pending decision inbox entries into `decisions.md` and cleared merged inbox files.

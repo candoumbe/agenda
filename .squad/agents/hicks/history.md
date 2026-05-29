@@ -166,3 +166,6 @@ import { vi } from 'vitest';
 - Report executed commands and outcomes with enough detail for quick session-log consolidation.
 ## Learning — 2026-05-27T19:56:18Z: Aspire health check endpoint binding
 `WithHttpHealthCheck` without `endpointName` defaults to the first endpoint in `launchSettings.json` (HTTPS first) → fails on CI Linux without dev cert. Always pass `endpointName: "http"` for Aspire health checks in integration test scenarios. The failure was previously silent until `WaitForResourceHealthyAsync` was introduced in PR #546, which turned it into a blocking bootstrap error. Cross-checked with Bishop.
+
+## Learning — 2026-05-29T00:00:00Z: Swagger-to-Scalar test baseline should validate UI and JSON endpoints
+For the Swagger UI to Scalar migration, endpoint coverage is release-safe when integration tests assert all three behaviors together: Scalar UI is reachable (`/scalar` or `/scalar/v1`), Swagger UI is removed (`/swagger` returns 404), and the OpenAPI document remains available (`/openapi/v1.json` returns JSON with an `openapi` field). Validating only UI presence can miss regressions where Scalar loads but OpenAPI generation or routing is broken.

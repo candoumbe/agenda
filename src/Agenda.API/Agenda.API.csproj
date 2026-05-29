@@ -43,6 +43,7 @@
     <PackageReference Include="Paramore.Brighter.PostgreSql.EntityFrameworkCore" />
     <PackageReference Include="Paramore.Brighter.ServiceActivator.Extensions.DependencyInjection" />
     <PackageReference Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" />
+    <PackageReference Include="Scalar.AspNetCore" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.Seq" />

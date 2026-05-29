@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
+using Scalar.AspNetCore;
 using Serilog;
 using SystemTextJsonPatch.Operations;
 using static Microsoft.AspNetCore.Http.StatusCodes;
@@ -116,8 +117,10 @@ app.UseFastEndpoints(config =>
                                                          });
 
                          optionsSerializerSettings.Invoke(config.Serializer.Options);
-                     })
-    .UseSwaggerGen();
+                     });
+
+app.UseOpenApi(options => options.Path = "/openapi/{documentName}.json");
+app.MapScalarApiReference(options => options.AddDocument("v1"));
 
 app.MapDefaultEndpoints();
 
