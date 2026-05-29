@@ -33,7 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added integration coverage for appointments `HEAD` contracts on `GET /appointments/{id}` and paginated `GET /appointments` responses
 - Made appointments search case-insensitive at database level by switching `Subject` and `Location` to PostgreSQL `citext` columns ([#504](https://github.com/candoumbe/agenda/issues/504))
 
+### 📝 Documentation
+- Added ADR-001: Authentication provider selection (Keycloak) ([#323](https://github.com/candoumbe/agenda/issues/323))
+
 ### 🧹 Housekeeping
+- Excluded `docs/**` from CI triggers on both `push` and `pull_request` events
 - Added task issue template
 - Updated bug issue template
 - Added Codecov configuration file
