@@ -13,6 +13,7 @@
 | Name | Role | Charter | Status |
 |------|------|---------|--------|
 | Ripley | Lead | .squad/agents/ripley/charter.md | Active |
+| Ash | Architect | .squad/agents/ash/charter.md | Active |
 | Dallas | Frontend Dev | .squad/agents/dallas/charter.md | Active |
 | Bishop | Backend Dev | .squad/agents/bishop/charter.md | Active |
 | Hicks | Tester | .squad/agents/hicks/charter.md | Active |

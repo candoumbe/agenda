@@ -7,6 +7,7 @@ How to decide who handles what.
 | Work Type | Route To | Examples |
 |-----------|----------|----------|
 | Scope & priorities | Ripley | Backlog slicing, trade-offs, acceptance criteria |
+| Architecture & technical decisions | Ash | ADR framing, trade-off analysis, long-term design constraints |
 | Backend (.NET API, data flow) | Bishop | Endpoints, validators, persistence, messaging |
 | Frontend (Angular) | Dallas | Components, UX flows, microfrontend integration |
 | Testing & QA | Hicks | Unit/integration tests, edge cases, regressions |
