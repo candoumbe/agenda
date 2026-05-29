@@ -26,4 +26,11 @@
     <PackageDownload Include="dotnet-ef" Version="[10.0.1]" />
   </ItemGroup>
 
+  <!-- Single source of truth for container image references shared with the Aspire AppHost. -->
+  <ItemGroup>
+    <Compile Include="..\src\Agenda.AppHost\ContainerImages.cs" Link="Shared\ContainerImages.cs" />
+    <Compile Include="..\src\Agenda.AppHost\PinnedContainerImage.cs" Link="Shared\PinnedContainerImage.cs" />
+    <EmbeddedResource Include="..\src\Agenda.AppHost\container-images.json" Link="Shared\container-images.json" LogicalName="Agenda.AppHost.container-images.json" />
+  </ItemGroup>
+
 </Project>
