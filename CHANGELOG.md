@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added appointments list page with card-based layout, date grouping, search by subject, and pagination (#502)
 - Added automatic redirect to appointments list after creating a new appointment (#502)
 - Added default 15-day appointments window with contextual empty-state guidance and jump-to-first-incoming action ([#541](https://github.com/candoumbe/agenda/issues/541))
+- Added a homepage with navigation cards for the agenda, new appointment creation, and participant search
+- Added a live appointment result counter powered by `HEAD /appointments`, visible even when no items are returned
+- Added a cancellable appointment creation flow with dirty-form confirmation before leaving the page
+- Added a participants search page stub as the first entry point for attendee lookup
 
 #### API
 - Added `DELETE /appointments/{id}/attendees/{id}` endpoint
