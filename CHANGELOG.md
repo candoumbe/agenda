@@ -50,6 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a Keycloak smoke test (`[Trait("Category","Smoke")]`) validating OIDC discovery and Direct Access Grant against the real Aspire-hosted Keycloak. ([#579](https://github.com/candoumbe/agenda/issues/579))
 
 ### 📝 Documentation
+- Added [docs/development/authentication.md](docs/development/authentication.md) describing the local Keycloak setup, seeded dev users, token-fetch recipes (Direct Access Grant, `client_credentials`), token inspection, and troubleshooting. ([#580](https://github.com/candoumbe/agenda/issues/580), [#323](https://github.com/candoumbe/agenda/issues/323))
+- Linked the new authentication guide and ADR-001 from the [README](README.md). ([#580](https://github.com/candoumbe/agenda/issues/580))
+- Documented the Keycloak resource and updated startup ordering in [docs/feature/aspire-integration.md](docs/feature/aspire-integration.md). ([#580](https://github.com/candoumbe/agenda/issues/580))
 - Added ADR-001: Authentication provider selection (Keycloak) ([#323](https://github.com/candoumbe/agenda/issues/323))
 
 ### 🧹 Housekeeping
