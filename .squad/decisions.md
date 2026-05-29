@@ -2,6 +2,23 @@
 
 ## Active Decisions
 
+### 2026-05-29T07:08:11Z: User directive - Present results as dashboard/table
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** Going forward, present results in a dashboard/table format.
+**Why:** User request - captured for team memory.
+
+### 2026-05-29T07:26:14Z: Backend documentation UI surface should use Scalar
+**By:** Bishop
+**What:** Replace runtime Swagger UI exposure with Scalar while keeping FastEndpoints/OpenAPI document generation and JSON exposure.
+**Why:** Complete the Swagger UI to Scalar migration with minimal backend churn and preserve tooling compatibility.
+**Impact:** Local documentation entrypoint is Scalar, Swagger UI route is removed, and OpenAPI JSON remains available.
+
+### 2026-05-29T07:26:14Z: Documentation endpoint regression coverage must validate UI and OpenAPI contract
+**By:** Hicks
+**What:** Integration tests for documentation routing should validate three behaviors together: Scalar UI is reachable, Swagger UI is not exposed, and v1 OpenAPI JSON is available and valid.
+**Why:** UI-only checks can miss regressions where documentation rendering depends on missing or invalid OpenAPI output.
+**Impact:** Stronger release confidence for API consumers and tooling that rely on OpenAPI.
+
 ### 2026-05-26T21:08:36Z: User directive — English-only user-facing docs
 **By:** Cyrille NDOUMBE (via Copilot)
 **What:** Keep every user-facing documentation in English for this public repository.

@@ -30,3 +30,8 @@ Agent Lambert initialized and ready for work.
 
 ### 2026-05-24: Issue #545 docs assignment context
 - For coordinated issue batches, keep CHANGELOG wording concise and aligned to validated behavior from implementation/tests.
+
+### 2026-05-29: Issue #571 API docs UI migration note
+- Documented the API documentation UI migration from Swagger UI to Scalar in `CHANGELOG.md` under Unreleased > API.
+- Kept the changelog entry explicit that the OpenAPI JSON document remains available for tooling compatibility.
+- Used a minimal single-bullet update with an issue link for traceability.
