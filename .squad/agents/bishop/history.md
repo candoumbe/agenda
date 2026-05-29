@@ -39,3 +39,6 @@ Initial setup complete.
 
 ## Learning — 2026-05-28T00:00:00Z: Single-entry/single-exit refactor in response interceptor
 For `AddLinkHeaderResponseInterceptor`, a safe single-entry/single-exit refactor can be applied by replacing early returns with explicit guard booleans and structured branching in `InterceptResponseAsync`, while keeping helper behavior and header output unchanged. Targeted xUnit class filtering via MTP-compatible arguments (`-- --filter-class`) validates behavior without broad test execution.
+
+## Learning — 2026-05-28T20:09:00Z: HATEOAS link query parameter case mismatch risk
+When backend-generated pagination links use PascalCase query names (for example `Page`, `PageSize`) and frontend extraction expects lowercase keys, browser `URLSearchParams` returns null because key lookup is case-sensitive. Frontend parsing should check both variants where compatibility is required to prevent pagination state drift.

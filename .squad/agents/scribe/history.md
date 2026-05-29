@@ -21,6 +21,7 @@ Agent Scribe initialized and ready for work.
 📌 Logged and consolidated AssemblyFixture migration coordination artifacts on 2026-05-26
 📌 Logged issue #545 orchestration batch and session record on 2026-05-24
 📌 Logged Bishop single-entry/single-exit refactor batch and merged directive inbox on 2026-05-28
+📌 Logged Dallas frontend pagination/HATEOAS batch and merged decision inbox on 2026-05-28
 
 ## Learnings
 
@@ -30,3 +31,10 @@ Initial setup complete.
 - Coordination closes faster when per-agent orchestration logs, decision deduplication, and history updates are completed in one pass.
 - If `.squad/decisions/inbox/` is empty, record an explicit no-op merge note in the session log to keep audit continuity.
 - When a style directive is repeated with stronger wording, keep the stronger statement in `decisions.md` and clean inbox immediately.
+- When frontend pagination contracts evolve from body metadata to response headers, capture both the metadata source-of-truth decision and compatibility parsing constraints in `decisions.md`.
+
+### 2026-05-29: Logged schedule cancel navigation batch
+
+- Recorded Dallas' frontend change for schedule-page cancel navigation in both orchestration and session logs.
+- Merged the remaining Dallas inbox entry covering homepage routing, HEAD count retrieval, and attendees stub registration into `decisions.md`.
+- Cross-agent history should capture validation evidence when the agent reports both targeted tests and build status, even if the Squad task itself is documentation-only.

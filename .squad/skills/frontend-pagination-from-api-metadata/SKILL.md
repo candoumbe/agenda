@@ -11,8 +11,13 @@ Keep displayed page numbers and next/previous behavior strictly aligned with bac
 ## Recommended approach
 
 1. Treat `response.page` as the source of truth for current page display.
-2. Derive `totalPages` from `links.last` page query param when present.
-3. Fallback to `response.total` only when `links.last` is absent.
+2. Prefer HATEOAS headers as canonical metadata when available:
+	- `Link` header for navigation relations (`first`, `last`, `next`, `previous`/`prev`)
+	- `total` header for total item count
+	- `count` header for current page item count
+3. Derive `totalPages` from `links.last` page query param when present.
+4. Fallback to computing `totalPages` from headers (`ceil(total/pageSize)`) when `links.last` is absent.
+5. Use `response.total` only as a final legacy fallback when no header-derived metadata is usable.
 4. Enable/disable previous/next actions from `links.previous` and `links.next` first, with numeric fallback (`currentPage` vs `totalPages`) only if links are absent.
 5. Parse next/previous page targets from links when possible to avoid optimistic client-side drift.
 
@@ -24,6 +29,8 @@ Keep displayed page numbers and next/previous behavior strictly aligned with bac
 ## Testing checklist
 
 - Current page display mirrors `response.page`.
+- Header-only Link metadata is correctly mapped to frontend links.
+- `rel="prev"` is normalized to the same behavior as `rel="previous"`.
 - Total pages follow `links.last` when `response.total` is inconsistent.
 - Next/previous buttons honor link availability.
 - Search criteria changes trigger page reset to 1.
