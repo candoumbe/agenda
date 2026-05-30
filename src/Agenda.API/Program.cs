@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agenda.API;
@@ -45,6 +46,7 @@ builder.Services.AddCustomizedDependencyInjection(builder.Configuration);
 
 builder.Services.AddDataStores();
 builder.Services.AddCustomBrighter(builder.Configuration, builder.Environment);
+builder.Services.AddCustomAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddSerilog();
 builder.Services.Configure<JsonOptions>(c => optionsSerializerSettings.Invoke(c.SerializerOptions));
 builder.Services
@@ -77,8 +79,17 @@ WebApplication app = builder.Build();
 AddLinkHeaderResponseInterceptor addLinkHeaderResponseInterceptor = new(app.Services.GetRequiredService<ILogger<AddLinkHeaderResponseInterceptor>>());
 
 // app.UseSerilogRequestLogging(opts => opts.EnrichDiagnosticContext = (diagnosticContext, httpContext) => diagnosticContext.Set("CorrelationId", httpContext.TraceIdentifier));
+
+// OpenAPI documentation must remain reachable under the JWT FallbackPolicy. The branch isolates UseOpenApi
+// from the parent auth pipeline so the document is served before authorization is evaluated.
+app.MapWhen(static context => context.Request.Path.StartsWithSegments("/openapi"),
+    branch => branch.UseOpenApi(options => options.Path = "/openapi/{documentName}.json"));
+
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseFastEndpoints(config =>
                      {
+                         config.Security.RoleClaimType = ClaimTypes.Role;
                          config.Binding.ValueParserFor<AppointmentId>(values => new ParseResult(AppointmentId.TryParse(values.ToString(), CultureInfo.InvariantCulture, out AppointmentId id), id));
                          config.Binding.ValueParserFor<AttendeeId>(values => new ParseResult(AttendeeId.TryParse(values.ToString(), CultureInfo.InvariantCulture, out AttendeeId id), id));
                          config.Binding.ValueParserFor<NonNegativeInteger>(values => new ParseResult(int.TryParse(values.ToString(), out int value)
@@ -119,8 +130,8 @@ app.UseFastEndpoints(config =>
                          optionsSerializerSettings.Invoke(config.Serializer.Options);
                      });
 
-app.UseOpenApi(options => options.Path = "/openapi/{documentName}.json");
-app.MapScalarApiReference(options => options.AddDocument("v1"));
+// API documentation must remain reachable in every environment, including production.
+app.MapScalarApiReference(options => options.AddDocument("v1")).AllowAnonymous();
 
 app.MapDefaultEndpoints();
 

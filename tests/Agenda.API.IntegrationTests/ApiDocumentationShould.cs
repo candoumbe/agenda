@@ -42,20 +42,6 @@ public sealed class ApiDocumentationShould
     }
 
     [Fact]
-    public async Task Not_expose_swagger_ui_endpoint_anymore()
-    {
-        // Arrange
-        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
-
-        // Act
-        using HttpResponseMessage response = await _client.GetAsync("/swagger", cancellationToken);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound,
-            "Swagger UI endpoint should not be available once Scalar migration is complete");
-    }
-
-    [Fact]
     public async Task Expose_openapi_document_for_v1()
     {
         // Arrange

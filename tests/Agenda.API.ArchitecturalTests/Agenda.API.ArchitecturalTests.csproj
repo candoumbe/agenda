@@ -14,4 +14,18 @@
     <ProjectReference Include="..\..\src\Agenda.API\Agenda.API.csproj" />
   </ItemGroup>
 
+  <!--
+    ContainerImages.cs and PinnedContainerImage.cs are shared with the AppHost (and the build
+    pipeline) without taking a project reference on Agenda.AppHost (which would pull the Aspire
+    AppHost SDK). The container-images.json manifest is embedded under the same logical name the
+    AppHost loader expects, so the loader works from the test assembly. AppHost.cs is embedded
+    so architecture tests can scan its source for hard-coded image literals.
+  -->
+  <ItemGroup>
+    <Compile Include="..\..\src\Agenda.AppHost\ContainerImages.cs" Link="Shared\ContainerImages.cs" />
+    <Compile Include="..\..\src\Agenda.AppHost\PinnedContainerImage.cs" Link="Shared\PinnedContainerImage.cs" />
+    <EmbeddedResource Include="..\..\src\Agenda.AppHost\container-images.json" Link="Shared\container-images.json" LogicalName="Agenda.AppHost.container-images.json" />
+    <EmbeddedResource Include="..\..\src\Agenda.AppHost\AppHost.cs" LogicalName="Agenda.API.ArchitecturalTests.AppHostSources.AppHost.cs" />
+  </ItemGroup>
+
 </Project>
