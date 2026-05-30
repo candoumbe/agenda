@@ -60,4 +60,8 @@
     <ProjectReference Include="..\Agenda.Events\Agenda.Events.csproj" />
     <ProjectReference Include="..\Agenda.ServiceDefaults\Agenda.ServiceDefaults.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Agenda.API.UnitTests" />
+  </ItemGroup>
 </Project>

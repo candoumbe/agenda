@@ -14,5 +14,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Agenda.API\Agenda.API.csproj" />
     <ProjectReference Include="..\..\src\Agenda.AppHost\Agenda.AppHost.csproj" />
+    <ProjectReference Include="..\Agenda.UnitTests.Helpers\Agenda.UnitTests.Helpers.csproj" />
   </ItemGroup>
 </Project>
