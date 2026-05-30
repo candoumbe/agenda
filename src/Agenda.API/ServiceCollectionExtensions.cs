@@ -1,9 +1,14 @@
 ﻿using System.Globalization;
+using System.Security.Claims;
+using Agenda.API.Authentication;
 using Agenda.DataStores;
 using Agenda.Events;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;
 using Candoumbe.Types.Numerics;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Paramore.Brighter;
@@ -71,13 +76,6 @@ public static class ServiceCollectionExtensions
                 options.MessagingOptions = new MessagingOptions() { OutboxTablename = configuration.GetValue<string>($"ApiOptions:{nameof(AgendaApiOptions.MessagingOptions.OutboxTablename)}") };
             });
 
-            services.Configure<JwtOptions>(options =>
-            {
-                options.Issuer = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Issuer)}");
-                options.Audience = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Audience)}");
-                options.Key = configuration.GetValue<string>($"Authentication:{nameof(JwtOptions)}:{nameof(JwtOptions.Key)}");
-            });
-
             return services;
         }
 
@@ -91,6 +89,45 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IClock>(_ => ResolveClock(configuration));
             services.AddHttpContextAccessor();
             services.AddTransient<CurrentRequestMetadataInfoProvider>();
+        }
+
+        /// <summary>
+        /// Wires Keycloak-backed JWT bearer authentication and the default
+        /// "must be authenticated" authorization policy.
+        /// </summary>
+        /// <param name="configuration">Application configuration.</param>
+        /// <param name="environment">Hosting environment used to relax HTTPS metadata in development.</param>
+        public IServiceCollection AddCustomAuthentication(IConfiguration configuration, IHostEnvironment environment)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            ArgumentNullException.ThrowIfNull(environment);
+
+            string realm = configuration.GetValue("Authentication:Keycloak:Realm", "agenda");
+            string audience = configuration.GetValue("Authentication:Keycloak:Audience", "agenda-api");
+            bool requireHttpsMetadata = !environment.IsDevelopment();
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddKeycloakJwtBearer("keycloak", realm: realm, configureOptions: opt =>
+                    {
+                        opt.Audience = audience;
+                        opt.RequireHttpsMetadata = requireHttpsMetadata;
+                        opt.MapInboundClaims = false;
+                        opt.TokenValidationParameters.ValidAlgorithms = new[] { "RS256" };
+                        opt.TokenValidationParameters.ClockSkew = TimeSpan.FromSeconds(30);
+                        opt.TokenValidationParameters.NameClaimType = "preferred_username";
+                        opt.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
+                    });
+
+            services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                                            .RequireAuthenticatedUser()
+                                            .Build();
+            });
+
+            services.AddTransient<IClaimsTransformation, RealmRolesClaimsTransformation>();
+
+            return services;
         }
 
         /// <summary>
@@ -152,7 +189,7 @@ public static class ServiceCollectionExtensions
         string configuredNow = configuration.GetValue<string>(TestingNowConfigKey);
         if (string.IsNullOrWhiteSpace(configuredNow))
         {
-            return SystemClock.Instance;
+            return NodaTime.SystemClock.Instance;
         }
 
         bool parsed = DateTimeOffset.TryParse(configuredNow,
@@ -160,7 +197,7 @@ public static class ServiceCollectionExtensions
                                               DateTimeStyles.RoundtripKind,
                                               out DateTimeOffset now);
 
-        return parsed ? new FrozenClock(Instant.FromDateTimeOffset(now)) : SystemClock.Instance;
+        return parsed ? new FrozenClock(Instant.FromDateTimeOffset(now)) : NodaTime.SystemClock.Instance;
     }
 
     private sealed class FrozenClock : IClock

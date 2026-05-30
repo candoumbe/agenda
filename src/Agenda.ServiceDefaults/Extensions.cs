@@ -248,11 +248,13 @@ public static class Extensions
     /// <returns></returns>
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
-        // All health checks must pass for app to be considered ready to accept traffic after starting
-        app.MapHealthChecks(HealthEndpointPath);
+        // All health checks must pass for app to be considered ready to accept traffic after starting.
+        // AllowAnonymous keeps health probes reachable when a global authentication FallbackPolicy is configured.
+        app.MapHealthChecks(HealthEndpointPath).AllowAnonymous();
 
         // Liveness must represent process availability only, independent of external dependencies.
-        app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions { Predicate = r => r.Name == "self" });
+        app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions { Predicate = r => r.Name == "self" })
+            .AllowAnonymous();
 
         return app;
     }
