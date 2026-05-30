@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Authentication
 - API now validates Keycloak-issued JWTs (audience `agenda-api`, RS256 only) with `realm_access.roles` flattened into `ClaimTypes.Role` claims. ([#577](https://github.com/candoumbe/agenda/issues/577), [#323](https://github.com/candoumbe/agenda/issues/323))
+- Health endpoints (`/health`, `/alive`) are now anonymous so probes succeed under the JWT fallback policy.
 - Default authorization policy now requires an authenticated user but OpenAPI/Scalar routes remain anonymous in non-Production environments only. ([#577](https://github.com/candoumbe/agenda/issues/577))
 - Removed the symmetric `JwtOptions` configuration in favor of Keycloak OIDC discovery. ([#577](https://github.com/candoumbe/agenda/issues/577))
 
