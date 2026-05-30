@@ -79,6 +79,12 @@ WebApplication app = builder.Build();
 AddLinkHeaderResponseInterceptor addLinkHeaderResponseInterceptor = new(app.Services.GetRequiredService<ILogger<AddLinkHeaderResponseInterceptor>>());
 
 // app.UseSerilogRequestLogging(opts => opts.EnrichDiagnosticContext = (diagnosticContext, httpContext) => diagnosticContext.Set("CorrelationId", httpContext.TraceIdentifier));
+
+// OpenAPI documentation must remain reachable under the JWT FallbackPolicy. The branch isolates UseOpenApi
+// from the parent auth pipeline so the document is served before authorization is evaluated.
+app.MapWhen(static context => context.Request.Path.StartsWithSegments("/openapi"),
+    branch => branch.UseOpenApi(options => options.Path = "/openapi/{documentName}.json"));
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseFastEndpoints(config =>
@@ -124,13 +130,8 @@ app.UseFastEndpoints(config =>
                          optionsSerializerSettings.Invoke(config.Serializer.Options);
                      });
 
-app.UseOpenApi(options => options.Path = "/openapi/{documentName}.json");
-IEndpointConventionBuilder scalarEndpoint = app.MapScalarApiReference(options => options.AddDocument("v1"));
-
-if (!app.Environment.IsProduction())
-{
-    scalarEndpoint.AllowAnonymous();
-}
+// API documentation must remain reachable in every environment, including production.
+app.MapScalarApiReference(options => options.AddDocument("v1")).AllowAnonymous();
 
 app.MapDefaultEndpoints();
 

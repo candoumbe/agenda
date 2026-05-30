@@ -27,4 +27,14 @@
     <Content Include="keycloak\**\*.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!--
+    container-images.json is the single source of truth for pinned container images. It is
+    embedded into the AppHost assembly so ContainerImages can load it at runtime, and the
+    same file is shared (link + embed) with the build pipeline and the architectural tests.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="container-images.json" LogicalName="Agenda.AppHost.container-images.json" />
+    <None Include="container-images.schema.json" />
+  </ItemGroup>
+
 </Project>
