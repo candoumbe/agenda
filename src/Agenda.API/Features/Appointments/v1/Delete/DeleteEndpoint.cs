@@ -30,7 +30,7 @@ public partial class DeleteEndpoint : Endpoint<DeleteByIdRequest, Results<NoCont
     public override void Configure()
     {
         Delete("/appointments/{id}");
-        AllowAnonymous();
+        Roles("agenda-admin");
     }
 
     /// <inheritdoc />
