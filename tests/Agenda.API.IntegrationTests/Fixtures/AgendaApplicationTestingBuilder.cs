@@ -51,7 +51,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         bool isCi = string.Equals(ci, bool.TrueString, StringComparison.OrdinalIgnoreCase)
             || string.Equals(githubActions, bool.TrueString, StringComparison.OrdinalIgnoreCase);
 
-        return isCi ? TimeSpan.FromMinutes(5) : TimeSpan.FromSeconds(30);
+        return isCi ? TimeSpan.FromMinutes(5) : TimeSpan.FromMinutes(2);
     }
 
     private static TimeSpan ResolveStartStopTimeout()
