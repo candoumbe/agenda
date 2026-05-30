@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Agenda.API.Features;
@@ -21,6 +22,10 @@ public sealed class AgendaApplicationFixture : IAsyncLifetime
     private AgendaApplicationTestingBuilder _appHost;
 
     public HttpClient ApiClient { get; private set; }
+
+    public HttpClient AnonymousApiClient { get; private set; }
+
+    public HttpClient KeycloakClient { get; private set; }
 
     public JsonSerializerOptions ApiJsonSerializerOptions { get; }
 
@@ -50,7 +55,16 @@ public sealed class AgendaApplicationFixture : IAsyncLifetime
         DistributedApplication app = await _appHost.StartAsync(TestContext.Current.CancellationToken);
         await app.ResourceNotifications.WaitForResourceHealthyAsync(AgendaApplicationTestingBuilder.ApiResourceName, TestContext.Current.CancellationToken).WaitAsync(AgendaApplicationTestingBuilder.StartStopTimeout, TestContext.Current.CancellationToken);
         ApiClient = _appHost.ApiClient;
+        AnonymousApiClient = _appHost.AnonymousApiClient;
+        KeycloakClient = _appHost.KeycloakClient;
     }
+
+    /// <summary>
+    /// Issues a real Keycloak access token via the Resource Owner Password Grant
+    /// against the <c>agenda-frontend</c> client.
+    /// </summary>
+    public Task<string> IssueAccessTokenAsync(string username, string password, CancellationToken cancellationToken)
+        => _appHost.IssueAccessTokenAsync(username, password, cancellationToken);
 
     ///<inheritdoc />
     public async ValueTask DisposeAsync()
