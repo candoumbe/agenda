@@ -259,8 +259,7 @@ public class Build : EnhancedNukeBuild,
     /// </summary>
     public Target PrePullImages => _ => _
         .Description("Pulls Docker images required by integration tests so the pull time does not count against the AppHost startup timeout.")
-        .TryBefore<IIntegrationTest>()
-        .OnlyWhenStatic(() => IsServerBuild)
+        .TryDependentFor<IIntegrationTest>()
         .Executes(() =>
         {
             string[] references = [.. ContainerImages.All.Values.Select(image => image.FullReference)];
