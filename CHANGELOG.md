@@ -38,6 +38,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Authentication
 - API now validates Keycloak-issued JWTs (audience `agenda-api`, RS256 only) with `realm_access.roles` flattened into `ClaimTypes.Role` claims. ([#577](https://github.com/candoumbe/agenda/issues/577), [#323](https://github.com/candoumbe/agenda/issues/323))
+- Default authorization policy now requires an authenticated user: OpenAPI/Scalar routes remain anonymous in non-Production environments only. ([#577](https://github.com/candoumbe/agenda/issues/577))
+- Removed the symmetric `JwtOptions` configuration in favor of Keycloak OIDC discovery. ([#577](https://github.com/candoumbe/agenda/issues/577))
+- All API endpoints now require authentication by default: `DELETE /appointments/{id}` additionally requires the `agenda-admin` realm role. ([#578](https://github.com/candoumbe/agenda/issues/578), [#323](https://github.com/candoumbe/agenda/issues/323))
+
+### 🧪 Tests
+- Added architectural rules enforcing endpoint authentication, authentication-type placement outside `Agenda.API.Features`, and Keycloak SDK isolation. ([#579](https://github.com/candoumbe/agenda/issues/579), [#323](https://github.com/candoumbe/agenda/issues/323))
+- Added `TokenFactory` test helper producing valid, expired, wrong-audience, wrong-issuer, and tampered RS256 JWTs (with a public JWKS) for unit and integration tests. ([#579](https://github.com/candoumbe/agenda/issues/579))
+- Added unit tests for current-user metadata extraction (`sub`, `preferred_username`) and `realm_access.roles` claim flattening. ([#579](https://github.com/candoumbe/agenda/issues/579))
+- Added integration tests covering `401`/`403`/success paths via an authenticated fixture client and a new `AnonymousApiClient`. ([#579](https://github.com/candoumbe/agenda/issues/579))
+- Added a Keycloak smoke test (`[Trait("Category","Smoke")]`) validating OIDC discovery and Direct Access Grant against the real Aspire-hosted Keycloak. ([#579](https://github.com/candoumbe/agenda/issues/579))
 - Health endpoints (`/health`, `/alive`) are now anonymous so probes succeed under the JWT fallback policy.
 - AppHost now trusts the ASP.NET Core developer certificate for the Keycloak resource so the API can reach the management endpoint over HTTPS in run mode.
 - API documentation endpoints (`/openapi/{document}.json`, `/scalar`) are now anonymous in every environment so the JWT fallback policy never gates documentation access.
@@ -46,6 +56,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All API endpoints now require authentication by default. `DELETE /appointments/{id}` additionally requires the `agenda-admin` realm role. ([#578](https://github.com/candoumbe/agenda/issues/578), [#323](https://github.com/candoumbe/agenda/issues/323))### 🧪 Tests- Added architectural rules enforcing endpoint authentication, authentication-type placement outside `Agenda.API.Features`, and Keycloak SDK isolation. ([#579](https://github.com/candoumbe/agenda/issues/579), [#323](https://github.com/candoumbe/agenda/issues/323))- Added `TokenFactory` test helper producing valid, expired, wrong-audience, wrong-issuer, and tampered RS256 JWTs (with a public JWKS) for unit and integration tests. ([#579](https://github.com/candoumbe/agenda/issues/579))- Added unit tests for current-user metadata extraction (`sub`, `preferred_username`) and `realm_access.roles` claim flattening. ([#579](https://github.com/candoumbe/agenda/issues/579))- Added integration tests covering `401`/`403`/success paths via an authenticated fixture client and a new `AnonymousApiClient`. ([#579](https://github.com/candoumbe/agenda/issues/579))- Added a Keycloak smoke test (`[Trait("Category","Smoke")]`) validating OIDC discovery and Direct Access Grant against the real Aspire-hosted Keycloak. ([#579](https://github.com/candoumbe/agenda/issues/579))
 
 ### 📝 Documentation
+- Added [docs/development/authentication.md](docs/development/authentication.md) describing the local Keycloak setup, seeded dev users, token-fetch recipes (Direct Access Grant, `client_credentials`), token inspection, and troubleshooting. ([#580](https://github.com/candoumbe/agenda/issues/580), [#323](https://github.com/candoumbe/agenda/issues/323))
+- Linked the new authentication guide and ADR-001 from the [README](README.md). ([#580](https://github.com/candoumbe/agenda/issues/580))
+- Documented the Keycloak resource and updated startup ordering in [docs/feature/aspire-integration.md](docs/feature/aspire-integration.md). ([#580](https://github.com/candoumbe/agenda/issues/580))
 - Added ADR-001: Authentication provider selection (Keycloak) ([#323](https://github.com/candoumbe/agenda/issues/323))
 
 ### 🧹 Housekeeping

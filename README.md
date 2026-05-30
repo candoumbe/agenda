@@ -24,6 +24,14 @@ on the issue tracker.
 
 Make sure you've read the [contribution guidelines](CONTRIBUTING.md)
 
+## Authentication
+
+Agenda authenticates API callers against a Keycloak realm provisioned by the Aspire AppHost.
+
+- Local startup, seeded users, token-fetch recipes, and troubleshooting:
+  [docs/development/authentication.md](docs/development/authentication.md).
+- Why Keycloak: [docs/ADRs/001-authentication-provider.md](docs/ADRs/001-authentication-provider.md).
+
 ## Tips and tricks
 
 See [docs/tips-and-tricks.md](docs/tips-and-tricks.md) for practical repository tips,
