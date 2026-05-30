@@ -31,7 +31,8 @@ IResourceBuilder<ParameterResource> keycloakAdminPassword = builder.AddParameter
 PinnedContainerImage keycloakImage = ContainerImages.Keycloak;
 IResourceBuilder<KeycloakResource> keycloak = builder.AddKeycloak("keycloak", adminUsername: keycloakAdminUser, adminPassword: keycloakAdminPassword)
     .WithImage(keycloakImage.Image, keycloakImage.Tag)
-    .WithRealmImport("./keycloak/agenda-realm.json");
+    .WithRealmImport("./keycloak/agenda-realm.json")
+    .WithDeveloperCertificateTrust(trust: true);
 
 if (!isRunningIntegrationTests)
 {
