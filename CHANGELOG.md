@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API now validates Keycloak-issued JWTs (audience `agenda-api`, RS256 only) with `realm_access.roles` flattened into `ClaimTypes.Role` claims. ([#577](https://github.com/candoumbe/agenda/issues/577), [#323](https://github.com/candoumbe/agenda/issues/323))
 - Health endpoints (`/health`, `/alive`) are now anonymous so probes succeed under the JWT fallback policy.
 - AppHost now trusts the ASP.NET Core developer certificate for the Keycloak resource so the API can reach the management endpoint over HTTPS in run mode.
+- API documentation endpoints (`/openapi/{document}.json`, `/scalar`) are now anonymous in every environment so the JWT fallback policy never gates documentation access.
 - Default authorization policy now requires an authenticated user but OpenAPI/Scalar routes remain anonymous in non-Production environments only. ([#577](https://github.com/candoumbe/agenda/issues/577))
 - Removed the symmetric `JwtOptions` configuration in favor of Keycloak OIDC discovery. ([#577](https://github.com/candoumbe/agenda/issues/577))
 
