@@ -6,9 +6,9 @@ namespace Agenda.API.IntegrationTests.Fixtures;
 public sealed class AgendaApplicationTestingBuilderShould
 {
     [Theory]
-    [InlineData(null, null, 30)]
-    [InlineData("false", null, 30)]
-    [InlineData(null, "false", 30)]
+    [InlineData(null, null, 120)]
+    [InlineData("false", null, 120)]
+    [InlineData(null, "false", 120)]
     [InlineData("true", null, 300)]
     [InlineData(null, "true", 300)]
     [InlineData("TRUE", null, 300)]
