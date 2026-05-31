@@ -4,7 +4,7 @@
     "postgres": {
       "registry": "docker.io",
       "image": "library/postgres",
-      "tag": "17-alpine"
+      "tag": "18-alpine"
     },
     "rabbitmq": {
       "registry": "docker.io",
