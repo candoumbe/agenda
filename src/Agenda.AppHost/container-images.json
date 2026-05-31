@@ -9,7 +9,7 @@
     "rabbitmq": {
       "registry": "docker.io",
       "image": "library/rabbitmq",
-      "tag": "4.2-management"
+      "tag": "4.3-management"
     },
     "keycloak": {
       "registry": "quay.io",
