@@ -25,8 +25,14 @@ var messaging = builder.AddRabbitMQ("messaging")
     .WithImage(rabbitImage.Image, rabbitImage.Tag)
     .WithManagementPlugin();
 
+
+IResourceBuilder<ParameterResource> keycloakAdminUser = builder.AddParameter("keycloak-admin-user", secret: true);
+IResourceBuilder<ParameterResource> keycloakAdminPassword = builder.AddParameter("keycloak-admin-password", secret: true);
+
 PinnedContainerImage keycloakImage = ContainerImages.Keycloak;
-IResourceBuilder<KeycloakResource> keycloak = builder.AddKeycloak("keycloak")
+IResourceBuilder<KeycloakResource> keycloak = builder.AddKeycloak("keycloak",
+                                                                  adminUsername: keycloakAdminUser,
+                                                                  adminPassword: keycloakAdminPassword)
     .WithImage(keycloakImage.Image, keycloakImage.Tag)
     .WithRealmImport("./keycloak/agenda-realm.json")
     .WithDeveloperCertificateTrust(trust: true)
