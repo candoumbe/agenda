@@ -169,3 +169,6 @@ import { vi } from 'vitest';
 
 ## Learning — 2026-05-29T00:00:00Z: Swagger-to-Scalar test baseline should validate UI and JSON endpoints
 For the Swagger UI to Scalar migration, endpoint coverage is release-safe when integration tests assert all three behaviors together: Scalar UI is reachable (`/scalar` or `/scalar/v1`), Swagger UI is removed (`/swagger` returns 404), and the OpenAPI document remains available (`/openapi/v1.json` returns JSON with an `openapi` field). Validating only UI presence can miss regressions where Scalar loads but OpenAPI generation or routing is broken.
+
+## Learning — 2026-06-01T08:43:38Z: Aspire connection-refused checks should separate startup instability from stale URLs
+When AppHost runs show mixed outcomes (including occasional non-zero exits), stale URLs from prior runs can produce misleading `connection refused` results. Test/validation diagnostics should always use endpoints from the active run and include a quick reachability sweep (`/health` and key dependency surfaces) before classifying the issue as a functional regression.

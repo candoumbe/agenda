@@ -43,3 +43,6 @@ For `AddLinkHeaderResponseInterceptor`, a safe single-entry/single-exit refactor
 
 ## Learning — 2026-05-28T20:09:00Z: HATEOAS link query parameter case mismatch risk
 When backend-generated pagination links use PascalCase query names (for example `Page`, `PageSize`) and frontend extraction expects lowercase keys, browser `URLSearchParams` returns null because key lookup is case-sensitive. Frontend parsing should check both variants where compatibility is required to prevent pagination state drift.
+
+## Learning — 2026-06-01T08:43:38Z: Aspire connection-refused triage needs current-run endpoint verification
+Intermittent `connection refused` reports during local Aspire startup can be caused by stale endpoint URLs after dynamic port changes between runs. A reliable triage sequence is: verify AppHost process outcome (`dotnet run` exit status), then probe only the currently advertised frontend/API/identity/messaging endpoints. In the investigated run, endpoint probes succeeded when URLs matched the active process output.
