@@ -101,6 +101,7 @@ Expected highlights:
 
 | Symptom                                | Likely cause                                                                 |
 |----------------------------------------|------------------------------------------------------------------------------|
+| `connection refused` when calling non-frontend resources | Fixed local ports collided or changed; keep dev `launchSettings` on `localhost:0` and use the actual URLs published by the Aspire dashboard. |
 | `401` with `WWW-Authenticate: invalid_token` and `aud` mismatch | The token was minted for a different client; re-mint with `scope=agenda-audience`. |
 | `401` with `invalid_token` and `iss` mismatch | The API and Keycloak see different base URLs; align the issuer between AppHost and `appsettings`. |
 | `401` shortly after a working call     | Token expired (default lifetime 5 min); re-mint or refresh.                  |
