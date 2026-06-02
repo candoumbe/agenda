@@ -79,7 +79,7 @@
     <PackageVersion Include="Paramore.Brighter.MessagingGateway.RMQ" Version="9.9.13" />
     <PackageVersion Include="Paramore.Brighter.AspNetCore" Version="1.0.13" />
     <PackageVersion Include="Paramore.Brighter.Extensions.DependencyInjection" Version="10.1.0" />
-    <PackageVersion Include="Paramore.Brighter.MessagingGateway.RMQ.Async" Version="10.1.0" />
+    <PackageVersion Include="Paramore.Brighter.MessagingGateway.RMQ.Async" Version="10.5.1" />
     <PackageVersion Include="Paramore.Brighter.Outbox.Hosting" Version="10.1.0" />
     <PackageVersion Include="Paramore.Brighter.Outbox.PostgreSql" Version="10.1.0" />
     <PackageVersion Include="Paramore.Brighter.PostgreSql" Version="10.5.1" />
