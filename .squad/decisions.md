@@ -2,6 +2,52 @@
 
 ## Active Decisions
 
+### 2026-06-06T18:42:11Z: Frontend auth navigation contract for Keycloak flow
+**By:** Dallas
+**What:** Standardize frontend authentication navigation behavior:
+- Protected routes redirect unauthenticated users to `/login` with `redirectTo`.
+- Callback handling only accepts safe relative redirect targets and falls back to `/`.
+- Logout from app shell always navigates to `/login`.
+**Why:** Remove mixed legacy/OIDC assumptions, keep login/logout behavior predictable, and prevent open redirect regressions.
+**Impact:** Route and shell auth behavior is deterministic and directly testable.
+
+### 2026-06-06T18:42:11Z: Frontend auth regression baseline and validation gate
+**By:** Hicks
+**What:** Maintain regression coverage for auth routing and topbar logout behavior with focused route/topbar tests and full-suite verification.
+**Why:** Keep high-risk auth entry/exit paths stable as Keycloak integration evolves.
+**Impact:** Validation baseline includes `npm run test -- --watch false` and `npm run build` in `src/Agenda.Frontend`.
+
+### 2026-06-01T08:43:38Z: Aspire startup triage must validate current advertised endpoints first
+**By:** Scribe (requested by Cyrille NDOUMBE)
+**What:** During Aspire startup incident triage, validate reachability against the current run's advertised URLs and process exit status before classifying `connection refused` as an application regression.
+**Why:** Dynamic endpoint rotation and mixed startup outcomes can produce false outages when stale URLs are reused.
+**Impact:** Faster, lower-noise local diagnosis during backend/frontend startup investigations.
+
+### 2026-05-29T13:32:53Z: User directive - Link markdown docs using markdown links
+**By:** vscode (via Copilot)
+**What:** In markdown files, references to other markdown files must use markdown links.
+**Why:** User request - captured for team memory.
+
+### 2026-05-29T00:00:00Z: Keycloak Phase 1 AppHost and realm baseline
+**By:** Bishop
+**What:** Establish Keycloak realm/apphost foundation for Agenda authentication:
+- Realm `agenda` with default `agenda-user` role and explicit `agenda-admin` and service-account roles.
+- Client baseline for frontend/mobile/API/service with audience + realm-role mappers.
+- AppHost references for API and frontend waiting on Keycloak readiness.
+**Why:** Provide the canonical identity baseline before API enforcement and endpoint-level authorization.
+
+### 2026-05-29T00:00:00Z: Keycloak Phase 2 API JWT validation defaults
+**By:** Bishop
+**What:** Enforce API JWT validation with Keycloak realm/audience configuration, claims transformation for realm roles, and authenticated fallback policy.
+**Why:** Make authentication default-on while keeping anonymous exposure explicit and controlled.
+**Impact:** API authentication is centralized, role extraction is deterministic, and anonymous surfaces are intentionally limited.
+
+### 2026-05-29T00:00:00Z: Keycloak Phase 3 endpoint role protection scope
+**By:** Bishop
+**What:** Protect `DELETE /appointments/{id}` with `agenda-admin` role while leaving other endpoint `AllowAnonymous()` calls untouched pending follow-up hardening.
+**Why:** Deliver incremental endpoint authorization without broad-scope refactoring in the same phase.
+**Impact:** Delete operation is role-restricted now; remaining anonymous annotations are tracked as follow-up risk.
+
 ### 2026-05-29T07:08:11Z: User directive - Present results as dashboard/table
 **By:** Cyrille NDOUMBE (via Copilot)
 **What:** Going forward, present results in a dashboard/table format.
@@ -103,11 +149,6 @@ Jump action updates `from` to the discovered appointment start date and `to` to 
 **By:** Hicks
 **What:** When the list interval query returns empty results with a bounded date range, frontend behavior should be validated in two steps: first query for the selected interval, then fallback query for the first incoming appointment (`pageSize: 1`, `from = selected to`). Tests should assert both the main interval request and the fallback request where applicable.
 **Why:** Prevent brittle assertions and ensure acceptance coverage for default 15-day interval, empty-state CTA, and jump-to-first-incoming flow.
-
-### 2026-05-24T07:29:04Z: User directive - separate commits for Squad files
-**By:** Cyrille NDOUMBE (via Copilot)
-**What:** Always create a specific and separate commit for all Squad files.
-**Why:** User request — captured for team memory.
 
 ### 2026-05-26T20:22:42Z: HEAD parity response-header strategy for GET endpoints
 **By:** Bishop (via Scribe)

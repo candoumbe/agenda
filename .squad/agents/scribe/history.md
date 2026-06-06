@@ -44,3 +44,9 @@ Initial setup complete.
 - Recorded one orchestration entry for Bishop (backend migration) and one for Hicks (integration test coverage/validation).
 - Created a concise session log linking migration scope and targeted validation outcomes.
 - Merged all pending decision inbox entries into `decisions.md` and cleared merged inbox files.
+
+### 2026-06-06: Frontend auth/keycloak session consolidation
+
+- Merged pending decision inbox entries (frontend auth, Keycloak phases, markdown-link directive) into [.squad/decisions.md](.squad/decisions.md) with deduplication.
+- Logged this coordination batch under [.squad/log/](.squad/log/) and [.squad/orchestration-log/](.squad/orchestration-log/).
+- Added concise cross-agent updates to Dallas, Hicks, and Vasquez history files for audit continuity.
