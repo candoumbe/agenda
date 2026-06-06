@@ -14,8 +14,10 @@ interface TopbarMenuItem {
   styleUrl: './topbar.component.css'
 })
 export class TopbarComponent {
+  private static readonly DEFAULT_ACCOUNT_NAME = 'Mon compte';
+
   public readonly isAuthenticated = input(false);
-  public readonly accountName = input('Mon compte');
+  public readonly accountName = input(TopbarComponent.DEFAULT_ACCOUNT_NAME);
   public readonly searchPlaceholder = input('Rechercher tout type de données');
 
   public readonly authAction = output<void>();
@@ -46,8 +48,16 @@ export class TopbarComponent {
     }
   ];
 
-  public readonly authLabel = computed(() => this.isAuthenticated() ? this.accountName() : 'Se connecter');
-  public readonly authHint = computed(() => this.isAuthenticated() ? 'Compte' : 'Connexion');
+  public readonly normalizedAccountName = computed(() => {
+    const normalized = this.accountName().replace(/\s+/g, ' ').trim();
+
+    return normalized.length > 0
+      ? normalized.slice(0, 80)
+      : TopbarComponent.DEFAULT_ACCOUNT_NAME;
+  });
+
+  public readonly authLabel = computed(() => this.isAuthenticated() ? this.normalizedAccountName() : 'Se connecter');
+  public readonly authHint = computed(() => this.isAuthenticated() ? 'Se deconnecter' : 'Connexion');
 
   public handleSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement;
