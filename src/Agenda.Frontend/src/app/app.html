@@ -1,4 +1,10 @@
-<app-topbar></app-topbar>
+@if (shouldShowTopbar()) {
+  <app-topbar
+    [isAuthenticated]="isAuthenticated()"
+    [accountName]="accountName()"
+    (authAction)="handleAuthAction()"
+  ></app-topbar>
+}
 
 <main class="app-shell">
   <router-outlet></router-outlet>

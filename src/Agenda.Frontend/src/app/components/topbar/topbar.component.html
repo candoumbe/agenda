@@ -5,32 +5,36 @@
       <span class="topbar__brand-text">Agenda</span>
     </a>
 
-    <nav class="topbar__menu" aria-label="Menu de l'application">
-      @for (item of menuItems; track item.path) {
-        <a
-          class="topbar__menu-link"
-          [routerLink]="item.path"
-          routerLinkActive="topbar__menu-link--active"
-          [routerLinkActiveOptions]="{ exact: item.exact }"
-        >
-          {{ item.label }}
-        </a>
-      }
-    </nav>
+    @if (isAuthenticated()) {
+      <nav class="topbar__menu" aria-label="Menu de l'application">
+        @for (item of menuItems; track item.path) {
+          <a
+            class="topbar__menu-link"
+            [routerLink]="item.path"
+            routerLinkActive="topbar__menu-link--active"
+            [routerLinkActiveOptions]="{ exact: item.exact }"
+          >
+            {{ item.label }}
+          </a>
+        }
+      </nav>
+    }
   </div>
 
-  <label class="topbar__search" for="topbar-search">
-    <span class="topbar__search-icon" aria-hidden="true">⌕</span>
-    <input
-      id="topbar-search"
-      type="search"
-      class="topbar__search-input"
-      [placeholder]="searchPlaceholder()"
-      [value]="searchTerm()"
-      (input)="handleSearchInput($event)"
-      aria-label="Rechercher dans l'application"
-    />
-  </label>
+  @if (isAuthenticated()) {
+    <label class="topbar__search" for="topbar-search">
+      <span class="topbar__search-icon" aria-hidden="true">⌕</span>
+      <input
+        id="topbar-search"
+        type="search"
+        class="topbar__search-input"
+        [placeholder]="searchPlaceholder()"
+        [value]="searchTerm()"
+        (input)="handleSearchInput($event)"
+        aria-label="Rechercher dans l'application"
+      />
+    </label>
+  }
 
   <button type="button" class="topbar__auth-button" (click)="handleAuthAction()">
     <span class="topbar__auth-label">{{ authLabel() }}</span>
