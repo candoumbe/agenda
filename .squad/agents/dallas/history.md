@@ -63,3 +63,16 @@ Initial setup complete.
 - Updated the component, template, stylesheet, and spec together to keep the UX and test coverage aligned.
 - Validation reported by Dallas: targeted schedule-appointment-page test passed and `npm run build` passed.
 - Delivery commit: `ec44a3ce1a1e00c8ca01e592ab76fea4757d1a60`.
+
+### 2026-06-06: Keycloak login flow stabilization
+
+- The dedicated `/login` route is the single unauthenticated entrypoint, and protected pages redirect to `/login?redirectTo=<target>`.
+- The auth callback page now uses inline template/styles to prevent missing-file failures and applies a safe relative redirect policy.
+- The app shell now enforces local navigation to `/login` on logout so the user always lands on the connection screen.
+- Route and shell tests should mock `AuthService` (OIDC flow) instead of relying on legacy `AuthStateService` assumptions.
+
+### 2026-06-06: Cross-agent alignment for frontend auth delivery
+
+- Hicks completed regression coverage for auth routing/topbar/logout behavior and reported green validation.
+- Vasquez raised an intermediate callback redirect concern during security review; final callback behavior now enforces safe relative redirect targets.
+- Final coordinator validation reported `npm run test -- --watch false` (77/77 pass) and `npm run build` (pass).

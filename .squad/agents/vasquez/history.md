@@ -17,3 +17,9 @@ Agent Vasquez initialized and ready for work.
 ## Learnings
 
 Initial setup complete.
+
+### 2026-06-06: Frontend callback redirect security review
+
+- Reviewed the frontend Keycloak callback flow and flagged an intermediate redirect handling concern.
+- Final implementation resolves the concern by enforcing safe relative redirect targets with fallback to `/`.
+- Security review outcome: no open redirect finding remains on the finalized callback behavior.

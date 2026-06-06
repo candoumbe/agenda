@@ -164,6 +164,24 @@ import { vi } from 'vitest';
 
 **Validation Expectation:**
 - Report executed commands and outcomes with enough detail for quick session-log consolidation.
+
+### 2026-06-06: Frontend auth/login regression coverage baseline
+
+**What changed:**
+- Added frontend auth-focused regression tests for route and topbar behavior:
+   - unauthenticated navigation to protected routes redirects to `/login`;
+   - authenticated navigation to `/login` redirects to `/`;
+   - authenticated username is rendered in topbar through app wiring;
+   - topbar logout action clears auth state and redirects to `/login`.
+- Introduced a minimal implementation seam required by the tests (`AuthStateService`, login page route, auth guards, app/topbar auth wiring).
+
+**Validation outcome:**
+- `npm run test -- --watch false --include src/app/app.spec.ts --include src/app/app.routes.spec.ts --include src/app/components/topbar/topbar.component.spec.ts` → PASS (3 files, 9 tests).
+- `npm run test -- --watch false` → PASS (8 files, 69 tests).
+- `npm run build` → PASS.
+
+**Learning:**
+- When auth behavior is absent in a standalone Angular shell, introducing a small state service plus functional route guards provides a stable and low-risk seam for route-level regression tests without overengineering the feature.
 ## Learning — 2026-05-27T19:56:18Z: Aspire health check endpoint binding
 `WithHttpHealthCheck` without `endpointName` defaults to the first endpoint in `launchSettings.json` (HTTPS first) → fails on CI Linux without dev cert. Always pass `endpointName: "http"` for Aspire health checks in integration test scenarios. The failure was previously silent until `WaitForResourceHealthyAsync` was introduced in PR #546, which turned it into a blocking bootstrap error. Cross-checked with Bishop.
 
@@ -172,3 +190,6 @@ For the Swagger UI to Scalar migration, endpoint coverage is release-safe when i
 
 ## Learning — 2026-06-01T08:43:38Z: Aspire connection-refused checks should separate startup instability from stale URLs
 When AppHost runs show mixed outcomes (including occasional non-zero exits), stale URLs from prior runs can produce misleading `connection refused` results. Test/validation diagnostics should always use endpoints from the active run and include a quick reachability sweep (`/health` and key dependency surfaces) before classifying the issue as a functional regression.
+
+## Learning — 2026-06-06T18:42:11Z: Frontend auth QA closure should include full-suite parity
+When route/topbar auth regressions are fixed, close QA only after both focused auth specs and the full frontend suite pass. Final coordinated baseline for this batch: `npm run test -- --watch false` (77/77) and `npm run build` (pass).
