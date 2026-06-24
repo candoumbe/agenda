@@ -39,7 +39,8 @@
         "GitHub.copilot",
         "EditorConfig.EditorConfig",
         "mhutchie.git-graph",
-        "zaaack.markdown-editor"
+        "zaaack.markdown-editor",
+        "adrianwilczynski.user-secrets"
       ],
     "settings": {
         "dotnet.defaultSolution": "Agenda.sln",
