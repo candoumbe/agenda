@@ -43,6 +43,8 @@ if (!isRunningIntegrationTests)
     keycloak = keycloak.WithDataVolume("keycloak-data");
 }
 
+EndpointReference keycloakHttpEndpoint = keycloak.GetEndpoint("http");
+
 IResourceBuilder<ProjectResource> migrationService = builder.AddProject<Agenda_Migrator>("migrations")
     .WithReference(postgres)
     .WaitFor(postgres);
@@ -84,6 +86,9 @@ if (!isRunningIntegrationTests)
                 // Demande à Aspire d’allouer un port et de le passer à l’app via la variable d’env PORT
               .WithHttpEndpoint(env: "PORT")
               .WithExternalHttpEndpoints()
+              .WithEnvironment("AGENDA_AUTH_AUTHORITY", $"{keycloakHttpEndpoint}/realms/agenda")
+              .WithEnvironment("AGENDA_AUTH_CLIENT_ID", "agenda-frontend")
+              .WithEnvironment("AGENDA_AUTH_SCOPE", "openid profile email agenda-audience")
           .PublishAsDockerFile();
 }
 

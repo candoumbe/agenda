@@ -6,6 +6,12 @@ type RuntimeAuthConfig = {
   scope?: string;
 };
 
+declare global {
+  interface Window {
+    __agendaAuth?: RuntimeAuthConfig;
+  }
+}
+
 type RuntimeWindow = Window & {
   __agendaAuth?: RuntimeAuthConfig;
 };
