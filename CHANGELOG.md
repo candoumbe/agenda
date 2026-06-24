@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a live appointment result counter powered by `HEAD /appointments`, visible even when no items are returned
 - Added a cancellable appointment creation flow with dirty-form confirmation before leaving the page
 - Added a participants search page stub as the first entry point for attendee lookup
+- Frontend OIDC settings are now loaded from a generated `runtime-auth.js` file at startup so the Angular app can pick up the auth authority, client ID, and scope from runtime environment variables without a rebuild
 
 #### API
 - Added `DELETE /appointments/{id}/attendees/{id}` endpoint
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### AppHost
 - Aspire AppHost now provisions a Keycloak resource (`keycloak`) with an imported `agenda` realm including dev users `alice` and `admin`. ([#576](https://github.com/candoumbe/agenda/issues/576), [#323](https://github.com/candoumbe/agenda/issues/323))
+- Aspire AppHost now injects the frontend OIDC runtime settings (`AGENDA_AUTH_AUTHORITY`, `AGENDA_AUTH_CLIENT_ID`, `AGENDA_AUTH_SCOPE`) from the provisioned Keycloak realm so local frontend runs target the same auth server without manual configuration
 
 #### Authentication
 - API now validates Keycloak-issued JWTs (audience `agenda-api`, RS256 only) with `realm_access.roles` flattened into `ClaimTypes.Role` claims. ([#577](https://github.com/candoumbe/agenda/issues/577), [#323](https://github.com/candoumbe/agenda/issues/323))
@@ -76,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `Paramore.Brighter.*` packages to `10.0.4`
 - Bumped TFM to `net10.0`
 - Added dotnet devcontainer feature to manage .NET versions
+- Updated AppHost launch settings to bind Aspire local service endpoints to `127.0.0.1` instead of `localhost`
 
 ## [0.1.0] / 2025-10-03
 ### 🚀 New features

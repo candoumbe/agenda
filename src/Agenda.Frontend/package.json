@@ -2,6 +2,12 @@
   "name": "agenda.frontend",
   "version": "0.0.0",
   "scripts": {
+    "generate:runtime-auth": "node ./scripts/generate-runtime-auth.js",
+    "prestart:dev": "npm run generate:runtime-auth",
+    "prestart": "npm run generate:runtime-auth",
+    "prebuild": "npm run generate:runtime-auth",
+    "prewatch": "npm run generate:runtime-auth",
+    "pretest": "npm run generate:runtime-auth",
     "ng": "ng",
     "start:dev": "ng serve  --host 0.0.0.0 --port ${PORT:-4200} --configuration development",
     "start": "ng serve --host 0.0.0.0 --port ${PORT:-4200}",
