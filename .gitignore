@@ -494,3 +494,5 @@ StrykerOutput/
 # Squad: SubSquad activation file (local to this machine)
 .squad-workstream
 .devcontainer/devcontainer-lock.json
+# Squad: ignore runtime state (logs, inbox, sessions)
+.squad/.cache/
