@@ -1,5 +1,6 @@
 using Agenda.AppHost;
 using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 using Microsoft.Extensions.Configuration;
 using Projects;
 
@@ -38,11 +39,6 @@ IResourceBuilder<KeycloakResource> keycloak = builder.AddKeycloak("keycloak",
     .WithDeveloperCertificateTrust(trust: true)
     .WithExternalHttpEndpoints();
 
-if (!isRunningIntegrationTests)
-{
-    keycloak = keycloak.WithDataVolume("keycloak-data");
-}
-
 EndpointReference keycloakHttpEndpoint = keycloak.GetEndpoint("http");
 
 IResourceBuilder<ProjectResource> migrationService = builder.AddProject<Agenda_Migrator>("migrations")
@@ -77,7 +73,7 @@ string runScriptName = builder.ExecutionContext.IsRunMode ? "start:dev" : "start
 
 if (!isRunningIntegrationTests)
 {
-     builder.AddJavaScriptApp("frontend", "../Agenda.Frontend", runScriptName)
+     var frontend = builder.AddJavaScriptApp("frontend", "../Agenda.Frontend", runScriptName)
               .WithDeveloperCertificateTrust(trust: true)
               .WithReference(api)
               .WaitFor(api)
