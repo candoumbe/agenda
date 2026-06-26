@@ -496,3 +496,4 @@ StrykerOutput/
 .devcontainer/devcontainer-lock.json
 # Squad: ignore runtime state (logs, inbox, sessions)
 .squad/.cache/
+dotnet/
