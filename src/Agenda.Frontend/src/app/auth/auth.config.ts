@@ -32,6 +32,7 @@ export function createOidcConfig(): OpenIdConfiguration {
     clientId,
     scope,
     responseType: 'code',
+    checkRedirectUrlWhenCheckingIfIsCallback: true,
     redirectUrl: `${window.location.origin}/auth/callback`,
     postLogoutRedirectUri: `${window.location.origin}/login`,
     silentRenew: true,
