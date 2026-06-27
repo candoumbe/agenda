@@ -39,11 +39,15 @@ IResourceBuilder<KeycloakResource> keycloak = builder.AddKeycloak("keycloak",
     .WithDeveloperCertificateTrust(trust: true)
     .WithExternalHttpEndpoints();
 
+if (!isRunningIntegrationTests)
+{
+    keycloak = keycloak.WithDataVolume("keycloak-data");
+}
+
 EndpointReference keycloakHttpEndpoint = keycloak.GetEndpoint("http");
 
 IResourceBuilder<ProjectResource> migrationService = builder.AddProject<Agenda_Migrator>("migrations")
-    .WithReference(postgres)
-    .WaitFor(postgres);
+    .WithReference(postgres).WaitFor(postgres);
     
 
 IResourceBuilder<ProjectResource> api = builder.AddProject<Agenda_API>("api")
@@ -73,12 +77,10 @@ string runScriptName = builder.ExecutionContext.IsRunMode ? "start:dev" : "start
 
 if (!isRunningIntegrationTests)
 {
-     var frontend = builder.AddJavaScriptApp("frontend", "../Agenda.Frontend", runScriptName)
+     var frontend = builder.AddViteApp("frontend", "../Agenda.Frontend", runScriptName)
               .WithDeveloperCertificateTrust(trust: true)
-              .WithReference(api)
-              .WaitFor(api)
-              .WithReference(keycloak)
-              .WaitFor(keycloak)
+              .WithReference(api).WaitFor(api)
+              .WithReference(keycloak).WaitFor(keycloak)
                 // Demande à Aspire d’allouer un port et de le passer à l’app via la variable d’env PORT
               .WithHttpEndpoint(env: "PORT")
               .WithExternalHttpEndpoints()
