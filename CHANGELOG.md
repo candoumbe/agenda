@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bumped TFM to `net10.0`
 - Added dotnet devcontainer feature to manage .NET versions
 - Updated AppHost launch settings to bind Aspire local service endpoints to `127.0.0.1` instead of `localhost`
+- Updated `Candoumbe.Pipelines` package to `3.0.1`
 
 ## [0.1.0] / 2025-10-03
 ### 🚀 New features
