@@ -9,13 +9,6 @@
       ],
       "rollForward": false
     },
-    "nuke.globaltool": {
-      "version": "10.1.0",
-      "commands": [
-        "nuke"
-      ],
-      "rollForward": false
-    },
     "gitversion.tool": {
       "version": "6.7.0",
       "commands": [
@@ -27,6 +20,13 @@
       "version": "10.3.49",
       "commands": [
         "fallout-migrate"
+      ],
+      "rollForward": false
+    },
+    "fallout.globaltool": {
+      "version": "10.3.49",
+      "commands": [
+        "fallout"
       ],
       "rollForward": false
     }
