@@ -75,7 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Raised Angular `anyComponentStyle` warning budget to `5kB` to align build checks with current UI styles
 - Updated `xRetry` to `1.0.0-rc2`
 - Updated `xunit.v3` to `3.2.0`
-- Updated `Paramore.Brighter.*` packages to `10.0.4`
+- Updated `Paramore.Brighter.*` packages to `10.6.0`
 - Bumped TFM to `net10.0`
 - Added dotnet devcontainer feature to manage .NET versions
 - Updated AppHost launch settings to bind Aspire local service endpoints to `127.0.0.1` instead of `localhost`
