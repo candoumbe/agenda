@@ -477,8 +477,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Nuke temporary directory
-/.nuke/temp
+# Fallout temporary directory
+/.fallout/temp
 
 # Stryker output
 StrykerOutput/
@@ -497,3 +497,4 @@ StrykerOutput/
 # Squad: ignore runtime state (logs, inbox, sessions)
 .squad/.cache/
 dotnet/
+.fallout/parameters.local.json
