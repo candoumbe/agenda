@@ -477,8 +477,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Nuke temporary directory
-/.nuke/temp
+# Fallout temporary directory
+/.fallout/temp
 
 # Stryker output
 StrykerOutput/
