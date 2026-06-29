@@ -24,7 +24,7 @@ using static Microsoft.AspNetCore.Http.StatusCodes;
 
 Action<JsonSerializerOptions> optionsSerializerSettings = s =>
                                                           {
-                                                              //s.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+                                                              s.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
                                                               s.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                                                               s.AllowTrailingCommas = true;
                                                               s.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
@@ -107,10 +107,10 @@ app.UseFastEndpoints(config =>
                             }
 
                             return addLinkHeaderResponseInterceptor.InterceptResponseAsync(response,
-                                                                                            httpContext.Response.StatusCode,
-                                                                                            httpContext,
-                                                                                            Array.Empty<ValidationFailure>(),
-                                                                                            httpContext.RequestAborted);
+                                                                                           httpContext.Response.StatusCode,
+                                                                                           httpContext,
+                                                                                           [],
+                                                                                           httpContext.RequestAborted);
                          };
 
                          config.Errors.UseProblemDetails(detailsConfig =>

@@ -144,13 +144,13 @@ export class ApiService {
       };
     }
 
-    const rawPageSize = this.readNumber(rawBody, 'pageSize', 'PageSize');
-    const rawTotalCount = this.readNumber(rawBody, 'totalCount', 'TotalCount');
+    const rawPageSize = this.readNumber(rawBody, 'pageSize', 'PageSize', 'page_size');
+    const rawTotalCount = this.readNumber(rawBody, 'totalCount', 'TotalCount', 'total_count');
 
     return {
-      page: this.readNumber(rawBody, 'page', 'Page') ?? 1,
-      total: this.readNumber(rawBody, 'total', 'Total') ?? 1,
-      count: this.readNumber(rawBody, 'count', 'Count') ?? 0,
+      page: this.readNumber(rawBody, 'page', 'Page', 'page') ?? 1,
+      total: this.readNumber(rawBody, 'total', 'Total', 'total') ?? 1,
+      count: this.readNumber(rawBody, 'count', 'Count', 'count') ?? 0,
       pageSize: rawPageSize ?? undefined,
       totalCount: rawTotalCount ?? undefined,
       items: this.normalizeBrowsables(rawBody['items'] ?? rawBody['Items']),
@@ -195,11 +195,11 @@ export class ApiService {
       return null;
     }
 
-    const id = this.readString(resource, 'id', 'Id');
-    const subject = this.readString(resource, 'subject', 'Subject');
-    const location = this.readString(resource, 'location', 'Location');
-    const startDate = this.readString(resource, 'startDate', 'StartDate');
-    const endDate = this.readString(resource, 'endDate', 'EndDate');
+    const id = this.readString(resource, 'id', 'Id', 'id');
+    const subject = this.readString(resource, 'subject', 'Subject', 'subject');
+    const location = this.readString(resource, 'location', 'Location', 'location');
+    const startDate = this.readString(resource, 'startDate', 'StartDate', 'start_date');
+    const endDate = this.readString(resource, 'endDate', 'EndDate', 'end_date');
 
     if (!id || !subject || !location || !startDate || !endDate) {
       return null;
@@ -239,7 +239,7 @@ export class ApiService {
       return undefined;
     }
 
-    const href = this.readString(link, 'href', 'Href');
+    const href = this.readString(link, 'href', 'Href', 'href');
     if (!href) {
       return undefined;
     }
@@ -263,8 +263,8 @@ export class ApiService {
     return value as Record<string, unknown>;
   }
 
-  private readNumber(source: Record<string, unknown>, camelCaseKey: string, pascalCaseKey: string): number | null {
-    const rawValue = source[camelCaseKey] ?? source[pascalCaseKey];
+  private readNumber(source: Record<string, unknown>, camelCaseKey: string, pascalCaseKey: string, snakeCaseKey: string): number | null {
+    const rawValue = source[camelCaseKey] ?? source[pascalCaseKey] ?? source[snakeCaseKey];
     if (typeof rawValue !== 'number' || !Number.isFinite(rawValue)) {
       return null;
     }
@@ -272,8 +272,8 @@ export class ApiService {
     return rawValue;
   }
 
-  private readString(source: Record<string, unknown>, camelCaseKey: string, pascalCaseKey: string): string | null {
-    const rawValue = source[camelCaseKey] ?? source[pascalCaseKey];
+  private readString(source: Record<string, unknown>, camelCaseKey: string, pascalCaseKey: string, snakeCaseKey: string): string | null {
+    const rawValue = source[camelCaseKey] ?? source[pascalCaseKey] ?? source[snakeCaseKey];
     if (typeof rawValue !== 'string') {
       return null;
     }

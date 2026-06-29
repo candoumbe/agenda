@@ -134,7 +134,7 @@ public partial class AddLinkHeaderResponseInterceptor : IResponseInterceptor
             return false;
         }
 
-        List<Link> extractedLinks =
+        IReadOnlyList<Link> extractedLinks =
         [
             pageLinks.First,
             pageLinks.Last,
