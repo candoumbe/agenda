@@ -49,7 +49,6 @@ public partial class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, Cr
     public override void Configure()
     {
         Post("/appointments");
-        AllowAnonymous();
         SerializerContext<CreateAppointmentSerializerContext>();
         Validator<NewAppointmentInfoValidator>();
     }

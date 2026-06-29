@@ -52,7 +52,6 @@ public class GetAppointmentByIdEndpoint : Endpoint<GetByIdRequest, Results<Ok<Br
         Verbs(Http.GET, Http.HEAD);
         Routes("/appointments/{id}");
 
-        AllowAnonymous();
         ResponseInterceptor(new AddLinkHeaderResponseInterceptor(_loggerFactory.CreateLogger<AddLinkHeaderResponseInterceptor>()));
     }
 

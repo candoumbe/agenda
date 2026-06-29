@@ -33,7 +33,6 @@ public class PatchAppointmentByIdEndpoint : Endpoint<PatchRequest<AppointmentId,
     public override void Configure()
     {
         Patch("/appointments/{id}");
-        AllowAnonymous();
         Validator<PatchAppointmentInfoRequestValidator>();
         SerializerContext<PatchAppointmentEndpointSerializerContext>();
     }

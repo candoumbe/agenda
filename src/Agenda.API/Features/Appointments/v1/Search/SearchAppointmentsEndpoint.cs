@@ -51,7 +51,6 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
     {
         Verbs(Http.GET, Http.HEAD);
         Routes("/appointments");
-        AllowAnonymous();
         ResponseInterceptor(new AddLinkHeaderResponseInterceptor(_loggerFactory.CreateLogger<AddLinkHeaderResponseInterceptor>()));
     }
 
