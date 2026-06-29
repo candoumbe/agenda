@@ -2,6 +2,30 @@
 
 ## Active Decisions
 
+### 2026-06-29T12:00:00Z: Issue #623 Phase 1 — Endpoint security inventory baseline
+**By:** Vasquez
+**What:** Full audit of FastEndpoints endpoints identified 4 endpoints with incorrect `AllowAnonymous()` (Create, Search, GetById, Patch appointments) and 1 partial gap (`RemoveAttendee` no role restriction). Documentation and `/scalar` surfaces confirmed intentionally public.
+**Why:** Establish the security baseline before access control hardening in subsequent phases.
+**Impact:** Inventory drives Phase 2 fix and Phase 4 test coverage. Full findings in `docs/plans/issue-623-endpoint-inventory.md`.
+
+### 2026-06-29T12:00:00Z: Issue #623 Phase 2 — Remove AllowAnonymous from appointment CRUD endpoints
+**By:** Bishop
+**What:** Removed `AllowAnonymous()` from `CreateAppointmentEndpoint`, `SearchAppointmentsEndpoint`, `GetAppointmentByIdEndpoint`, and `PatchAppointmentByIdEndpoint`. FallbackPolicy `RequireAuthenticatedUser` now applies. `/scalar` and `/openapi` remain intentionally public.
+**Why:** AllowAnonymous on CRUD endpoints silently bypassed the FallbackPolicy, exposing unauthenticated mutations and reads.
+**Impact:** All appointment CRUD endpoints now require an authenticated user. No explicit `[Authorize]` needed — FallbackPolicy is sufficient.
+
+### 2026-06-29T12:00:00Z: Issue #623 Phase 4 — Security integration tests for appointment endpoints
+**By:** Hicks
+**What:** Added `tests/Agenda.API.IntegrationTests/Authentication/AppointmentsEndpointsAuthorizationShould.cs`. Each of the 4 endpoints tested for: 401 (no token), 401 (expired / wrong audience / wrong issuer / tampered tokens), and non-401/403 (valid Keycloak token). Uses `AnonymousApiClient`, `TokenFactory`, and `IssueAccessTokenAsync`.
+**Why:** Phase 4 of issue #623 requires test coverage validating 401/403 behavior after access control hardening.
+**Impact:** Regression baseline for appointment endpoint authentication is established and will catch future AllowAnonymous regressions.
+
+### 2026-06-29T12:00:00Z: Issue #623 — Centralize auth in AgendaApplicationTestingBuilder to fix integration test regression
+**By:** Bishop
+**What:** After AllowAnonymous removal, existing integration tests failed with 401. Fix centralized in `AgendaApplicationTestingBuilder.StartAsync`: (1) readiness probe changed from `GET /appointments?…` to `GET /health`; (2) real Keycloak token obtained via `IssueAccessTokenAsync("alice", "password")` and injected into `ApiClient.DefaultRequestHeaders.Authorization`. No individual test files modified.
+**Why:** Touching every test individually would be high-noise and brittle. A single-point fix in the fixture builder is safer, consistent, and preserves `AnonymousApiClient` behavior for Hicks' negative tests.
+**Impact:** All existing functional integration tests pass without modification. Auth tests continue to use `AnonymousApiClient` correctly.
+
 ### 2026-06-06T18:42:11Z: Frontend auth navigation contract for Keycloak flow
 **By:** Dallas
 **What:** Standardize frontend authentication navigation behavior:
@@ -64,6 +88,11 @@
 **What:** Integration tests for documentation routing should validate three behaviors together: Scalar UI is reachable, Swagger UI is not exposed, and v1 OpenAPI JSON is available and valid.
 **Why:** UI-only checks can miss regressions where documentation rendering depends on missing or invalid OpenAPI output.
 **Impact:** Stronger release confidence for API consumers and tooling that rely on OpenAPI.
+
+### 2026-06-28T23:16:38Z: User directive — All documents must be in English
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** All documents in this repository must be written in English. This supersedes the earlier "internal drafts may be French" allowance (2026-06-28T23:01:35Z).
+**Why:** Public repository — English is required for all content including internal drafts.
 
 ### 2026-05-26T21:08:36Z: User directive — English-only user-facing docs
 **By:** Cyrille NDOUMBE (via Copilot)

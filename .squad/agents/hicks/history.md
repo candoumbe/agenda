@@ -193,3 +193,23 @@ When AppHost runs show mixed outcomes (including occasional non-zero exits), sta
 
 ## Learning — 2026-06-06T18:42:11Z: Frontend auth QA closure should include full-suite parity
 When route/topbar auth regressions are fixed, close QA only after both focused auth specs and the full frontend suite pass. Final coordinated baseline for this batch: `npm run test -- --watch false` (77/77) and `npm run build` (pass).
+
+## Learning — 2026-06-29: Issue #623 Phase 4 — Appointments endpoint security tests
+
+**What was done:**
+- Created `tests/Agenda.API.IntegrationTests/Authentication/AppointmentsEndpointsAuthorizationShould.cs` covering all four appointments endpoints (Create POST, GetById GET /{id}, Search GET, Patch PATCH /{id}).
+- Each endpoint has: one `[Fact]` for no-token → 401, one `[Theory]` with shared `TheoryData<string>` (4 invalid token types) → 401, and one `[Fact]` for valid Keycloak token → not 401/403.
+- Used `AnonymousApiClient` + `TokenFactory` for negative cases, `IssueAccessTokenAsync("alice", "password")` for positive cases.
+- Wrote decision to `.squad/decisions/inbox/hicks-issue623-phase4-security-tests.md`.
+
+**Learning:**
+- When `AllowAnonymous()` is removed from FastEndpoints endpoints, existing functional tests that use `fixture.ApiClient` (no attached token) will regress to 401. The readiness probe in `WaitUntilApiIsReachableAsync` (which calls `GET /appointments`) is also affected. Before running the full integration test suite, `ApiClient` must be upgraded to attach a real Keycloak token, or the probe endpoint must remain anonymous.
+- For security regression tests that are auth-focused, testing the "not 401/403" outcome (rather than an exact success code) is the most robust approach: it validates the auth pipeline without coupling to the business logic response.
+- Shared `TheoryData<string>` for invalid token cases reduces duplication when multiple endpoints share the same negative path patterns.
+
+## Learning — 2026-06-29T12:00:00Z: Issue #623 Phase 4 — Security tests for appointment endpoints
+
+Created `tests/Agenda.API.IntegrationTests/Authentication/AppointmentsEndpointsAuthorizationShould.cs` covering 4 endpoints × 3 scenarios (no token, 4 invalid tokens, valid Keycloak token). Patterns: `AnonymousApiClient`, `TokenFactory`, `IssueAccessTokenAsync`, `[MemberData]` with `TheoryData<string>`, AAA, `AwesomeAssertions`.
+
+**Regression flagged and resolved:** After Phase 2 AllowAnonymous removal, existing functional tests used `fixture.ApiClient` without auth headers — they would return 401. Also flagged the readiness probe blocker in `WaitUntilApiIsReachableAsync`. Both issues were resolved by Bishop in the same session: auth token injected into `ApiClient` at startup, probe switched to `GET /health`. `AnonymousApiClient` in security tests remains unaffected.  
+See Bishop's regression fix in session `20260629T120000Z-issue623-phase1-2-4`.

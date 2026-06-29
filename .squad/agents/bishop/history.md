@@ -46,3 +46,39 @@ When backend-generated pagination links use PascalCase query names (for example 
 
 ## Learning — 2026-06-01T08:43:38Z: Aspire connection-refused triage needs current-run endpoint verification
 Intermittent `connection refused` reports during local Aspire startup can be caused by stale endpoint URLs after dynamic port changes between runs. A reliable triage sequence is: verify AppHost process outcome (`dotnet run` exit status), then probe only the currently advertised frontend/API/identity/messaging endpoints. In the investigated run, endpoint probes succeeded when URLs matched the active process output.
+
+## Learning — 2026-06-29T00:00:00Z: Phase 2 issue-623 — Suppression AllowAnonymous endpoints appointments
+
+Lorsqu'une FallbackPolicy `RequireAuthenticatedUser` est déjà configurée au niveau de `AddAuthorization`, supprimer `AllowAnonymous()` sur les endpoints FastEndpoints suffit à les protéger — aucune annotation `[Authorize]` supplémentaire n'est nécessaire. Les 4 endpoints appointments (Create, Search/List, GetById, Patch) avaient un `AllowAnonymous()` incorrect qui contournait silencieusement cette politique. Le seul `AllowAnonymous` légitime restant est sur `MapScalarApiReference` dans `Program.cs` (documentation publique intentionnelle).
+
+Fichiers modifiés :
+- `src/Agenda.API/Features/Appointments/v1/Create/CreateAppointmentEndpoint.cs`
+- `src/Agenda.API/Features/Appointments/v1/Search/SearchAppointmentsEndpoint.cs`
+- `src/Agenda.API/Features/Appointments/v1/GetById/GetAppointmentByIdEndpoint.cs`
+- `src/Agenda.API/Features/Appointments/v1/Update/PatchAppointmentByIdEndpoint.cs`
+
+## Learning — 2026-06-29T12:00:00Z: Phase 2 issue-623 — Régression tests intégration après suppression AllowAnonymous
+
+Après la suppression de `AllowAnonymous()` des 4 endpoints appointments, les tests d'intégration existants (`CreateAppointmentEndpointShould`, `GetByIdEndpointShould`, `SearchAppointmentEndpointShould`, etc.) échouaient avec 401 car `ApiClient` n'avait pas de token.
+
+**Correction centralisée dans `AgendaApplicationTestingBuilder`** (un seul fichier modifié) :
+1. `KeycloakClient` créé avant `ApiClient` pour que `IssueAccessTokenAsync` soit disponible dès l'init.
+2. Après `WaitUntilApiIsReachableAsync`, appel à `IssueAccessTokenAsync("alice", "password", ...)` et injection du token dans `ApiClient.DefaultRequestHeaders.Authorization`.
+3. Probe readiness `WaitUntilApiIsReachableAsync` changée de `/appointments?...` vers `/health` (public via `.AllowAnonymous()` dans ServiceDefaults) pour éviter le 401 pendant le démarrage.
+
+`AnonymousApiClient` reste inchangé — préserve le comportement des tests d'auth négatifs de Hicks. Aucun test individuel modifié.
+
+Fichier modifié : `tests/Agenda.API.IntegrationTests/Fixtures/AgendaApplicationTestingBuilder.cs`
+Validation : `dotnet build tests/Agenda.API.IntegrationTests/` — **Build succeeded, 0 Error(s)**.
+
+## Learning — 2026-06-29T12:00:00Z: Issue #623 regression — Integration tests fixed after AllowAnonymous removal
+
+After Phase 2 removed `AllowAnonymous()` from the 4 appointment endpoints, existing integration tests (`CreateAppointmentEndpointShould`, `GetByIdEndpointShould`, `SearchAppointmentEndpointShould`) failed with 401. The readiness probe `WaitUntilApiIsReachableAsync` also blocked because it polled `GET /appointments?…` which now requires auth.
+
+**Fix (centralized in `AgendaApplicationTestingBuilder.StartAsync`):**
+1. `KeycloakClient` created before `ApiClient` so `IssueAccessTokenAsync` is available immediately.
+2. Real Keycloak token obtained via `IssueAccessTokenAsync("alice", "password", …)` after readiness, injected into `ApiClient.DefaultRequestHeaders.Authorization`.
+3. Readiness probe changed from `GET /appointments?…` → `GET /health` (public endpoint via `.AllowAnonymous()` in ServiceDefaults).
+
+`AnonymousApiClient` is unaffected — Hicks' negative auth tests continue to work correctly. No individual test files modified.  
+Regression resolved in session `20260629T120000Z-issue623-phase1-2-4`.
