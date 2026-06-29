@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -86,6 +87,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
 
         await _app.StartAsync(cancellationToken).WaitAsync(StartStopTimeout, cancellationToken);
         await _app.ResourceNotifications.WaitForResourceHealthyAsync(ApiResourceName, cancellationToken).WaitAsync(StartStopTimeout, cancellationToken);
+        KeycloakClient = _app.CreateHttpClient(KeycloakResourceName);
         ApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http", builder =>
         {
             builder.AddStandardResilienceHandler();
@@ -94,8 +96,9 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         {
             builder.AddStandardResilienceHandler();
         });
-        KeycloakClient = _app.CreateHttpClient(KeycloakResourceName);
         await WaitUntilApiIsReachableAsync(cancellationToken);
+        string accessToken = await IssueAccessTokenAsync("alice", "password", cancellationToken);
+        ApiClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         return _app;
     }
@@ -144,9 +147,9 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         {
             try
             {
-                // Probe a datastore-backed endpoint so tests only start once
-                // API dependencies are actually usable.
-                using HttpRequestMessage request = new(HttpMethod.Get, "/appointments?page=1&pageSize=1&subject=__readiness__");
+                // Probe the public health endpoint so the readiness check works
+                // regardless of whether authentication is enforced on business endpoints.
+                using HttpRequestMessage request = new(HttpMethod.Get, "/health");
                 using CancellationTokenSource requestCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(linkedCancellationTokenSource.Token);
                 requestCancellationTokenSource.CancelAfter(s_requestProbeTimeout);
 
