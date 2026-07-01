@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added RabbitMQ integration and related configuration.
 - Added publication of `AppointmentScheduled` event when a new appointment is scheduled : 
 - Added publication of `AppointmentCreated` event when a new appointment is created, containing appointment ID, start/end dates (ISO 8601), location, attendees list, and creator ID (#329)
+- Updated appointment creation flow to persist and publish the authenticated creator username (`preferred_username`) instead of the static `system` value
+- Added auditable appointment API resource fields to expose creator metadata on create responses
 - Added healthchecks for PostgreSQL and RabbitMQ
 - Migrated API documentation UI from Swagger UI to Scalar while keeping the OpenAPI JSON document available ([#571](https://github.com/candoumbe/agenda/issues/571))
 - Updated appointments paginated headers contract for UI navigation: `total` now represents the total number of matching elements, `count` represents the number of elements in the current page, and redundant `totalCount` was removed
@@ -56,6 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Default authorization policy now requires an authenticated user but OpenAPI/Scalar routes remain anonymous in non-Production environments only. ([#577](https://github.com/candoumbe/agenda/issues/577))
 - Removed the symmetric `JwtOptions` configuration in favor of Keycloak OIDC discovery. ([#577](https://github.com/candoumbe/agenda/issues/577))
 - All API endpoints now require authentication by default. `DELETE /appointments/{id}` additionally requires the `agenda-admin` realm role. ([#578](https://github.com/candoumbe/agenda/issues/578), [#323](https://github.com/candoumbe/agenda/issues/323))
+- Added unit coverage for `Username` value object validation and conversion
+- Updated appointment creation unit tests to assert creator propagation from request metadata to emitted events and API response
 
 ### 📝 Documentation
 - Added [docs/development/authentication.md](docs/development/authentication.md) describing the local Keycloak setup, seeded dev users, token-fetch recipes (Direct Access Grant, `client_credentials`), token inspection, and troubleshooting. ([#580](https://github.com/candoumbe/agenda/issues/580), [#323](https://github.com/candoumbe/agenda/issues/323))
@@ -80,6 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added dotnet devcontainer feature to manage .NET versions
 - Updated AppHost launch settings to bind Aspire local service endpoints to `127.0.0.1` instead of `localhost`
 - Updated `Candoumbe.Pipelines` package to `3.0.1`
+- Enabled NuGet central transitive pinning and pinned `SQLitePCLRaw.lib.e_sqlite3` to a non-vulnerable version to address NU1903
 
 ## [0.1.0] / 2025-10-03
 ### 🚀 New features
