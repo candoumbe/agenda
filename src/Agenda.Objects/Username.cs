@@ -2,9 +2,11 @@ using System;
 
 namespace Agenda.Objects;
 
+/// <summary>
+/// Represents a username in the system.
+/// </summary>
 public record Username
 {
-
     /// <summary>
     /// The username value.
     /// </summary>
@@ -15,6 +17,9 @@ public record Username
         Value = value;
     }
 
+    /// <summary>
+    /// Represents an empty <see cref="Username"/> instance.
+    /// </summary>
     public static Username Empty => new(string.Empty);
 
     /// <summary>

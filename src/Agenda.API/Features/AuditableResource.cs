@@ -18,7 +18,7 @@ public record AuditableResource<TId> : Resource<TId> where TId : IComparable<TId
     /// <summary>
     /// The username of the user who created the resource.
     /// </summary>
-    public Username CreatedBy { get; init; }
+    public string CreatedBy { get; init; }
 
     /// <summary>
     /// The date and time when the resource was last updated.
@@ -28,5 +28,5 @@ public record AuditableResource<TId> : Resource<TId> where TId : IComparable<TId
     /// <summary>
     /// The username of the user who last updated the resource.
     /// </summary>
-    public Username UpdatedBy { get; init; }
+    public string UpdatedBy { get; init; }
 }
