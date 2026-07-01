@@ -14,6 +14,7 @@ using Agenda.Ids;
 using Agenda.Objects;
 using Agenda.UnitTests.Helpers;
 using AwesomeAssertions;
+using AwesomeAssertions.Common;
 using Bogus;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.Forms;
@@ -22,6 +23,7 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Routing;
+using NodaTime;
 using Paramore.Brighter;
 using Xunit;
 using Xunit.OpenCategories.V3;
@@ -41,6 +43,8 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRepository<Appointment> _repository;
 
+        private readonly Username _currentUserName;
+
         static CreateAppointementEndpointShould()
         {
             s_faker = new Faker();
@@ -54,9 +58,13 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
 
         public CreateAppointementEndpointShould()
         {
+            _currentUserName = Username.FromString(s_faker.Internet.UserName());
             _unitOfWorkFactory = A.Fake<IUnitOfWorkFactory>();
             _linkGenerator = A.Fake<LinkGenerator>();
-            _currentRequestMetadataInfoProvider = A.Fake<CurrentRequestMetadataInfoProvider>();
+            _currentRequestMetadataInfoProvider = A.Fake<CurrentRequestMetadataInfoProvider>(x => x.Strict());
+            A.CallTo(() => _currentRequestMetadataInfoProvider.GetCurrentUserName())
+                .Returns(_currentUserName);
+            
             _commandProcessor = A.Fake<IAmACommandProcessor>(x => x.Strict());
             _unitOfWork = A.Fake<IUnitOfWork>(x => x.Strict());
             _repository = A.Fake<IRepository<Appointment>>(x => x.Strict());
@@ -75,11 +83,14 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                                                              _commandProcessor);
         }
 
-        public static TheoryData<GenericSerializable<NewAppointmentInfo>, XunitSerializableExpression<AppointmentInfo>> CreateAppointmentWithValidRequestCases
+        public static TheoryData<GenericSerializable<NewAppointmentInfo>, GenericSerializable<(DateTime Date, Guid UserId, Username Username)>, XunitSerializableExpression<AppointmentInfo>> CreateAppointmentWithValidRequestCases
         {
             get
             {
-                TheoryData<GenericSerializable<NewAppointmentInfo>, XunitSerializableExpression<AppointmentInfo>> cases = new();
+                DateTime dateTime = s_faker.Date.Recent();
+                Guid currentUserId = Guid.CreateVersion7();
+                Username currentUserName = Username.FromString(s_faker.Internet.UserName());
+                TheoryData<GenericSerializable<NewAppointmentInfo>, GenericSerializable<(DateTime, Guid, Username)>, XunitSerializableExpression<AppointmentInfo>> cases = new();
                 // Request with valid data and client side generated id
                 {
                     NewAppointmentInfo req = new()
@@ -92,7 +103,9 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                         Attendees = s_attendeeFaker.Generate(2),
                     };
 
+
                     cases.Add(req,
+                              (dateTime, currentUserId, currentUserName),
                               new XunitSerializableExpression<AppointmentInfo>()
                               {
                                   Value = resource => resource.Id == req.Id
@@ -100,6 +113,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                                                       && resource.Location == req.Location
                                                       && resource.StartDate == req.StartDate
                                                       && resource.EndDate == req.EndDate
+                                                      && resource.CreatedBy == currentUserName
                               });
                 }
                 // Request with valid data and server side generated id
@@ -114,6 +128,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     };
 
                     cases.Add(req,
+                              (dateTime, currentUserId, currentUserName),
                               new XunitSerializableExpression<AppointmentInfo>()
                               {
                                   Value = resource => resource.Id != AppointmentId.Empty
@@ -121,6 +136,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                                                       && resource.Location == req.Location
                                                       && resource.StartDate == req.StartDate
                                                       && resource.EndDate == req.EndDate
+                                                      && resource.CreatedBy == currentUserName
                               });
                 }
 
@@ -135,6 +151,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     };
 
                     cases.Add(req,
+                              (dateTime, currentUserId, currentUserName),
                               new XunitSerializableExpression<AppointmentInfo>()
                               {
                                   Value = resource => resource.Id != AppointmentId.Empty
@@ -142,6 +159,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                                                       && resource.Location == string.Empty
                                                       && resource.StartDate == req.StartDate
                                                       && resource.EndDate == req.EndDate
+                                                      && resource.CreatedBy == currentUserName
                               });
                 }
 
@@ -157,6 +175,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     };
 
                     cases.Add(req,
+                              (dateTime, currentUserId, currentUserName),
                               new XunitSerializableExpression<AppointmentInfo>()
                               {
                                   Value = resource => resource.Id != AppointmentId.Empty
@@ -164,6 +183,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                                                       && resource.Location == req.Location
                                                       && resource.StartDate == req.StartDate
                                                       && resource.EndDate == req.EndDate
+                                                      && resource.CreatedBy == currentUserName
                                                       && resource.Attendees != null
                                                       && !resource.Attendees.AtLeastOnce()
                               });
@@ -196,6 +216,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
         [Theory]
         [MemberData(nameof(CreateAppointmentWithValidRequestCases))]
         public async Task Create_appointment_when_valid_request_is_received(GenericSerializable<NewAppointmentInfo> req,
+                                                                            GenericSerializable<(DateTime Date, Guid UserId, Username Username)> requestContext,
                                                                             XunitSerializableExpression<AppointmentInfo> responseExpectation)
         {
             // Arrange
@@ -216,6 +237,10 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
 
             A.CallTo(() => _commandProcessor.DepositPostAsync(An<AppointmentCreated>._, A<RequestContext>._, A<Dictionary<string, object>>._, A<bool>._, A<CancellationToken>._))
                 .ReturnsLazily((AppointmentCreated evt, RequestContext _, Dictionary<string, object> _,  bool _, CancellationToken _) => evt.Id);
+
+            A.CallTo(() => _currentRequestMetadataInfoProvider.GetCurrentUserName())
+                .Returns(requestContext.Value.Username);
+
 
             // Act
             CreatedAtRoute<Browsable<AppointmentInfo>> response = await _sut.ExecuteAsync(req, CancellationToken.None);
@@ -249,6 +274,8 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
             A.CallTo(() => _unitOfWork.SaveChangesAsync(A<CancellationToken>._))
                 .MustHaveHappenedOnceExactly();
 
+            A.CallTo(() => _currentRequestMetadataInfoProvider.GetCurrentUserName())
+                .MustHaveHappenedOnceExactly();
         }
 
         [Fact]
@@ -326,7 +353,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     && req.Attendees.All(attendee => evt.Attendees.Any(participant =>
                     participant.FirstName == attendee.Name
                         && participant.LastName == attendee.Email))
-                    && evt.CreatorId == "system"),
+                    && evt.CreatorId == _currentUserName),
                 A<RequestContext>._,
                 A<Dictionary<string, object>>._,
                 A<bool>._,
@@ -384,7 +411,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
                     && evt.EndDate == req.EndDate.ToInstant()
                     && evt.Location == req.Location
                     && evt.Attendees.Count == 3
-                    && evt.CreatorId == "system"),
+                    && evt.CreatorId == _currentUserName),
                 A<RequestContext>._,
                 A<Dictionary<string, object>>._,
                 A<bool>._,
@@ -494,7 +521,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
 
             // Assert
             A.CallTo(() => _commandProcessor.DepositPostAsync(A<AppointmentCreated>.That.Matches(evt =>
-                    evt.Location == string.Empty),
+                    evt.Location == req.Location),
                 A<RequestContext>._,
                 A<Dictionary<string, object>>._,
                 A<bool>._,
@@ -600,7 +627,7 @@ namespace Agenda.API.UnitTests.Features.Appointments.v1.Create
 
             // Assert
             A.CallTo(() => _commandProcessor.DepositPostAsync(A<AppointmentCreated>.That.Matches(evt =>
-                    evt.CreatorId == "system"),
+                    evt.CreatorId == _currentRequestMetadataInfoProvider.GetCurrentUserName()),
                 A<RequestContext>._,
                 A<Dictionary<string, object>>._,
                 A<bool>._,

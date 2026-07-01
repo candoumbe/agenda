@@ -8,7 +8,7 @@ namespace Agenda.API.Features.Appointments;
 /// <summary>
 /// An appointment between two or more people
 /// </summary>
-public record AppointmentInfo : Resource<AppointmentId>
+public record AppointmentInfo : AuditableResource<AppointmentId>
 {
     /// <summary>
     /// Location of the appointment
@@ -33,7 +33,7 @@ public record AppointmentInfo : Resource<AppointmentId>
     /// <summary>
     /// Defines who initiated the appointment
     /// </summary>
-    public AttendeeInfo Iniator { get; init; }
+    public AttendeeInfo Initiator { get; init; }
 
     /// <summary>
     /// Participants

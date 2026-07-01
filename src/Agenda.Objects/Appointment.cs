@@ -143,4 +143,14 @@ public class Appointment : AuditableEntity<AppointmentId, Appointment>
     /// </summary>
     /// <param name="newLocation">The new location.</param>
     public void RelocateTo(string newLocation) => Location = newLocation;
+
+
+    /// <summary>
+    /// Defines who created the appointment
+    /// </summary>
+    /// <param name="username">The username of the creator of the appointment</param>
+    public void WasCreatedBy(Username username)
+    {
+        CreatedBy = username;
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Claims;
+using Agenda.Objects;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
@@ -82,9 +83,9 @@ public class CurrentRequestMetadataInfoProvider
     /// Gets the current authenticated user name from the <c>preferred_username</c> claim.
     /// </summary>
     /// <returns>The user name or an empty string when no claim is available.</returns>
-    public string GetCurrentUserName()
+    public virtual Username GetCurrentUserName()
     {
-        string userName = string.Empty;
+        Username userName = Username.Empty;
         ClaimsPrincipal user = _httpContextAccessor.HttpContext?.User;
 
         if (user is not null)
@@ -93,7 +94,7 @@ public class CurrentRequestMetadataInfoProvider
 
             if (nameClaim is not null && !string.IsNullOrWhiteSpace(nameClaim.Value))
             {
-                userName = nameClaim.Value;
+                userName = Username.FromString(nameClaim.Value);
             }
         }
 
