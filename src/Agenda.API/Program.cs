@@ -107,10 +107,10 @@ app.UseFastEndpoints(config =>
                             }
 
                             return addLinkHeaderResponseInterceptor.InterceptResponseAsync(response,
-                                                                                            httpContext.Response.StatusCode,
-                                                                                            httpContext,
-                                                                                            Array.Empty<ValidationFailure>(),
-                                                                                            httpContext.RequestAborted);
+                                                                                           httpContext.Response.StatusCode,
+                                                                                           httpContext,
+                                                                                           [],
+                                                                                           httpContext.RequestAborted);
                          };
 
                          config.Errors.UseProblemDetails(detailsConfig =>
