@@ -64,6 +64,8 @@ public partial class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, Cr
         IReadOnlyList<AttendeeInfo> attendees = req.Attendees ?? [];
 
         Appointment newAppointment = new(req.Id, req.Subject, req.Location, req.StartDate.ToInstant(), req.EndDate.ToInstant());
+        Username username = _currentRequestMetadataInfoProvider.GetCurrentUserName();
+        newAppointment.WasCreatedBy(username);
         foreach (AttendeeInfo attendee in attendees)
         {
             newAppointment.AddAttendee(new Attendee(attendee.Id, attendee.Name, attendee.Email, attendee.PhoneNumber));
@@ -95,7 +97,7 @@ public partial class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, Cr
                                                                             LastName = a.Email
                                                                         })
                                                          ],
-                                                         "system");
+                                                         newAppointment.CreatedBy);
 
         await _commandProcessor.DepositPostAsync(appointmentScheduledEvent, cancellationToken: ct);
         await _commandProcessor.DepositPostAsync(appointmentCreatedEvent, cancellationToken: ct);
@@ -109,7 +111,8 @@ public partial class CreateAppointmentEndpoint : Endpoint<NewAppointmentInfo, Cr
             StartDate = newAppointment.StartDate.InZone(zone).ToOffsetDateTime(),
             EndDate = newAppointment.EndDate.InZone(zone).ToOffsetDateTime(),
             Subject = newAppointment.Subject,
-            Attendees = attendees
+            Attendees = attendees,
+            CreatedBy = username,
         };
 
         Browsable<AppointmentInfo> browsable = new()

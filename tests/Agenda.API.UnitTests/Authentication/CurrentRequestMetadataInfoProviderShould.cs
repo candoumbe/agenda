@@ -1,5 +1,6 @@
 using System;
 using System.Security.Claims;
+using Agenda.Objects;
 using AwesomeAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -92,10 +93,10 @@ namespace Agenda.API.UnitTests.Authentication
             GivenUser(new Claim("sub", Guid.NewGuid().ToString()));
 
             // Act
-            string actual = _sut.GetCurrentUserName();
+            Username actual = _sut.GetCurrentUserName();
 
             // Assert
-            actual.Should().BeEmpty();
+            actual.Should().Be(Username.Empty);
         }
 
         [Fact]
