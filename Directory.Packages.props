@@ -85,7 +85,7 @@
     <PackageVersion Include="Paramore.Brighter.PostgreSql.EntityFrameworkCore" Version="10.6.0" />
     <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.DependencyInjection" Version="10.6.0" />
     <PackageVersion Include="Paramore.Brighter.ServiceActivator.Extensions.Hosting" Version="10.6.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.7" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.8" />
     <PackageVersion Include="Serialize.Linq" Version="4.4.1" />
     <PackageVersion Include="ReportGenerator" Version="5.5.10" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
