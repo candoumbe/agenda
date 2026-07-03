@@ -1,0 +1,102 @@
+.appointment-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.appointment-card.ongoing {
+  border-color: #34d399;
+  background: #ecfdf5;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.appointment-subject {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1f2937;
+  flex: 1;
+}
+
+.appointment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.attendees-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.attendee-item {
+  font-size: 0.9rem;
+  color: #6b7280;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.attendee-name {
+  font-weight: 500;
+}
+
+.attendee-phone {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.attendees-section {
+  margin-top: 0.75rem;
+}
+
+.attendees-section strong {
+  display: block;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.today-badge {
+  background: #fbbf24;
+  color: #78350f;
+}
+
+.ongoing-badge {
+  background: #34d399;
+  color: #065f46;
+}
+
+.upcoming-badge {
+  background: #60a5fa;
+  color: #1e3a8a;
+}
+
+.past-badge {
+  background: #f87171;
+  color: #ae3c3c;
+}

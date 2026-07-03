@@ -9,6 +9,7 @@ import { ApiService } from '../../../services/api-service';
 import { Browsable } from '../../../models/browsable';
 import { SearchAppointmentsParams } from '../../../models/search-appointments-params';
 import { PageOf } from '../../../models/page-of';
+import { AppointmentCard } from '../../components/appointments/appointment-card/appointment-card';
 
 interface AppointmentGroup {
   date: string;
@@ -19,7 +20,7 @@ interface AppointmentGroup {
 
 @Component({
   selector: 'app-appointments-list-page',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, AppointmentCard],
   templateUrl: './appointments-list-page.component.html',
   styleUrl: './appointments-list-page.component.css'
 })
@@ -178,7 +179,7 @@ export class AppointmentsListPageComponent implements OnInit {
       return;
     }
 
-    const startDate = new Date(firstIncomingAppointment.resource.startDate);
+    const startDate = firstIncomingAppointment.resource.startDate;
     const endDate = this.addDays(startDate, AppointmentsListPageComponent.DEFAULT_RANGE_IN_DAYS);
 
     this.searchForm.patchValue(
@@ -455,6 +456,10 @@ export class AppointmentsListPageComponent implements OnInit {
 
   private normalizePage(page: number): number {
     return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+  }
+
+  public currentDate(): Date {
+    return new Date();
   }
 
   private groupAppointmentsByDate(items: Browsable<Appointment>[]): AppointmentGroup[] {

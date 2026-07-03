@@ -198,10 +198,15 @@ export class ApiService {
     const id = this.readString(resource, 'id', 'Id');
     const subject = this.readString(resource, 'subject', 'Subject');
     const location = this.readString(resource, 'location', 'Location');
-    const startDate = this.readString(resource, 'startDate', 'StartDate');
-    const endDate = this.readString(resource, 'endDate', 'EndDate');
+    const startDate = Date.parse(this.readString(resource, 'startDate', 'StartDate') ?? '');
+    const endDate = Date.parse(this.readString(resource, 'endDate', 'EndDate') ?? '');
 
-    if (!id || !subject || !location || !startDate || !endDate) {
+    const createdAt = Date.parse(this.readString(resource, 'createdAt', 'CreatedAt') ?? '');
+    const createdBy = this.readString(resource, 'createdBy', 'CreatedBy') ?? '';
+    const updatedAt = Date.parse(this.readString(resource, 'updatedAt', 'UpdatedAt') ?? '');
+    const updatedBy = this.readString(resource, 'updatedBy', 'UpdatedBy');
+
+    if (!id || !subject || !location || isNaN(startDate) || isNaN(endDate) || isNaN(createdAt)) {
       return null;
     }
 
@@ -211,11 +216,15 @@ export class ApiService {
       id,
       subject,
       location,
-      startDate,
-      endDate,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
       attendees: Array.isArray(rawAttendees)
         ? rawAttendees as Appointment['attendees']
-        : []
+        : [],
+      createdAt: new Date(createdAt),
+      createdBy,
+      updatedAt: isNaN(updatedAt) ? undefined : new Date(updatedAt),
+      updatedBy: updatedBy ?? undefined
     };
   }
 
