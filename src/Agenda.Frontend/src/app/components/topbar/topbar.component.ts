@@ -32,7 +32,7 @@ export class TopbarComponent {
       exact: true
     },
     {
-      label: 'Agenda',
+      label: 'Planning',
       path: '/appointments',
       exact: false
     },
