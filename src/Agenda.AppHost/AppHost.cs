@@ -17,6 +17,7 @@ var postgres = builder.AddPostgres("postgres")
 if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
 {
     postgres = postgres
+            .WithDataVolume("postgres-data")
             .WithPgAdmin(containerName: "pg-admin")
             .WithPgWeb(containerName: "pg-web");
 }
