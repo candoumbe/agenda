@@ -1,0 +1,42 @@
+<div class="appointment-card" [class.ongoing]="isOngoing$ | async" [class.upcoming]="isUpcoming$ | async" [class.past]="isPast$ | async">
+  <div class="card-header">
+    <h3 class="appointment-subject">{{ appointment.subject }}</h3>
+    @if (isOngoing$ | async) {
+      <span class="badge ongoing-badge">En cours</span>
+    } @else if (isUpcoming$ | async) {
+      <span class="badge upcoming-badge">À venir</span>
+    } @else if (isPast$ | async) {
+      <span class="badge past-badge">Passé</span>
+    }
+  </div>
+  <div class="appointment-details">
+    <p class="detail-item">
+      <strong>Heure:</strong>
+      {{ appointment.startDate | date: 'HH:mm' }}
+      -
+      {{ appointment.endDate | date: 'HH:mm' }}
+    </p>
+
+    @if (appointment.location) {
+      <p class="detail-item">
+        <strong>Lieu:</strong> {{ appointment.location }}
+      </p>
+    }
+
+    @if (appointment.attendees.length > 0) {
+      <div class="attendees-section">
+        <strong>Participants:</strong>
+        <ul class="attendees-list">
+          @for (attendee of appointment.attendees; track attendee.id) {
+            <li class="attendee-item">
+              <span class="attendee-name">{{ attendee.name }}</span>
+              @if (attendee.phoneNumber) {
+                <span class="attendee-phone">{{ attendee.phoneNumber }}</span>
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
+</div>

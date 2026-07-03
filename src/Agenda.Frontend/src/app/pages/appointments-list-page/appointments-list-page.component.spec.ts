@@ -86,9 +86,13 @@ describe('AppointmentsListPageComponent', () => {
             id: 'appt_default_range',
             subject: 'Within default range',
             location: 'Room A',
-            startDate: '2026-05-03T09:00:00Z',
-            endDate: '2026-05-03T10:00:00Z',
-            attendees: []
+            startDate: new Date('2026-05-03T09:00:00Z'),
+            endDate: new Date('2026-05-03T10:00:00Z'),
+            attendees: [],
+            createdAt: new Date('2026-05-01T10:20:00Z'),
+            createdBy: 'user1',
+            updatedAt: new Date('2026-05-01T10:20:00Z'),
+            updatedBy: 'user1'
           },
           links: []
         }
@@ -128,9 +132,13 @@ describe('AppointmentsListPageComponent', () => {
             id: 'appt_001',
             subject: 'Team meeting',
             location: 'Conference room',
-            startDate: '2026-04-25T09:00:00Z',
-            endDate: '2026-04-25T10:00:00Z',
-            attendees: []
+            startDate: new Date('2026-04-25T09:00:00Z'),
+            endDate: new Date('2026-04-25T10:00:00Z'),
+            attendees: [],
+            createdAt: new Date('2026-04-25T08:00:00Z'),
+            createdBy: 'user1',
+            updatedAt: new Date('2026-04-25T08:30:00Z'),
+            updatedBy: 'user1'
           },
           links: []
         }
@@ -165,9 +173,13 @@ describe('AppointmentsListPageComponent', () => {
             id: 'appt_001',
             subject: 'Meeting 1',
             location: 'Room A',
-            startDate: tomorrowStr,
-            endDate: new Date(tomorrow.getTime() + 3600000).toISOString(),
-            attendees: []
+            startDate: new Date(tomorrow.getTime()),
+            endDate: new Date(tomorrow.getTime() + 3600000),
+            attendees: [],
+            createdAt: new Date(tomorrow.getTime() - 3600000),
+            createdBy: 'user1',
+            updatedAt: new Date(tomorrow.getTime() - 1800000),
+            updatedBy: 'user1'
           },
           links: []
         },
@@ -176,9 +188,13 @@ describe('AppointmentsListPageComponent', () => {
             id: 'appt_002',
             subject: 'Meeting 2',
             location: 'Room B',
-            startDate: tomorrowStr,
-            endDate: new Date(tomorrow.getTime() + 7200000).toISOString(),
-            attendees: []
+            startDate: new Date(tomorrow.getTime() + 3600000),
+            endDate: new Date(tomorrow.getTime() + 7200000),
+            attendees: [],
+            createdAt: new Date(tomorrow.getTime() - 3600000),
+            createdBy: 'Alice',
+            updatedAt: new Date(tomorrow.getTime() - 1800000),
+            updatedBy: 'Bob'
           },
           links: []
         }
@@ -198,7 +214,6 @@ describe('AppointmentsListPageComponent', () => {
   it('should mark today appointments', () => {
     const today = new Date();
     today.setHours(9, 0, 0, 0);
-    const todayStr = today.toISOString();
 
     const mockResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
@@ -210,9 +225,11 @@ describe('AppointmentsListPageComponent', () => {
             id: 'appt_001',
             subject: 'Today meeting',
             location: 'Room A',
-            startDate: todayStr,
-            endDate: new Date(today.getTime() + 3600000).toISOString(),
-            attendees: []
+            startDate: today,
+            endDate: new Date(today.getTime() + 3600000),
+            attendees: [],
+            createdAt: new Date(today.getTime() - 3600000),
+            createdBy: 'Alice'
           },
           links: []
         }
@@ -239,9 +256,11 @@ describe('AppointmentsListPageComponent', () => {
             id: 'appt_009',
             subject: 'Async appointment',
             location: 'Room C',
-            startDate: '2026-04-25T09:00:00Z',
-            endDate: '2026-04-25T10:00:00Z',
-            attendees: []
+            startDate: new Date('2026-04-25T09:00:00Z'),
+            endDate: new Date('2026-04-25T10:00:00Z'),
+            attendees: [],
+            createdAt: new Date('2026-04-25T08:00:00Z'),
+            createdBy: 'Alice'
           },
           links: []
         }
@@ -269,9 +288,11 @@ describe('AppointmentsListPageComponent', () => {
             id: 'appt_010',
             subject: 'Paged appointment',
             location: 'Room D',
-            startDate: '2026-04-25T11:00:00Z',
-            endDate: '2026-04-25T12:00:00Z',
-            attendees: []
+            startDate: new Date('2026-04-25T11:00:00Z'),
+            endDate: new Date('2026-04-25T12:00:00Z'),
+            attendees: [],
+            createdAt: new Date('2026-04-25T10:00:00Z'),
+            createdBy: 'Alice'
           },
           links: []
         }
@@ -382,9 +403,11 @@ describe('AppointmentsListPageComponent', () => {
             id: 'appt_after_range',
             subject: 'After range',
             location: 'Room Z',
-            startDate: '2026-05-20T09:00:00Z',
-            endDate: '2026-05-20T10:00:00Z',
-            attendees: []
+            startDate: new Date('2026-05-20T09:00:00Z'),
+            endDate: new Date('2026-05-20T10:00:00Z'),
+            attendees: [],
+            createdAt: new Date('2026-05-20T08:00:00Z'),
+            createdBy: 'Alice'
           },
           links: []
         }
@@ -427,8 +450,10 @@ describe('AppointmentsListPageComponent', () => {
             subject: 'After range jump',
             location: 'Room Z',
             startDate: firstIncomingStartDate,
-            endDate: '2026-05-20T10:00:00Z',
-            attendees: []
+            endDate: new Date('2026-05-20T10:00:00Z'),
+            attendees: [],
+            createdAt: new Date('2026-05-20T08:00:00Z'),
+            createdBy: 'Alice'
           },
           links: []
         }

@@ -1,9 +1,10 @@
 import { Attendee } from './attendee';
+import { Auditable } from './auditable';
 
 /**
  * Representation of an appointment.
  */
-export interface Appointment {
+export interface Appointment extends Auditable {
   /** Unique identifier for the appointment. */
   id: string;
 
@@ -14,10 +15,10 @@ export interface Appointment {
   location: string;
 
   /** Start and end date for the appointment. */
-  startDate: string;
+  startDate: Date;
 
   /** End date for the appointment. */
-  endDate: string;
+  endDate: Date;
 
   /** Attendees for the appointment. */
   attendees: Attendee[];

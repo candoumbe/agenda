@@ -103,47 +103,10 @@
 
               <div class="appointments-grid">
                 @for (item of group.appointments; track item.resource.id) {
-                  <div class="appointment-card" [class.ongoing]="isAppointmentOngoing(item.resource)">
-                    <div class="card-header">
-                      <h3 class="appointment-subject">{{ item.resource.subject }}</h3>
-                      @if (isAppointmentOngoing(item.resource)) {
-                        <span class="badge ongoing-badge">En cours</span>
-                      } @else if (isAppointmentUpcoming(item.resource)) {
-                        <span class="badge upcoming-badge">À venir</span>
-                      }
-                    </div>
-
-                    <div class="appointment-details">
-                      <p class="detail-item">
-                        <strong>Heure:</strong>
-                        {{ item.resource.startDate | date: 'HH:mm' }}
-                        -
-                        {{ item.resource.endDate | date: 'HH:mm' }}
-                      </p>
-
-                      @if (item.resource.location) {
-                        <p class="detail-item">
-                          <strong>Lieu:</strong> {{ item.resource.location }}
-                        </p>
-                      }
-
-                      @if (item.resource.attendees.length > 0) {
-                        <div class="attendees-section">
-                          <strong>Participants:</strong>
-                          <ul class="attendees-list">
-                            @for (attendee of item.resource.attendees; track attendee.id) {
-                              <li class="attendee-item">
-                                <span class="attendee-name">{{ attendee.name }}</span>
-                                @if (attendee.phoneNumber) {
-                                  <span class="attendee-phone">{{ attendee.phoneNumber }}</span>
-                                }
-                              </li>
-                            }
-                          </ul>
-                        </div>
-                      }
-                    </div>
-                  </div>
+                  <appointment-card
+                    [key]="item.resource.id"
+                    [appointment]="item.resource"
+                  ></appointment-card>
                 }
               </div>
             </section>
