@@ -18,8 +18,8 @@ if (builder.ExecutionContext.IsRunMode && !isRunningIntegrationTests)
 {
     postgres = postgres
             .WithDataVolume("postgres-data")
-            .WithPgAdmin(containerName: "pg-admin")
-            .WithPgWeb(containerName: "pg-web");
+            .WithPgAdmin(containerName: "pg-admin",
+                         configureContainer: pgAdmin => pgAdmin.WithImage(ContainerImages.PgAdmin.Image, ContainerImages.PgAdmin.Tag));
 }
 
 PinnedContainerImage rabbitImage = ContainerImages.RabbitMq;
@@ -81,7 +81,7 @@ if (!isRunningIntegrationTests)
               .WithDeveloperCertificateTrust(trust: true)
               .WithReference(api).WaitFor(api)
               .WithReference(keycloak).WaitFor(keycloak)
-                // Demande à Aspire d’allouer un port et de le passer à l’app via la variable d’env PORT
+                // Ask Aspire to allocate a port and pass it to the app via the PORT environment variable
               .WithHttpEndpoint(env: "PORT")
               .WithExternalHttpEndpoints()
               .WithEnvironment("AGENDA_AUTH_AUTHORITY", $"{keycloakHttpEndpoint}/realms/agenda")

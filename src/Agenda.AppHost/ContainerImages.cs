@@ -27,6 +27,11 @@ public static partial class ContainerImages
     /// <summary>Logical key for the Keycloak image, used by the <c>keycloak</c> resource.</summary>
     public const string KeycloakKey = "keycloak";
 
+    /// <summary>
+    /// Logical key for the PgAdmin image, used by the <c>pgadmin</c> resource.
+    /// </summary>
+    public const string PgAdminKey = "pgadmin";
+
     /// <summary>Manifest resource name relative to the assembly (logical name).</summary>
     public const string ManifestResourceName = "Agenda.AppHost.container-images.json";
 
@@ -40,6 +45,9 @@ public static partial class ContainerImages
 
     /// <summary>Keycloak image used by the <c>keycloak</c> resource.</summary>
     public static PinnedContainerImage Keycloak => s_images[KeycloakKey];
+
+    /// <summary>PgAdmin image used by the <c>pgadmin</c> resource.</summary>
+    public static PinnedContainerImage PgAdmin => s_images[PgAdminKey];
 
     /// <summary>All declared images, keyed by their logical name.</summary>
     public static IReadOnlyDictionary<string, PinnedContainerImage> All => s_images;
