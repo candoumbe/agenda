@@ -1,6 +1,6 @@
 import { LogLevel, OpenIdConfiguration } from 'angular-auth-oidc-client';
 
-type RuntimeAuthConfig = {
+interface RuntimeAuthConfig {
   authority?: string;
   clientId?: string;
   scope?: string;

@@ -184,7 +184,7 @@ export class ApiService {
     return {
       resource,
       links: Array.isArray(rawLinks)
-        ? rawLinks as Array<{ href: string; method?: string; relations?: string[] }>
+        ? rawLinks as { href: string; method?: string; relations?: string[] }[]
         : []
     };
   }

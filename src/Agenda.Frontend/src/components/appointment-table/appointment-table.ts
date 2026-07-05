@@ -1,6 +1,5 @@
 import { Component, input, signal } from '@angular/core';
 import { Appointment } from '../../models/appointment';
-import { HttpClient } from '@angular/common/http';
 import { ApiService } from '../../services/api-service';
 import { DatePipe } from '@angular/common';
 import { Browsable } from '../../models/browsable';
@@ -18,7 +17,7 @@ export class AppointmentTable {
    * @type Array<Browsable<Appointment>>
    * @memberof AppointmentTable
    */
-  appointments: Array<Browsable<Appointment>> = [];
+  appointments: Browsable<Appointment>[] = [];
 
 
   constructor(public readonly apiService: ApiService) {

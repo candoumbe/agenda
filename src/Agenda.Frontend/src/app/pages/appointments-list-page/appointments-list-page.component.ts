@@ -55,12 +55,10 @@ export class AppointmentsListPageComponent implements OnInit {
     toTime: ['']
   });
 
-  private newlyCreatedAppointmentId: string | null = null;
   private _previousPageFromLink: number | null = null;
   private _nextPageFromLink: number | null = null;
 
   ngOnInit(): void {
-    this.newlyCreatedAppointmentId = this.extractNewlyCreatedId();
     this.applyDefaultDateInterval();
 
     this.searchForm.valueChanges

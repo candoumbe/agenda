@@ -17,7 +17,7 @@ export const authGuard: CanActivateFn = (_route, state) => {
   });
 };
 
-export const loginPageGuard: CanActivateFn = (_route, _state) => {
+export const loginPageGuard: CanActivateFn = (_, __) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
