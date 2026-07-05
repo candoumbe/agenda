@@ -35,3 +35,13 @@ Agent Lambert initialized and ready for work.
 - Documented the API documentation UI migration from Swagger UI to Scalar in `CHANGELOG.md` under Unreleased > API.
 - Kept the changelog entry explicit that the OpenAPI JSON document remains available for tooling compatibility.
 - Used a minimal single-bullet update with an issue link for traceability.
+
+### 2026-07-05: Integration tests robustness action plan
+- Authored `docs/plans/integration-tests-robustness-action-plan.md` in French as an execution-ready plan with prioritization by horizon (quick wins, mid-term, long-term).
+- Anchored recommendations to observed flakiness drivers from current artifacts, including active xUnit collection parallelization and fixture lifecycle consistency.
+- Added a ticketized backlog with clear DoD and a 2-sprint rollout schedule to support team execution and CI anti-flake governance.
+
+### 2026-07-05: Integration tests robustness action plan translation
+- Translated `docs/plans/integration-tests-robustness-action-plan.md` to English in place while preserving section structure, ticket IDs, checklist flow, and implementation intent.
+- Improved wording clarity for CI quality gates and flakiness metrics without removing operational detail.
+- Followed the team directive to keep team-authored documents in English.

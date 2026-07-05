@@ -201,6 +201,12 @@ Jump action updates `from` to the discovered appointment start date and `to` to 
 **Why:** User request — three distinct frontend features shipped atomically.
 **Impact:** Entry URL lands on the new homepage; appointments list shows a persistent result count badge; attendees route is registered for future implementation.
 
+### 2026-07-05T00:00:00Z: Integration tests robustness plan baseline and sequencing
+**By:** Lambert
+**What:** Define an execution-ready robustness plan for integration tests with explicit prioritization (quick wins, 1-2 sprint actions, long-term), CI anti-flake strategy, metrics, and a ticket backlog with DoD.
+**Why:** Align team execution on a single anti-flake roadmap and reduce intermittent CI failures through measurable, staged implementation.
+**Impact:** Shared baseline for delivery planning, quality gating, and weekly flakiness trend tracking across backend and test ownership.
+
 ## Governance
 
 - All meaningful changes require team consensus
