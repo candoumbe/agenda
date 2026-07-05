@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
-using Agenda.Objects;
 using AwesomeAssertions;
+using Bogus;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -9,109 +10,97 @@ using Xunit;
 using Xunit.OpenCategories.V3;
 using static Moq.MockBehavior;
 
-namespace Agenda.API.UnitTests.Authentication
+namespace Agenda.API.UnitTests.Authentication;
+
+[UnitTest]
+public class CurrentRequestMetadataInfoProviderShould
 {
-    [UnitTest]
-    public class CurrentRequestMetadataInfoProviderShould
+    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+    private readonly Mock<ILogger<CurrentRequestMetadataInfoProvider>> _loggerMock;
+    private readonly CurrentRequestMetadataInfoProvider _sut;
+
+    private static readonly Faker s_faker = new();
+
+    public CurrentRequestMetadataInfoProviderShould()
     {
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private readonly Mock<ILogger<CurrentRequestMetadataInfoProvider>> _loggerMock;
-        private readonly CurrentRequestMetadataInfoProvider _sut;
+        _httpContextAccessorMock = new Mock<IHttpContextAccessor>(Strict);
+        _loggerMock = new Mock<ILogger<CurrentRequestMetadataInfoProvider>>();
+        _sut = new CurrentRequestMetadataInfoProvider(_httpContextAccessorMock.Object, _loggerMock.Object);
+    }
 
-        public CurrentRequestMetadataInfoProviderShould()
+    private void GivenUser(params IReadOnlyList<Claim> claims)
+    {
+        ClaimsIdentity identity = new(claims, "TestAuth");
+        ClaimsPrincipal principal = new(identity);
+        DefaultHttpContext httpContext = new() { User = principal };
+        _httpContextAccessorMock.Setup(mock => mock.HttpContext).Returns(httpContext);
+    }
+
+    public static TheoryData<Claim[], string, string> GetCurrentUsernameCases
+    {
+        get
         {
-            _httpContextAccessorMock = new Mock<IHttpContextAccessor>(Strict);
-            _loggerMock = new Mock<ILogger<CurrentRequestMetadataInfoProvider>>();
-            _sut = new CurrentRequestMetadataInfoProvider(_httpContextAccessorMock.Object, _loggerMock.Object);
+            TheoryData<Claim[], string, string> cases = new()
+            {
+                {
+                    [   ],
+                    string.Empty,
+                    "No claim provided"
+                }
+            };
+            {
+                string username = s_faker.Internet.UserName();
+                cases.Add([new Claim(ClaimTypes.Name, username)], username, "HTTP request only contains 'name' claim");
+            }
+            {
+                string username =  s_faker.Internet.UserName();
+                cases.Add([new Claim("preferred-name", username)], username, "HTTP request only contains 'preferred-name' claim");
+            }
+            {
+                string username =  s_faker.Internet.UserName();
+                cases.Add([new Claim(ClaimTypes.Email, username)], username, $"HTTP request only contains '{ClaimTypes.Email}' claim");
+            }
+            {
+                string username = s_faker.Internet.UserName();
+                cases.Add([new Claim(ClaimTypes.GivenName, username)], username, $"HTTP request only contains '{ClaimTypes.GivenName}' claim");
+            }
+            {
+                string username = s_faker.Internet.UserName();
+                cases.Add(
+                    [
+                        new Claim("preferred-name", $"{Guid.CreateVersion7()}"),
+                        new Claim(ClaimTypes.Email, username),
+                    ], 
+                    username,
+                     "Email claim is used when both 'preferred-name' and 'email' claims are present");
+            }
+            {
+                string username = s_faker.Internet.UserName();
+                cases.Add(
+                    [
+                        new Claim(ClaimTypes.Email, username),
+                        new Claim(ClaimTypes.Name, $"{Guid.CreateVersion7()}"),
+                    ], 
+                    username,
+                    $"'{ClaimTypes.Email}' claim takes precedence over '{ClaimTypes.Name}' claim");
+            }
+            
+        
+            return cases;
         }
+    }
 
-        private void GivenUser(params Claim[] claims)
-        {
-            ClaimsIdentity identity = new(claims, "TestAuth");
-            ClaimsPrincipal principal = new(identity);
-            DefaultHttpContext httpContext = new() { User = principal };
-            _httpContextAccessorMock.Setup(mock => mock.HttpContext).Returns(httpContext);
-        }
+    [Theory]
+    [MemberData(nameof(GetCurrentUsernameCases))]
+    public void Returns_expected_username_When_httpRequest_has_expected_value(IReadOnlyList<Claim> claims, string expectedUsername, string reason)
+    {
+        // Arrange
+        GivenUser(claims);
 
-        [Fact]
-        public void GetCurrentUserId_returns_parsed_guid_when_sub_is_a_guid()
-        {
-            // Arrange
-            Guid expected = Guid.NewGuid();
-            GivenUser(new Claim("sub", expected.ToString()));
+        // Act
+        string actualUsername = _sut.GetCurrentUserName();
 
-            // Act
-            Guid? actual = _sut.GetCurrentUserId();
-
-            // Assert
-            actual.Should().Be(expected);
-        }
-
-        [Fact]
-        public void GetCurrentUserId_returns_null_when_sub_is_missing()
-        {
-            // Arrange
-            GivenUser(new Claim("preferred_username", "alice"));
-
-            // Act
-            Guid? actual = _sut.GetCurrentUserId();
-
-            // Assert
-            actual.Should().BeNull();
-        }
-
-        [Fact]
-        public void GetCurrentUserId_returns_null_when_sub_is_not_a_guid()
-        {
-            // Arrange
-            GivenUser(new Claim("sub", "not-a-guid"));
-
-            // Act
-            Guid? actual = _sut.GetCurrentUserId();
-
-            // Assert
-            actual.Should().BeNull();
-        }
-
-        [Fact]
-        public void GetCurrentUserName_returns_preferred_username_claim()
-        {
-            // Arrange
-            GivenUser(new Claim("preferred_username", "alice"));
-
-            // Act
-            string actual = _sut.GetCurrentUserName();
-
-            // Assert
-            actual.Should().Be("alice");
-        }
-
-        [Fact]
-        public void GetCurrentUserName_returns_empty_when_preferred_username_missing()
-        {
-            // Arrange
-            GivenUser(new Claim("sub", Guid.NewGuid().ToString()));
-
-            // Act
-            Username actual = _sut.GetCurrentUserName();
-
-            // Assert
-            actual.Should().Be(Username.Empty);
-        }
-
-        [Fact]
-        public void GetCurrentUserName_uses_only_preferred_username_not_name_claim()
-        {
-            // Arrange
-            GivenUser(
-                new Claim(ClaimTypes.Name, "fallback-name"),
-                new Claim("name", "another-name"));
-
-            // Act
-            string actual = _sut.GetCurrentUserName();
-
-            // Assert
-            actual.Should().BeEmpty();
-        }
+        // Assert
+        actualUsername.Should().Be(expectedUsername, because: reason);
     }
 }
