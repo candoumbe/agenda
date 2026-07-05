@@ -46,6 +46,6 @@ export class AppointmentCard{
   );
 
   private overlap(currentDate: Date, startDate: Date, endDate: Date): boolean {
-    return (startDate <= currentDate && endDate >= currentDate) || (currentDate <= startDate && endDate >= currentDate);
+    return (startDate <= currentDate && currentDate <= endDate);
   }
 }

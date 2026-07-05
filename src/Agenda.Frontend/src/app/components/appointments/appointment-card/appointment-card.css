@@ -7,6 +7,16 @@
   transition: all 0.2s;
 }
 
+.appointment-card:hover{
+  background: rgb(255, 111, 0);
+  border: 1px solid #e5e7eb;
+  border-radius: 1.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  text-orientation: upright
+}
+
 .appointment-card.ongoing {
   border-color: #34d399;
   background: #ecfdf5;

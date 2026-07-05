@@ -11,11 +11,18 @@
   </div>
   <div class="appointment-details">
     <p class="detail-item">
+      <strong>Date:</strong>
+      {{ appointment.startDate | date: 'fullDate' :'fr-FR' }}
+    </p>
+    <p class="detail-item">
       <strong>Heure:</strong>
       {{ appointment.startDate | date: 'HH:mm' }}
       -
       {{ appointment.endDate | date: 'HH:mm' }}
     </p>
+    <p class="detail-item">
+        <strong>Créé:</strong> {{ appointment.createdBy }}
+      </p>
 
     @if (appointment.location) {
       <p class="detail-item">

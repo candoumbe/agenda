@@ -61,7 +61,7 @@ describe('ApiService with HTTP', () => {
   });
 
   it('should return paginated appointments with query parameters', () => {
-    const mockResponse: PageOf<Browsable<Appointment>> = {
+    const mockResponse = {
       page: 1,
       total: 2,
       count: 1,
@@ -73,7 +73,11 @@ describe('ApiService with HTTP', () => {
             location: 'Conference room',
             startDate: '2026-04-24T09:00:00Z',
             endDate: '2026-04-24T10:00:00Z',
-            attendees: []
+            attendees: [],
+            createdAt: '2026-04-24T08:00:00Z',
+            createdBy: 'Alice',
+            updatedAt: '2026-04-24T09:00:00Z',
+            updatedBy: 'Bob'
           },
           links: []
         }
@@ -106,6 +110,7 @@ describe('ApiService with HTTP', () => {
       items: [],
       links: {}
     };
+
 
     apiService.getAppointments({ page: 2, pageSize: 10 }).subscribe((response) => {
       expect(response.page).toBe(2);
@@ -192,7 +197,9 @@ describe('ApiService with HTTP', () => {
             Location: 'Room E',
             StartDate: '2026-05-30T09:00:00Z',
             EndDate: '2026-05-30T10:00:00Z',
-            Attendees: []
+            Attendees: [],
+            CreatedAt: '2026-05-30T08:00:00Z',
+            CreatedBy: 'Alice'
           },
           Links: []
         }

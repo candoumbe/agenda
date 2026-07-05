@@ -161,7 +161,6 @@ describe('AppointmentsListPageComponent', () => {
   it('should group appointments by date', () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString();
 
     const mockResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
@@ -317,6 +316,10 @@ describe('AppointmentsListPageComponent', () => {
     const now = new Date();
     const oneHourAgo = new Date(now.getTime() - 3600000);
     const oneHourFromNow = new Date(now.getTime() + 3600000);
+    const createdDate = new Date(now.getTime() - 7200000);
+    const updatedDate = new Date(now.getTime() - 1800000);
+    const createdBy = 'Alice';
+    const updatedBy = 'Bob';
 
     const mockResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
@@ -328,9 +331,13 @@ describe('AppointmentsListPageComponent', () => {
             id: 'appt_001',
             subject: 'Ongoing meeting',
             location: 'Room A',
-            startDate: oneHourAgo.toISOString(),
-            endDate: oneHourFromNow.toISOString(),
-            attendees: []
+            startDate: oneHourAgo,
+            endDate: oneHourFromNow,
+            attendees: [],
+            createdAt: createdDate,
+            createdBy: createdBy,
+            updatedAt: updatedDate,
+            updatedBy: updatedBy
           },
           links: []
         }
@@ -438,7 +445,7 @@ describe('AppointmentsListPageComponent', () => {
       links: {}
     };
 
-    const firstIncomingStartDate = '2026-05-20T09:00:00Z';
+    const firstIncomingStartDate = new Date('2026-05-20T09:00:00Z');
     const incomingResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
       total: 1,
@@ -674,8 +681,8 @@ describe('AppointmentsListPageComponent', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-05-01T08:00:00.000Z'));
 
-    const firstIncomingStart = '2026-05-21T09:00:00.000Z';
-    const expectedWindowEnd = '2026-06-05T09:00:00.000Z';
+    const firstIncomingStart = new Date('2026-05-21T09:00:00.000Z');
+    const expectedWindowEnd = new Date('2026-06-05T09:00:00.000Z');
 
     const emptyWindowResponse: PageOf<Browsable<Appointment>> = {
       page: 1,
@@ -684,7 +691,7 @@ describe('AppointmentsListPageComponent', () => {
       items: [],
       links: {
         next: {
-          href: `/appointments?from=${encodeURIComponent(firstIncomingStart)}`,
+          href: `/appointments?from=${firstIncomingStart.toISOString()}`,
           relations: ['next']
         }
       }
@@ -701,8 +708,10 @@ describe('AppointmentsListPageComponent', () => {
             subject: 'First incoming appointment',
             location: 'Room 541',
             startDate: firstIncomingStart,
-            endDate: '2026-05-21T10:00:00.000Z',
-            attendees: []
+            endDate: new Date('2026-05-21T10:00:00.000Z'),
+            attendees: [],
+            createdAt: new Date('2026-05-20T08:00:00.000Z'),
+            createdBy: 'Alice'
           },
           links: []
         }
@@ -731,8 +740,8 @@ describe('AppointmentsListPageComponent', () => {
     expect(apiServiceSpy.getAppointments).toHaveBeenNthCalledWith(
       3,
       expect.objectContaining({
-        from: firstIncomingStart,
-        to: expectedWindowEnd
+        from: firstIncomingStart.toISOString(),
+        to: expectedWindowEnd.toISOString()
       })
     );
     expect(component.searchForm.controls.fromDate.value).toContain('2026-05-21');
@@ -850,9 +859,13 @@ describe('AppointmentsListPageComponent', () => {
             id: 'appt_011',
             subject: 'One item page',
             location: 'Room A',
-            startDate: '2026-04-25T09:00:00Z',
-            endDate: '2026-04-25T10:00:00Z',
-            attendees: []
+            startDate: new Date('2026-04-25T09:00:00Z'),
+            endDate: new Date('2026-04-25T10:00:00Z'),
+            attendees: [],
+            createdAt: new Date('2026-04-24T08:00:00Z'),
+            createdBy: 'Alice',
+            updatedAt: new Date('2026-04-24T09:00:00Z'),
+            updatedBy: 'Bob'
           },
           links: []
         }
