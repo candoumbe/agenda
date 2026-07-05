@@ -34,17 +34,17 @@ export class TopbarComponent {
     {
       label: 'Planning',
       path: '/appointments',
-      exact: false
+      exact: true
     },
     {
       label: 'Nouveau rendez-vous',
       path: '/appointments/new',
-      exact: false
+      exact: true
     },
     {
       label: 'Participants',
       path: '/attendees',
-      exact: false
+      exact: true
     }
   ];
 
