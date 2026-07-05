@@ -3,7 +3,7 @@
   "enabled": true,
   "displayName": "Agenda",
   "sslRequired": "external",
-  "registrationAllowed": false,
+  "registrationAllowed": true,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
@@ -142,7 +142,7 @@
             "userinfo.token.claim": "true",
             "user.attribute": "email",
             "id.token.claim": "true",
-            "access.token.claim": "false",
+            "access.token.claim": "true",
             "claim.name": "email",
             "jsonType.label": "String"
           }
@@ -310,7 +310,8 @@
         "http://localhost:*"
       ],
       "webOrigins": [
-        "+"
+        "+",
+        "*"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",

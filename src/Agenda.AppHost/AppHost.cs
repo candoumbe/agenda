@@ -37,7 +37,6 @@ IResourceBuilder<KeycloakResource> keycloak = builder.AddKeycloak("keycloak",
                                                                   adminPassword: keycloakAdminPassword)
     .WithImage(keycloakImage.Image, keycloakImage.Tag)
     .WithRealmImport("./keycloak/agenda-realm.json")
-    .WithDeveloperCertificateTrust(trust: true)
     .WithExternalHttpEndpoints();
 
 if (!isRunningIntegrationTests)
