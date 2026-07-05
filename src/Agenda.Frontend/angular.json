@@ -5,7 +5,6 @@
     "packageManager": "npm",
     "analytics": false,
     "schematicCollections": [
-      "angular-eslint",
       "angular-eslint"
     ]
   },
