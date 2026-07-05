@@ -334,7 +334,7 @@ public class Build : EnhancedBuild,
 
             });
 
-        IReadOnlyList<string> GenerateDockerTagsForBranch(GitRepository repository, GitVersion version)
+        static IReadOnlyList<string> GenerateDockerTagsForBranch(GitRepository repository, GitVersion version)
         {
             List<string> tags = [];
 
@@ -369,17 +369,17 @@ public class Build : EnhancedBuild,
         }
     };
 
-
-
     public Target Tests => _ => _.Triggers(ArchitecturalTests,
                                            this.Get<IUnitTest>().UnitTests,
                                            this.Get<IIntegrationTest>().IntegrationTests)
                                .Description("Runs all tests");
 
-        public Target AddMigration => _ => _.Description("Add a new migration to the database")
+    public Target AddMigration => _ => _.Description("Add a new migration to the database")
         .OnlyWhenStatic(() => IsLocalBuild)
         .Executes(() =>
         {
+
+            
             string migrationName = PromptForInput("New migration name (leave empty to cancel the operation): ", string.Empty);
             if (string.IsNullOrWhiteSpace(migrationName))
             {
@@ -429,13 +429,14 @@ public class Build : EnhancedBuild,
         .OnlyWhenStatic(() => IsLocalBuild)
         .Executes(() =>
         {
-            string provider = PromptForChoice("Database provider : ", [ ("Postgres",  "Postgres database engine" ), ("Sqlite", "SQLite database engine")]);
+            string provider = PromptForChoice("Database provider : ",
+                                              [("Postgres", "Postgres database engine"), ("Sqlite", "SQLite database engine")]);
             if (string.IsNullOrWhiteSpace(provider))
             {
                 return;
             }
 
-            const string contextName = "Agenda.DataStores.AgendaStore";
+            const string contextName = "Agenda.DataStores.AgendaDataStore";
 
             if(PromptForChoice($"Removing latest migration for provider '{provider}'. Confirm ?",
                    [ (ConsoleKey.Y, "Confirm the operation"),
@@ -457,7 +458,7 @@ public class Build : EnhancedBuild,
                 .SetProject(this.Get<IHaveSourceDirectory>().SourceDirectory / $"Agenda.DataStores.{provider}" / $"Agenda.DataStores.{provider}.csproj")
                 .SetStartupProject(ApiProject)
                 .SetProcessAdditionalArguments($"""
-                                                -- --provider {provider.ToLowerInvariant()} --ConnectionStrings:Agenda "{connectionString}"
+                                                -- --provider {provider.ToLowerInvariant()} --ConnectionStrings:agenda "{connectionString}"
                                                 """));
 
             Information("Latest migration removed successfully.");
