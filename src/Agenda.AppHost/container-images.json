@@ -15,6 +15,11 @@
       "registry": "quay.io",
       "image": "keycloak/keycloak",
       "tag": "26.7"
+    },
+    "pgadmin": {
+      "registry": "docker.io",
+      "image": "dpage/pgadmin4",
+      "tag": "9.16"
     }
   }
 }
