@@ -29,6 +29,10 @@ namespace Agenda.API;
 public static class ServiceCollectionExtensions
 {
     private const string TestingNowConfigKey = "Testing:Now";
+    /// <summary>
+    /// Valid algorithms for JWT token validation.
+    /// </summary>
+    private static readonly string[] s_validAlgorithms = ["RS256"];
 
     extension(IServiceCollection services)
     {
@@ -111,8 +115,7 @@ public static class ServiceCollectionExtensions
                     {
                         opt.Audience = audience;
                         opt.RequireHttpsMetadata = requireHttpsMetadata;
-                        opt.MapInboundClaims = false;
-                        opt.TokenValidationParameters.ValidAlgorithms = new[] { "RS256" };
+                        opt.TokenValidationParameters.ValidAlgorithms = s_validAlgorithms;
                         opt.TokenValidationParameters.ClockSkew = TimeSpan.FromSeconds(30);
                         opt.TokenValidationParameters.NameClaimType = "preferred_username";
                         opt.TokenValidationParameters.RoleClaimType = ClaimTypes.Role;
