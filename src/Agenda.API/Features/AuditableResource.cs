@@ -13,7 +13,7 @@ public record AuditableResource<TId> : Resource<TId> where TId : IComparable<TId
     /// <summary>
     /// The date and time when the resource was created.
     /// </summary>
-    public Instant CreatedAt { get; init; }
+    public Instant? CreatedAt { get; init; }
 
     /// <summary>
     /// The username of the user who created the resource.

@@ -51,7 +51,6 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
     {
         Verbs(Http.GET, Http.HEAD);
         Routes("/appointments");
-        AllowAnonymous();
         ResponseInterceptor(new AddLinkHeaderResponseInterceptor(_loggerFactory.CreateLogger<AddLinkHeaderResponseInterceptor>()));
     }
 
@@ -76,7 +75,11 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
             EndDate = app.EndDate,
             Subject = app.Subject,
             Location = app.Location,
-            Attendees = app.Attendees.Select(attendee => new AttendeeDto { Id = attendee.Id, Name = attendee.Name, Email = attendee.Email, PhoneNumber = attendee.PhoneNumber })
+            Attendees = app.Attendees.Select(attendee => new AttendeeDto { Id = attendee.Id, Name = attendee.Name, Email = attendee.Email, PhoneNumber = attendee.PhoneNumber }),
+            CreatedBy = app.CreatedBy,
+            CreatedAt = app.CreatedDate,
+            UpdatedBy = app.UpdatedBy,
+            UpdatedAt = app.UpdatedDate
         });
         Page<AppointmentDto> pageOfAppointments = await unitOfWork.Repository<Appointment>()
                                                                   .Where(selector,
@@ -96,6 +99,10 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                 Subject = x.Subject,
                 Attendees = [..x.Attendees.Select(attendee => new AttendeeInfo { Id = attendee.Id, Email = attendee.Email, Name = attendee.Name, PhoneNumber = attendee.PhoneNumber })],
                 Location = x.Location,
+                CreatedAt = x.CreatedAt,
+                CreatedBy = x.CreatedBy,
+                UpdatedAt = x.UpdatedAt,
+                UpdatedBy = x.UpdatedBy
             })
         ];
         int count = entries.Count;
@@ -134,6 +141,10 @@ public class SearchAppointmentsEndpoint : Endpoint<SearchAppointmentRequest, Ok<
                         Subject = x.Subject,
                         Attendees = [.. x.Attendees.Select(attendee => new AttendeeInfo { Id = attendee.Id, Email = attendee.Email, Name = attendee.Name, PhoneNumber = attendee.PhoneNumber })],
                         Location = x.Location,
+                        CreatedBy = x.CreatedBy,
+                        CreatedAt = x.CreatedAt,
+                        UpdatedAt = x.UpdatedAt,
+                        UpdatedBy = x.UpdatedBy,
                     },
                     Links =
                     [
@@ -338,6 +349,11 @@ file record AppointmentDto
 
     public string Subject { get; init; }
     public string Location { get; init; }
+    public string CreatedBy { get; init; }
+
+    public Instant? CreatedAt { get; init; }
+    public string UpdatedBy { get; init; }
+    public Instant? UpdatedAt { get; init; }
 }
 
 file record AttendeeDto
