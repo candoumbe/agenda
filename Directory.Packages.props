@@ -73,7 +73,7 @@
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.16.0" />
-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.16.0" />
     <PackageVersion Include="Paramore.Brighter" Version="10.6.0" />
     <PackageVersion Include="Paramore.Brighter.MessagingGateway.RMQ" Version="9.9.13" />
     <PackageVersion Include="Paramore.Brighter.AspNetCore" Version="1.0.13" />
