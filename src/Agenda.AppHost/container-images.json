@@ -14,7 +14,7 @@
     "keycloak": {
       "registry": "quay.io",
       "image": "keycloak/keycloak",
-      "tag": "26.6"
+      "tag": "26.7"
     }
   }
 }
