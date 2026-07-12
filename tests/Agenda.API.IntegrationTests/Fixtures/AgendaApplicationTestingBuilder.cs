@@ -38,6 +38,7 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// Time to wait after which the application under test will be considered as "not started".
     /// </summary>
     public static readonly TimeSpan StartStopTimeout = ResolveStartStopTimeout();
+    private const string StartStopTimeoutSecondsEnvironmentVariable = "AGENDA_INTEGRATION_TESTS_STARTSTOP_TIMEOUT_SECONDS";
     private static readonly TimeSpan s_readinessProbeDelay = TimeSpan.FromMilliseconds(500);
     private static readonly TimeSpan s_requestProbeTimeout = TimeSpan.FromSeconds(5);
     private const int RequiredConsecutiveSuccessfulProbes = 1;
@@ -56,6 +57,13 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
 
     private static TimeSpan ResolveStartStopTimeout()
     {
+        string configuredTimeoutSeconds = Environment.GetEnvironmentVariable(StartStopTimeoutSecondsEnvironmentVariable);
+        if (int.TryParse(configuredTimeoutSeconds, out int timeoutSeconds)
+            && timeoutSeconds > 0)
+        {
+            return TimeSpan.FromSeconds(timeoutSeconds);
+        }
+
         string ci = Environment.GetEnvironmentVariable("CI");
         string githubActions = Environment.GetEnvironmentVariable("GITHUB_ACTIONS");
         return ResolveStartStopTimeout(ci, githubActions);
@@ -144,9 +152,9 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
         {
             try
             {
-                // Probe a datastore-backed endpoint so tests only start once
-                // API dependencies are actually usable.
-                using HttpRequestMessage request = new(HttpMethod.Get, "/appointments?page=1&pageSize=1&subject=__readiness__");
+                // Probe the readiness endpoint to avoid coupling test bootstrap
+                // to business routes that may evolve independently.
+                using HttpRequestMessage request = new(HttpMethod.Get, "/health");
                 using CancellationTokenSource requestCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(linkedCancellationTokenSource.Token);
                 requestCancellationTokenSource.CancelAfter(s_requestProbeTimeout);
 
