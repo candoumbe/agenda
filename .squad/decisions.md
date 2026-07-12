@@ -2,6 +2,12 @@
 
 ## Active Decisions
 
+### 2026-07-12T00:00:00Z: Integration test environment stabilization for targeted runs
+**By:** Hicks
+**What:** Stabilized the integration-test assembly fixture startup path by replacing business-route readiness probing with `/health`, and added an environment override (`AGENDA_INTEGRATION_TESTS_STARTSTOP_TIMEOUT_SECONDS`) for startup timeout tuning in local/devcontainer scenarios.
+**Why:** Targeted runs were frequently blocked by fixture bootstrap timeouts and did not reliably reach test execution; this keeps startup checks aligned with infrastructure readiness rather than endpoint-specific behavior.
+**Impact:** Targeted commands now execute reliably and expose real test outcomes (pass/fail) instead of pre-test bootstrap cancellations.
+
 ### 2026-07-12T00:00:00Z: Integration tests migration alignment for HEAD contract classes
 **By:** Bishop
 **What:** Completed migration alignment of HEAD-focused integration tests to the shared assembly fixture serialization path by replacing manual JSON payload construction with `AppointmentInfo`/`AttendeeInfo` model payloads posted through `AgendaApplicationFixture.ApiJsonSerializerOptions`.
