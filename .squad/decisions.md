@@ -229,6 +229,16 @@ Jump action updates `from` to the discovered appointment start date and `to` to 
 **Why:** Align team execution on a single anti-flake roadmap and reduce intermittent CI failures through measurable, staged implementation.
 **Impact:** Shared baseline for delivery planning, quality gating, and weekly flakiness trend tracking across backend and test ownership.
 
+### 2026-07-12T11:40:00Z: Integration migration validation pass
+**By:** Hicks
+**What:**
+- Search integration tests were aligned with current auth behavior by sending explicit Bearer tokens on protected GET/HEAD `/appointments` requests.
+- Shared token caching was added in `AgendaApplicationFixture.IssueAccessTokenAsync` to prevent repeated Keycloak password-grant logins across test classes.
+- Full integration project validation now passes (`33/33`) with no `[Collection(...)]` usages.
+**Why:**
+- The previous `5/33` failures were functional auth regressions (`401`) plus token mint instability under repeated runs, not assembly fixture startup/teardown flakiness.
+- Caching and explicit auth keep the assembly fixture migration stable while preserving minimal test-scope changes.
+
 ## Governance
 
 - All meaningful changes require team consensus
