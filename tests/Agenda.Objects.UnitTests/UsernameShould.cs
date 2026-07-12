@@ -1,9 +1,9 @@
+using System;
+using AwesomeAssertions;
 using FsCheck;
 using FsCheck.Xunit;
-using AwesomeAssertions;
-using Xunit.OpenCategories.V3;
 using Xunit;
-using System;
+using Xunit.OpenCategories.V3;
 
 namespace Agenda.Objects.UnitTests;
 
