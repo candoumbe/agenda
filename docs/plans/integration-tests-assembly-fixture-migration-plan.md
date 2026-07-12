@@ -2,11 +2,11 @@
 
 > Date: 2026-05-26
 > Scope: tests/Agenda.API.IntegrationTests
-> Status: Proposed
+> Status: In Progress
 
 ## 1) Goal And Constraints
 
-- [ ] Migrate integration tests to a single shared fixture lifecycle using xUnit v3 assembly fixture support.
+- [x] Migrate integration tests to a single shared fixture lifecycle using xUnit v3 assembly fixture support.
 - [ ] Keep the plan practical and incremental so tests remain runnable during migration.
 - [ ] Preserve current test behavior and endpoint coverage while reducing duplicated startup code.
 - [ ] Keep test code in English and aligned with existing repository conventions.
@@ -14,23 +14,23 @@
 
 ## 2) Technical Approach (Native xUnit v3 Assembly Fixture)
 
-- [ ] Use xUnit v3 native assembly fixture support (`[assembly: AssemblyFixture(typeof(...))]`) as the primary mechanism.
-- [ ] Centralize app host startup and shared `HttpClient`/serializer setup in one fixture.
-- [ ] Inject shared resources through fixture types and constructor dependencies, not through test collections.
-- [ ] Keep fixture responsibilities focused: start app host, expose clients/options, dispose resources cleanly.
+- [x] Use xUnit v3 native assembly fixture support (`[assembly: AssemblyFixture(typeof(...))]`) as the primary mechanism.
+- [x] Centralize app host startup and shared `HttpClient`/serializer setup in one fixture.
+- [x] Inject shared resources through fixture types and constructor dependencies, not through test collections.
+- [x] Keep fixture responsibilities focused: start app host, expose clients/options, dispose resources cleanly.
 
 ## 3) Step-By-Step Migration Checklist
 
-- [ ] Create `AgendaAssemblyFixture` (or equivalent) in `tests/Agenda.API.IntegrationTests/Fixtures/` implementing async lifecycle.
-- [ ] Add assembly-level registration for the fixture in the integration test assembly.
-- [ ] Move shared startup/bootstrap logic from per-class setup into the assembly fixture.
-- [ ] Move shared serializer/client configuration into the fixture (single source of truth).
-- [ ] Remove collection-based setup attributes/usages from migrated tests.
-- [ ] Migrate each integration test class from class-local startup (`IAsyncLifetime`) to fixture-based dependency usage.
-- [ ] Keep `AppHostShould` isolated only if its scenario explicitly requires independent lifecycle validation.
-- [ ] Remove obsolete retry/helpers that only compensated for duplicate startup instability.
+- [x] Create `AgendaAssemblyFixture` (or equivalent) in `tests/Agenda.API.IntegrationTests/Fixtures/` implementing async lifecycle.
+- [x] Add assembly-level registration for the fixture in the integration test assembly.
+- [x] Move shared startup/bootstrap logic from per-class setup into the assembly fixture.
+- [x] Move shared serializer/client configuration into the fixture (single source of truth).
+- [x] Remove collection-based setup attributes/usages from migrated tests.
+- [x] Migrate each integration test class from class-local startup (`IAsyncLifetime`) to fixture-based dependency usage.
+- [x] Keep `AppHostShould` isolated only if its scenario explicitly requires independent lifecycle validation.
+- [x] Remove obsolete retry/helpers that only compensated for duplicate startup instability.
 - [ ] Run targeted tests after each migrated test class to detect regressions early.
-- [ ] Update any docs/comments that still reference collection fixtures as the main pattern.
+- [x] Update any docs/comments that still reference collection fixtures as the main pattern.
 
 ## 4) Risks And Mitigations
 
