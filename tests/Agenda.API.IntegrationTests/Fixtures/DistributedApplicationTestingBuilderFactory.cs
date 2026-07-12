@@ -22,10 +22,12 @@ namespace Agenda.API.IntegrationTests.Fixtures;
 /// </summary>
 /// <remarks>
 /// <para>
-/// This class is used to create a new instance of the <see cref="AgendaApplicationTestingBuilder"/> class for each test.
+/// This class creates <see cref="AgendaApplicationTestingBuilder"/> instances used by the assembly fixture.
 /// </para>
 /// <para>
-/// This is required because the <see cref="AgendaApplicationTestingBuilder"/> class is not thread safe and each test should use its own instance.
+/// The standard integration test path uses one shared app host lifecycle through
+/// <see cref="AgendaApplicationFixture"/> while scenario-specific tests can still request
+/// an explicit builder instance when they need an isolated startup/shutdown validation.
 /// </para>
 /// For more informations, <see href="https://github.com/dotnet/aspire-samples/blob/main/tests/SamplesIntegrationTests/Infrastructure/DistributedApplicationTestFactory.cs">the GitHub sample</see>.
 /// </remarks>
