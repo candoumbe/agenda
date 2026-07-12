@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ public sealed class SearchAppointmentEndpointShould
 {
     private readonly HttpClient _client;
     private readonly AgendaApplicationFixture _fixture;
+    private string _accessToken;
     private static readonly Faker s_faker = new();
 
     public SearchAppointmentEndpointShould(AgendaApplicationFixture fixture)
@@ -39,9 +41,12 @@ public sealed class SearchAppointmentEndpointShould
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         string uniqueSubjectFilter = $"no-match-{Guid.NewGuid():N}";
+        string accessToken = await GetAccessTokenAsync(cancellationToken);
 
         // Act
-        using HttpResponseMessage response = await _client.GetAsync($"/appointments?page=1&pageSize=10&subject={Uri.EscapeDataString(uniqueSubjectFilter)}", cancellationToken);
+        using HttpRequestMessage request = new(HttpMethod.Get, $"/appointments?page=1&pageSize=10&subject={Uri.EscapeDataString(uniqueSubjectFilter)}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -58,6 +63,7 @@ public sealed class SearchAppointmentEndpointShould
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        string accessToken = await GetAccessTokenAsync(cancellationToken);
         Instant startDate = s_faker.Noda().Instant.Soon();
         Instant endDate = s_faker.Noda().Instant.Future(reference: startDate);
         string uniqueSubject = $"subject-{Guid.NewGuid():N}";
@@ -84,7 +90,9 @@ public sealed class SearchAppointmentEndpointShould
         createdAppointment.Should().NotBeNull();
 
         // Act
-        using HttpResponseMessage searchResponse = await _client.GetAsync($"/appointments?page=1&pageSize=10&subject={Uri.EscapeDataString(uniqueSubject)}", cancellationToken);
+        using HttpRequestMessage searchRequest = new(HttpMethod.Get, $"/appointments?page=1&pageSize=10&subject={Uri.EscapeDataString(uniqueSubject)}");
+        searchRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        using HttpResponseMessage searchResponse = await _client.SendAsync(searchRequest, cancellationToken);
 
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         PageOf<Browsable<AppointmentInfo>> page = await searchResponse.Content.ReadFromJsonAsync<PageOf<Browsable<AppointmentInfo>>>(_fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
@@ -104,6 +112,7 @@ public sealed class SearchAppointmentEndpointShould
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        string accessToken = await GetAccessTokenAsync(cancellationToken);
         Instant startDate = s_faker.Noda().Instant.Soon();
         Instant endDate = s_faker.Noda().Instant.Future(reference: startDate);
         string uniqueSubject = $"subject special-'{Guid.NewGuid():N}";
@@ -130,7 +139,9 @@ public sealed class SearchAppointmentEndpointShould
         createdAppointment.Should().NotBeNull();
 
         // Act
-        using HttpResponseMessage searchResponse = await _client.GetAsync($"/appointments?page=1&pageSize=10&subject={Uri.EscapeDataString(uniqueSubject)}", cancellationToken);
+        using HttpRequestMessage searchRequest = new(HttpMethod.Get, $"/appointments?page=1&pageSize=10&subject={Uri.EscapeDataString(uniqueSubject)}");
+        searchRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        using HttpResponseMessage searchResponse = await _client.SendAsync(searchRequest, cancellationToken);
 
         searchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         PageOf<Browsable<AppointmentInfo>> page = await searchResponse.Content.ReadFromJsonAsync<PageOf<Browsable<AppointmentInfo>>>(_fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
@@ -138,6 +149,16 @@ public sealed class SearchAppointmentEndpointShould
 
         // Assert
         page.Items.Should().Contain(item => item.Resource.Id == createdAppointment.Resource.Id);
+    }
+
+    private async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_accessToken))
+        {
+            _accessToken = await _fixture.IssueAccessTokenAsync("alice", "password", cancellationToken);
+        }
+
+        return _accessToken;
     }
 
 }

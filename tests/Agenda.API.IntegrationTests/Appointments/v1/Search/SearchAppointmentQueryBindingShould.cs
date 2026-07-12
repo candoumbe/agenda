@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.IntegrationTests.Fixtures;
@@ -15,9 +16,12 @@ namespace Agenda.API.IntegrationTests.Appointments.v1.Search;
 public sealed class SearchAppointmentQueryBindingShould
 {
     private readonly HttpClient _client;
+    private readonly AgendaApplicationFixture _fixture;
+    private string _accessToken;
 
     public SearchAppointmentQueryBindingShould(AgendaApplicationFixture fixture)
     {
+        _fixture = fixture;
         _client = fixture.ApiClient;
     }
 
@@ -26,9 +30,12 @@ public sealed class SearchAppointmentQueryBindingShould
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        string accessToken = await GetAccessTokenAsync(cancellationToken);
+        using HttpRequestMessage request = new(HttpMethod.Get, "/appointments?page=1&pageSize=10&from=2026-05-23T22:00:00.000Z&to=2026-06-08T21:59:59.999Z");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         // Act
-        using HttpResponseMessage response = await _client.GetAsync("/appointments?page=1&pageSize=10&from=2026-05-23T22:00:00.000Z&to=2026-06-08T21:59:59.999Z", cancellationToken);   
+        using HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -39,7 +46,9 @@ public sealed class SearchAppointmentQueryBindingShould
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        string accessToken = await GetAccessTokenAsync(cancellationToken);
         HttpRequestMessage request = new(HttpMethod.Head, "/appointments?page=1&pageSize=10&from=2026-05-23T22:00:00.000Z&to=2026-06-08T21:59:59.999Z");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         // Act
         using HttpResponseMessage response = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead,    cancellationToken);
@@ -55,5 +64,15 @@ public sealed class SearchAppointmentQueryBindingShould
 
         total.Should().NotBeNullOrWhiteSpace();
         count.Should().NotBeNullOrWhiteSpace();
+    }
+
+    private async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_accessToken))
+        {
+            _accessToken = await _fixture.IssueAccessTokenAsync("alice", "password", cancellationToken);
+        }
+
+        return _accessToken;
     }
 }
