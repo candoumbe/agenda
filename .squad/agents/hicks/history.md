@@ -200,3 +200,9 @@ When route/topbar auth regressions are fixed, close QA only after both focused a
 - The integration fixture bootstrap was unstable because readiness probing was coupled to a business route (`/appointments`) that can fail independently from host readiness.
 - Probing `/health` in `AgendaApplicationTestingBuilder.WaitUntilApiIsReachableAsync` makes startup deterministic in local/devcontainer contexts and surfaces real test failures instead of fixture timeouts.
 - During AppHost startup, transient Keycloak TLS handshake warnings can appear before the service is fully ready; with a stable readiness probe, these transients no longer mask targeted test execution.
+
+## Learning — 2026-07-12T11:40:00Z: Search integration tests now require authenticated requests and shared token reuse
+
+- The remaining `5/33` integration failures were not fixture start/stop flakes; they were functional `401 Unauthorized` regressions on search GET/HEAD scenarios that were still executed anonymously.
+- Under repeated local runs, multiple password-grant token requests for the same user can trigger Keycloak temporary lock behavior (`user_temporarily_disabled`) and produce secondary `400` token-issuance failures.
+- Stabilization pattern: keep authenticated request coverage explicit in search tests and cache issued access tokens in the shared integration fixture to avoid redundant logins across classes.
