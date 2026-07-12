@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -20,6 +21,8 @@ namespace Agenda.API.IntegrationTests.Fixtures;
 public sealed class AgendaApplicationFixture : IAsyncLifetime
 {
     private AgendaApplicationTestingBuilder _appHost;
+    private readonly Dictionary<string, string> _accessTokenCache = new();
+    private readonly SemaphoreSlim _accessTokenCacheLock = new(1, 1);
 
     public HttpClient ApiClient { get; private set; }
 
@@ -63,8 +66,28 @@ public sealed class AgendaApplicationFixture : IAsyncLifetime
     /// Issues a real Keycloak access token via the Resource Owner Password Grant
     /// against the <c>agenda-frontend</c> client.
     /// </summary>
-    public Task<string> IssueAccessTokenAsync(string username, string password, CancellationToken cancellationToken)
-        => _appHost.IssueAccessTokenAsync(username, password, cancellationToken);
+    public async Task<string> IssueAccessTokenAsync(string username, string password, CancellationToken cancellationToken)
+    {
+        string cacheKey = $"{username}\n{password}";
+        string accessToken;
+
+        await _accessTokenCacheLock.WaitAsync(cancellationToken);
+        try
+        {
+            bool exists = _accessTokenCache.TryGetValue(cacheKey, out accessToken);
+            if (!exists)
+            {
+                accessToken = await _appHost.IssueAccessTokenAsync(username, password, cancellationToken);
+                _accessTokenCache[cacheKey] = accessToken;
+            }
+        }
+        finally
+        {
+            _accessTokenCacheLock.Release();
+        }
+
+        return accessToken;
+    }
 
     ///<inheritdoc />
     public async ValueTask DisposeAsync()
@@ -73,5 +96,7 @@ public sealed class AgendaApplicationFixture : IAsyncLifetime
         {
             await _appHost.DisposeAsync();
         }
+
+        _accessTokenCacheLock.Dispose();
     }
 }
