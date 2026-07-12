@@ -193,3 +193,10 @@ When AppHost runs show mixed outcomes (including occasional non-zero exits), sta
 
 ## Learning — 2026-06-06T18:42:11Z: Frontend auth QA closure should include full-suite parity
 When route/topbar auth regressions are fixed, close QA only after both focused auth specs and the full frontend suite pass. Final coordinated baseline for this batch: `npm run test -- --watch false` (77/77) and `npm run build` (pass).
+
+## Learning — 2026-07-12T00:00:00Z: Integration targeted runs are now reliable with readiness endpoint probing
+
+- `dotnet test ... --filter` is incompatible with the Microsoft.Testing.Platform runner used by this repository; use xUnit v3 filters via `dotnet test ... -- --filter-class "Namespace.Class"`.
+- The integration fixture bootstrap was unstable because readiness probing was coupled to a business route (`/appointments`) that can fail independently from host readiness.
+- Probing `/health` in `AgendaApplicationTestingBuilder.WaitUntilApiIsReachableAsync` makes startup deterministic in local/devcontainer contexts and surfaces real test failures instead of fixture timeouts.
+- During AppHost startup, transient Keycloak TLS handshake warnings can appear before the service is fully ready; with a stable readiness probe, these transients no longer mask targeted test execution.
