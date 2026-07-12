@@ -2,6 +2,17 @@
 
 ## Active Decisions
 
+### 2026-07-12T00:00:00Z: Integration tests migration alignment for HEAD contract classes
+**By:** Bishop
+**What:** Completed migration alignment of HEAD-focused integration tests to the shared assembly fixture serialization path by replacing manual JSON payload construction with `AppointmentInfo`/`AttendeeInfo` model payloads posted through `AgendaApplicationFixture.ApiJsonSerializerOptions`.
+**Why:** Keep integration test setup behavior consistent with the assembly fixture as single source of truth and reduce serializer drift risk across test classes.
+**Impact:** HEAD integration tests now consume the same serializer and ID/date conversion conventions as the rest of the integration suite.
+
+### 2026-07-05T00:00:00Z: User directive - Team documents in English
+**By:** Cyrille NDOUMBE (via Copilot)
+**What:** All team-written documents must be authored in English.
+**Why:** User request - captured for team memory.
+
 ### 2026-06-06T18:42:11Z: Frontend auth navigation contract for Keycloak flow
 **By:** Dallas
 **What:** Standardize frontend authentication navigation behavior:
