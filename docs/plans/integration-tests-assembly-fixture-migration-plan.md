@@ -4,6 +4,15 @@
 > Scope: tests/Agenda.API.IntegrationTests
 > Status: In Progress
 
+## Latest Validation Snapshot (2026-07-12)
+
+- Full integration project run passed after migration fixes: `33 passed / 0 failed`.
+- Remaining failures from the previous full run (`5 failed / 33`) were traced to missing authenticated requests on search GET/HEAD integration tests.
+- Search integration tests now use authenticated requests aligned with current API behavior and the shared assembly fixture token-issuance path.
+- `CollectionAttribute` check remains clean: no occurrences in `tests/Agenda.API.IntegrationTests`.
+- `./build.sh integration-tests` is currently blocked before test execution by a pipeline bootstrap issue:
+  `Could not inject value for IHaveGitRepository.GitRepository` with duplicate key `github-pr-owner-number`.
+
 ## 1) Goal And Constraints
 
 - [x] Migrate integration tests to a single shared fixture lifecycle using xUnit v3 assembly fixture support.
@@ -29,7 +38,7 @@
 - [x] Migrate each integration test class from class-local startup (`IAsyncLifetime`) to fixture-based dependency usage.
 - [x] Keep `AppHostShould` isolated only if its scenario explicitly requires independent lifecycle validation.
 - [x] Remove obsolete retry/helpers that only compensated for duplicate startup instability.
-- [ ] Run targeted tests after each migrated test class to detect regressions early.
+- [x] Run targeted tests after each migrated test class to detect regressions early.
 - [x] Update any docs/comments that still reference collection fixtures as the main pattern.
 
 ## 4) Risks And Mitigations
@@ -49,12 +58,14 @@
   - `dotnet restore Agenda.sln`
   - `dotnet build Agenda.sln -c Debug`
 - [ ] Run integration tests project:
+- [x] Run integration tests project:
   - `dotnet test tests/Agenda.API.IntegrationTests/Agenda.API.IntegrationTests.csproj -c Debug --no-build`
 - [ ] Run repository integration pipeline target:
+- [ ] Run repository integration pipeline target (attempted, blocked before target execution by build bootstrap issue):
   - `./build.sh integration-tests`
 - [ ] Optional full test safety net:
   - `./build.sh Tests`
-- [ ] Confirm no collection-based attribute usage remains in migrated integration tests:
+- [x] Confirm no collection-based attribute usage remains in migrated integration tests:
   - `rg "\[Collection\(" tests/Agenda.API.IntegrationTests`
 
 ## 6) Fallback If Runner Blocks Assembly Fixture Support
