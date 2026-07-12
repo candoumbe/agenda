@@ -45,3 +45,8 @@ Agent Lambert initialized and ready for work.
 - Translated `docs/plans/integration-tests-robustness-action-plan.md` to English in place while preserving section structure, ticket IDs, checklist flow, and implementation intent.
 - Improved wording clarity for CI quality gates and flakiness metrics without removing operational detail.
 - Followed the team directive to keep team-authored documents in English.
+
+### 2026-07-12: PR #651 recap update (changelog + PR body)
+- Updated `CHANGELOG.md` with concise integration-test migration/stabilization bullets covering assembly fixture alignment, targeted run stabilization, Search HEAD/GET token handling, local 33/33 pass result, and the known `./build.sh integration-tests` bootstrap blocker.
+- Published a structured PR #651 description via `gh pr edit --body-file` with sections for feature scope, integration-test work, validation results, and known limitation.
+- Documentation pattern reinforced: keep recap language factual and scoped to verified outcomes, and explicitly separate validation status from known pipeline bootstrap blockers.
