@@ -46,3 +46,9 @@ When backend-generated pagination links use PascalCase query names (for example 
 
 ## Learning — 2026-06-01T08:43:38Z: Aspire connection-refused triage needs current-run endpoint verification
 Intermittent `connection refused` reports during local Aspire startup can be caused by stale endpoint URLs after dynamic port changes between runs. A reliable triage sequence is: verify AppHost process outcome (`dotnet run` exit status), then probe only the currently advertised frontend/API/identity/messaging endpoints. In the investigated run, endpoint probes succeeded when URLs matched the active process output.
+
+## Learning — 2026-07-12T00:00:00Z: HEAD integration tests should use fixture serializer end-to-end
+When HEAD contract tests need setup data creation, prefer creating `AppointmentInfo`/`AttendeeInfo` payloads and posting with `fixture.ApiJsonSerializerOptions` instead of building raw JSON strings manually. This keeps serialization behavior aligned with the rest of the integration suite and avoids drift in NodaTime/ID conversion behavior between test classes.
+
+## Learning — 2026-07-12T00:00:00Z: xUnit v3 filtering in this repository uses MTP extension arguments
+For `Agenda.API.IntegrationTests`, class targeting should use the MTP/xUnit v3 style `dotnet test ... -- --filter-class "Namespace.Class"` rather than `--filter`. In the current environment, integration runs can still abort before test execution when Aspire health checks cannot reach Keycloak/API endpoints.
