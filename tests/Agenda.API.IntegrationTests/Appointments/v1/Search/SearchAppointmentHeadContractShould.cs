@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +11,10 @@ using Agenda.API.Features;
 using Agenda.API.Features.Appointments;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.API.IntegrationTests.Fixtures;
-using Aspire.Hosting;
+using Agenda.Ids;
 using AwesomeAssertions;
 using Bogus;
 using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
-using xRetry.v3;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
@@ -28,11 +25,13 @@ namespace Agenda.API.IntegrationTests.Appointments.v1.Search;
 public sealed class SearchAppointmentHeadContractShould
 {
     private readonly HttpClient _client;
+    private readonly AgendaApplicationFixture _fixture;
     private static readonly Faker s_faker = new();
     private readonly IClock _clock;
     
     public SearchAppointmentHeadContractShould(AgendaApplicationFixture fixture)
     {
+        _fixture = fixture;
         _client = fixture.ApiClient;
         _clock = SystemClock.Instance;
     }
@@ -126,31 +125,28 @@ public sealed class SearchAppointmentHeadContractShould
 
     private async Task CreateAppointmentAsync(Instant startDate, string subject, string location, CancellationToken cancellationToken)
     {
-                string appointmentId = Guid.NewGuid().ToString();
-                string attendeeId = Guid.NewGuid().ToString();
-                DateTimeOffset startDateTime = startDate.ToDateTimeOffset();
-                DateTimeOffset endDateTime = startDate.Plus(Duration.FromMinutes(45)).ToDateTimeOffset();
+        DateTimeOffset startDateTime = startDate.ToDateTimeOffset();
+        DateTimeOffset endDateTime = startDate.Plus(Duration.FromMinutes(45)).ToDateTimeOffset();
+        AppointmentInfo request = new()
+        {
+            Id = AppointmentId.New(),
+            Subject = subject,
+            Location = location,
+            StartDate = Instant.FromDateTimeOffset(startDateTime).InUtc().ToOffsetDateTime(),
+            EndDate = Instant.FromDateTimeOffset(endDateTime).InUtc().ToOffsetDateTime(),
+            Attendees =
+            [
+                new AttendeeInfo
+                {
+                    Id = AttendeeId.New(),
+                    Name = s_faker.Name.FullName(),
+                    Email = s_faker.Internet.Email(),
+                    PhoneNumber = s_faker.Phone.PhoneNumber()
+                }
+            ]
+        };
 
-                string payload = $$"""
-                                                 {
-                                                     "id": "{{appointmentId}}",
-                                                     "subject": "{{subject}}",
-                                                     "location": "{{location}}",
-                                                     "startDate": "{{startDateTime:O}}",
-                                                     "endDate": "{{endDateTime:O}}",
-                                                     "attendees": [
-                                                         {
-                                                             "id": "{{attendeeId}}",
-                                                             "name": "{{s_faker.Name.FullName()}}",
-                                                             "email": "{{s_faker.Internet.Email()}}",
-                                                             "phoneNumber": "{{s_faker.Phone.PhoneNumber()}}"
-                                                         }
-                                                     ]
-                                                 }
-                                                 """;
-
-                using StringContent content = new(payload, Encoding.UTF8, "application/json");
-                using HttpResponseMessage createResponse = await _client.PostAsync("/appointments", content, cancellationToken);
+        using HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/appointments", request, _fixture.ApiJsonSerializerOptions, cancellationToken);
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 }
