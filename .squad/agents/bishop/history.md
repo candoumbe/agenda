@@ -52,3 +52,6 @@ When HEAD contract tests need setup data creation, prefer creating `AppointmentI
 
 ## Learning — 2026-07-12T00:00:00Z: xUnit v3 filtering in this repository uses MTP extension arguments
 For `Agenda.API.IntegrationTests`, class targeting should use the MTP/xUnit v3 style `dotnet test ... -- --filter-class "Namespace.Class"` rather than `--filter`. In the current environment, integration runs can still abort before test execution when Aspire health checks cannot reach Keycloak/API endpoints.
+
+## Learning — 2026-07-12T00:00:00Z: Search HEAD integration contract now requires authenticated probes
+`SearchAppointmentHeadContractShould` can fail with 401 when GET/HEAD calls are sent without a bearer token. A minimal and stable fix is to mint an `alice` token with `IssueAccessTokenAsync(...)` and attach `Authorization: Bearer` on the GET/HEAD requests under test, while keeping setup POST payload serialization unchanged.
