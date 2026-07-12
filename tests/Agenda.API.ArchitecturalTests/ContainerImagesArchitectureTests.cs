@@ -29,7 +29,12 @@ namespace Agenda.API.ArchitecturalTests
         public void Manifest_should_be_loadable_and_contain_every_required_image()
         {
             // Arrange
-            string[] expectedKeys = [ContainerImages.PostgresKey, ContainerImages.RabbitMqKey, ContainerImages.KeycloakKey];
+            string[] expectedKeys = [
+                ContainerImages.PostgresKey, 
+                ContainerImages.RabbitMqKey,
+                ContainerImages.KeycloakKey,
+                ContainerImages.PgAdminKey
+            ];
 
             // Act
             IReadOnlyDictionary<string, PinnedContainerImage> images = ContainerImages.All;
