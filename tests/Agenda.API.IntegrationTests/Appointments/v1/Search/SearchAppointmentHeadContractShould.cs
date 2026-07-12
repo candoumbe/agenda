@@ -41,6 +41,7 @@ public sealed class SearchAppointmentHeadContractShould
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        string accessToken = await _fixture.IssueAccessTokenAsync("alice", "password", cancellationToken);
         Instant start = _clock.GetCurrentInstant().Plus(Duration.FromDays(1));
 
         await CreateAppointmentAsync(start, "Planning sync", "Paris", cancellationToken);
@@ -49,6 +50,7 @@ public sealed class SearchAppointmentHeadContractShould
 
         string query = "/appointments?page=1&pageSize=2";
         HttpRequestMessage request = new(HttpMethod.Head, query);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         // Act
         using HttpResponseMessage headResponse = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
@@ -75,6 +77,7 @@ public sealed class SearchAppointmentHeadContractShould
     {
         // Arrange
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        string accessToken = await _fixture.IssueAccessTokenAsync("alice", "password", cancellationToken);
         Instant matchingStart = _clock.GetCurrentInstant().Plus(Duration.FromDays(1));
 
         await CreateAppointmentAsync(matchingStart, "Backend design review", "Paris", cancellationToken);
@@ -89,8 +92,12 @@ public sealed class SearchAppointmentHeadContractShould
         string query = $"/appointments?page=1&pageSize=10&subject={subjectFilter}&location={locationFilter}&from={fromParam}&to={toParam}";
 
         // Act
-        using HttpResponseMessage getResponse = await _client.GetAsync(query, cancellationToken);
-        using HttpResponseMessage headResponse = await _client.SendAsync(new HttpRequestMessage(HttpMethod.Head, query), HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        using HttpRequestMessage getRequest = new(HttpMethod.Get, query);
+        getRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        using HttpRequestMessage headRequest = new(HttpMethod.Head, query);
+        headRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        using HttpResponseMessage getResponse = await _client.SendAsync(getRequest, cancellationToken);
+        using HttpResponseMessage headResponse = await _client.SendAsync(headRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
         // Assert
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
