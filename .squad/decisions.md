@@ -2,6 +2,11 @@
 
 ## Active Decisions
 
+### 2026-07-12T00:00:00Z: Search HEAD contract tests authenticate request probes
+**By:** Bishop
+**What:** Updated `SearchAppointmentHeadContractShould` to request a real Keycloak token (`alice`) and send it in the `Authorization: Bearer` header for GET/HEAD contract assertions.
+**Why:** The targeted Search HEAD contract tests were returning 401 Unauthorized when run anonymously. Explicit authentication aligns the class with current auth behavior while keeping test scope focused on response-header contract parity.
+
 ### 2026-07-12T00:00:00Z: Integration test environment stabilization for targeted runs
 **By:** Hicks
 **What:** Stabilized the integration-test assembly fixture startup path by replacing business-route readiness probing with `/health`, and added an environment override (`AGENDA_INTEGRATION_TESTS_STARTSTOP_TIMEOUT_SECONDS`) for startup timeout tuning in local/devcontainer scenarios.
