@@ -41,8 +41,8 @@ jobs:
             .fallout/temp
             ~/.nuget/packages
           key: ${{ runner.os }}-${{ hashFiles('global.json', 'src/**/*.csproj') }}
-      - name: 'Run: Tests, Publish, Pack'
-        run: ./build.cmd Tests Publish Pack
+      - name: 'Run: Tests, PublishImages, Pack'
+        run: ./build.cmd Tests PublishImages Pack
         env:
           NuGetApiKey: ${{ secrets.NUGET_API_KEY }}
           CodecovToken: ${{ secrets.CODECOV_TOKEN }}
@@ -83,6 +83,11 @@ jobs:
         with:
           name: packages
           path: output/artifacts/packages
+      - name: 'Publish: frontend'
+        uses: actions/upload-artifact@v5
+        with:
+          name: frontend
+          path: output/artifacts/publish/frontend
       - name: 'Publish: publish'
         uses: actions/upload-artifact@v7
         with:

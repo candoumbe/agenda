@@ -1,8 +1,10 @@
 using Agenda.AppHost;
 using Aspire.Hosting;
-using Aspire.Hosting.ApplicationModel;
+using Aspire.Hosting.ApplicationModel.Docker;
 using Microsoft.Extensions.Configuration;
 using Projects;
+
+#pragma warning disable ASPIREDOCKERFILEBUILDER001
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
@@ -77,7 +79,7 @@ string runScriptName = builder.ExecutionContext.IsRunMode ? "start:dev" : "start
 
 if (!isRunningIntegrationTests)
 {
-     var frontend = builder.AddViteApp("frontend", "../Agenda.Frontend", runScriptName)
+    var frontend = builder.AddViteApp("frontend", "../Agenda.Frontend", runScriptName)
               .WithDeveloperCertificateTrust(trust: true)
               .WithReference(api).WaitFor(api)
               .WithReference(keycloak).WaitFor(keycloak)
@@ -87,7 +89,16 @@ if (!isRunningIntegrationTests)
               .WithEnvironment("AGENDA_AUTH_AUTHORITY", $"{keycloakHttpEndpoint}/realms/agenda")
               .WithEnvironment("AGENDA_AUTH_CLIENT_ID", "agenda-frontend")
               .WithEnvironment("AGENDA_AUTH_SCOPE", "openid profile email agenda-audience")
-          .PublishAsDockerFile();
+              .PublishAsDockerFile(frontendApp =>
+        {
+#pragma warning disable ASPIREPIPELINES003 // Le type est utilisé à des fins d’évaluation uniquement et est susceptible d’être modifié ou supprimé dans les futures mises à jour. Supprimez ce diagnostic pour continuer.
+            
+#pragma warning restore ASPIREPIPELINES003 // Le type est utilisé à des fins d’évaluation uniquement et est susceptible d’être modifié ou supprimé dans les futures mises à jour. Supprimez ce diagnostic pour continuer.
+        });
+
+    if(builder.ExecutionContext.IsPublishMode)
+    {
+    }
 }
 
 builder.Build().Run();
@@ -97,3 +108,5 @@ public partial class Program
 {
     public const string RunningIntegrationTestsConfigName = "RunningIntegrationTests";
 }
+
+#pragma warning restore ASPIREDOCKERFILEBUILDER001
