@@ -70,6 +70,7 @@ Initial setup complete.
 - The auth callback page now uses inline template/styles to prevent missing-file failures and applies a safe relative redirect policy.
 - The app shell now enforces local navigation to `/login` on logout so the user always lands on the connection screen.
 - Route and shell tests should mock `AuthService` (OIDC flow) instead of relying on legacy `AuthStateService` assumptions.
+- The frontend Docker runtime stage should rely on the `nginx:1.27-alpine` built-in `nginx` user/group instead of recreating them, otherwise image builds can fail with duplicate account errors.
 
 ### 2026-06-06: Cross-agent alignment for frontend auth delivery
 
