@@ -388,10 +388,12 @@ public class Build : EnhancedBuild,
 
             versions.ForEach(version =>
             {
-                AbsolutePath publishDirectory = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "frontend" / gitVersion.FullSemVer;
+                AbsolutePath publishDirectory = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "frontend";
+                publishDirectory.CreateOrCleanDirectory();
+
                 string filename = $"{imageName}-{version}.tar.gz";
                 DockerSave(settings => settings
-                        .SetImages($"agenda-frontend:{version}")
+                        .SetImages($"{imageName}:{version}")
                         .SetOutput(publishDirectory / filename)
                         .SetProcessWorkingDirectory(FrontendDirectory));
                 
