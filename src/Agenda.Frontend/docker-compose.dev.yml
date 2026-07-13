@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agenda-frontend-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - AGENDA_AUTH_AUTHORITY=http://localhost:8081/auth/realms/agenda
+      - AGENDA_AUTH_CLIENT_ID=agenda-frontend-dev
+      - AGENDA_AUTH_SCOPE=openid profile email offline_access
+    volumes:
+      # Pour développement en live (optionnel)
+      # - ./dist/browser:/usr/share/nginx/html
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - agenda-dev
+    restart: unless-stopped
+    # Logs actifs pour développement
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  agenda-dev:
+    driver: bridge
