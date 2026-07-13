@@ -384,7 +384,7 @@ public class Build : EnhancedBuild,
             DockerBuild(settings => settings.SetFile(FrontendDirectory / "Dockerfile")
                     .SetPath(FrontendDirectory)
                     .SetProcessWorkingDirectory(FrontendDirectory)
-                    .SetTag([.. versions.Select(version => $"{imageName}:{version}")]));
+                    .CombineWith(versions, (dockerBuildSettings, version) => dockerBuildSettings.SetTag($"{imageName}:{version}")));
 
             versions.ForEach(version =>
             {
@@ -411,6 +411,9 @@ public class Build : EnhancedBuild,
 
                     Verbose("Tagging image {ImageName} with tags: {@Tags}", imageNameWithRegistry, versions);
 
+                    DockerImageTag(settings => settings.SetSourceImage($"{imageName}:{version}")
+                        .CombineWith(versions, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
+
                     Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
 
                     if (IsServerBuild)
@@ -426,8 +429,11 @@ public class Build : EnhancedBuild,
 
                         Verbose("Logged into {RegistryUri} successfully", registry.Uri);
 
+
+
                         DockerImagePush(settings =>
-                            settings.CombineWith(versions, (pushSettings, tag) => pushSettings.SetName($"{imageNameWithRegistry}:{tag}")));
+                            settings
+                                .CombineWith(versions, (pushSettings, tag) => pushSettings.SetName($"{imageNameWithRegistry}:{tag}")));
 
                         Information("Image {ImageName} pushed successfully", imageNameWithRegistry);
                     }
