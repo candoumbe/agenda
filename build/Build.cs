@@ -36,7 +36,7 @@ using Project = Fallout.Common.ProjectModel.Project;
     OnPushBranchesIgnore = [IHaveMainBranch.MainBranchName],
     PublishArtifacts = true,
     EnableGitHubToken = true,
-    InvokedTargets = [nameof(Tests), nameof(IPushNugetPackages.Publish), nameof(IPack.Pack)],
+    InvokedTargets = [nameof(Tests), nameof(PublishImages), nameof(IPack.Pack)],
     CacheKeyFiles = ["global.json", "src/**/*.csproj"],
     ImportSecrets =
     [
@@ -57,8 +57,8 @@ using Project = Fallout.Common.ProjectModel.Project;
     GitHubActionsImage.UbuntuLatest,
     FetchDepth = 0,
     AutoGenerate = false,
-    OnPushBranches = [ IHaveMainBranch.MainBranchName ],
-    InvokedTargets = [nameof(Tests), nameof(IPushNugetPackages.Publish), nameof(ICreateGithubRelease.AddGithubRelease)],
+    OnPushBranches = [IHaveMainBranch.MainBranchName],
+    InvokedTargets = [nameof(Tests), nameof(PublishImages), nameof(ICreateGithubRelease.AddGithubRelease)],
     EnableGitHubToken = true,
     CacheKeyFiles = ["global.json", "src/**/*.csproj"],
     PublishArtifacts = true,
@@ -94,7 +94,7 @@ public class Build : EnhancedBuild,
     ICanRegenerateGitHubWorkflows
 {
 
-    [Solution] [Required] public readonly Solution Solution;
+    [Solution][Required] public readonly Solution Solution;
 
     /// <inheritdoc />
     Solution IHaveSolution.Solution => Solution;
@@ -222,21 +222,25 @@ public class Build : EnhancedBuild,
 
     public Target RestoreFrontend => _ => _.Description("Restore frontend dependencies")
         .TryTriggeredBy<IRestore>()
-        .TryBefore<ICompile>()
+        .Before(BuildFrontend)
         .Executes(() => NpmInstall(settings => settings.SetProcessWorkingDirectory(FrontendDirectory)));
 
     public Target BuildFrontend => _ => _.Description("Builds the frontend")
         .TryTriggeredBy<ICompile>()
-        .TryBefore<IUnitTest>()
-        .Executes(() => NpmRun(settings => settings.SetProcessWorkingDirectory(FrontendDirectory)
-                                                             .SetCommand("build")));
+        .DependsOn(RestoreFrontend)
+        .Executes(() =>
+        {
+            NpmRun(settings => settings.SetProcessWorkingDirectory(FrontendDirectory)
+                                                                   .SetCommand("build"));
+        });
 
     public Target TestFrontend => _ => _.Description("Run frontend tests")
         .TryTriggeredBy<IUnitTest>()
+        .DependsOn(BuildFrontend)
         .TryBefore<IReportUnitTestCoverage>()
         .Executes(() => NpmRun(settings => settings.SetProcessWorkingDirectory(FrontendDirectory)
-                                                             .SetProcessAdditionalArguments("--watch false")
-                                                             .SetCommand("test")));
+                                                                         .SetProcessAdditionalArguments("--watch false")
+                                                                         .SetCommand("test")));
 
     /// <summary>
     /// Pre-pulls every container image declared in <see cref="ContainerImages"/> so the download
@@ -257,9 +261,7 @@ public class Build : EnhancedBuild,
         });
 
 
-    public Target PublishApi => _ =>
-    {
-        return _.Description("Publish image of the API")
+    public Target PublishApi => _ => _.Description("Publish image of the API")
             .DependsOn<IPushNugetPackages>()
             .TriggeredBy<IPushNugetPackages>()
             .After(Tests)
@@ -277,7 +279,7 @@ public class Build : EnhancedBuild,
 
                 Registries.ForEach(registry =>
                 {
-                    AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish"/ registry.Name / filename;
+                    AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / registry.Name / filename;
 
                     Information("Publishing {ImageName} (version {Version}) for {RegistryName} ({RegistryUri}) to {ContainerFullPath}",
                         project.Name, version, registry.Name, registry.Uri, containerFullPath);
@@ -295,7 +297,7 @@ public class Build : EnhancedBuild,
                         .SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
                         .EnableSelfContained()
                         .SetProperties(publishProperties)
-                        .SetProcessAdditionalArguments(["/t:PublishContainer","--tl"]));
+                        .SetProcessAdditionalArguments(["/t:PublishContainer", "--tl"]));
 
                     Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
 
@@ -304,8 +306,8 @@ public class Build : EnhancedBuild,
 
                     Verbose("Image {ImageName} loaded successfully", imageNameWithRegistry);
 
-                    IReadOnlyList<string> tags =  GenerateDockerTagsForBranch(this.Get<IHaveGitHubRepository>().GitRepository, gitVersion);
-                    Verbose("Tagging image {ImageName} with tags: {Tags}", imageNameWithRegistry, string.Join(", ", tags));
+                    IReadOnlySet<string> tags = GenerateDockerTagsForBranch(this.Get<IHaveGitHubRepository>().GitRepository, gitVersion);
+                    Verbose("Tagging image {ImageName} with tags: {@Tags}", imageNameWithRegistry, tags);
 
                     DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{version}")
                         .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
@@ -314,8 +316,8 @@ public class Build : EnhancedBuild,
 
                     if (IsServerBuild)
                     {
-                        Information("Pushing image {ImageName} to {RegistryName} ({RegistryUri}) with tags: {Tags}",
-                            imageNameWithRegistry, registry.Name, registry.Uri, string.Join(", ", tags));
+                        Information("Pushing image {ImageName} to {RegistryName} ({RegistryUri}) with tags: {@Tags}",
+                            imageNameWithRegistry, registry.Name, registry.Uri, tags);
 
                         Verbose("Logging into {RegistryUri}", registry.Uri);
 
@@ -331,43 +333,107 @@ public class Build : EnhancedBuild,
                         Information("Image {ImageName} pushed successfully", imageNameWithRegistry);
                     }
                 });
-
             });
 
-        static IReadOnlyList<string> GenerateDockerTagsForBranch(GitRepository repository, GitVersion version)
+    private static IReadOnlySet<string> GenerateDockerTagsForBranch(GitRepository repository, GitVersion version)
+    {
+        HashSet<string> tags = new(StringComparer.OrdinalIgnoreCase);
+
+        if (repository.IsOnReleaseBranch())
         {
-            List<string> tags = [];
-
-            if(repository.IsOnReleaseBranch())
-            {
-                tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
-                tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
-            }
-            else if (repository.IsOnHotfixBranch() || repository.IsOnFeatureBranch() || (repository.Branch?.StartsWith("chore/*", StringComparison.OrdinalIgnoreCase) ?? false))
-            {
-                tags.Add(repository.Branch.Slugify());
-            }
-            else if (repository.IsOnDevelopBranch())
-            {
-                tags.Add($"{version.Major}-{version.EscapedBranchName}");
-                tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
-                tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
-                tags.Add($"{version.Major}.{version.Minor}{version.EscapedBranchName}");
-                tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
-            }
-            else if (repository.IsOnMainOrMasterBranch())
-            {
-                tags.Add($"{version.Major}");
-                tags.Add($"{version.Major}-latest");
-                tags.Add($"{version.Major}.{version.Minor}");
-                tags.Add($"{version.Major}.{version.Minor}-latest");
-                tags.Add($"{version.MajorMinorPatch}");
-                tags.Add($"{version.MajorMinorPatch}-latest");
-            }
-
-            return tags;
+            tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
         }
-    };
+        else if (repository.IsOnHotfixBranch() || repository.IsOnFeatureBranch() || (repository.Branch?.StartsWith("chore/*", StringComparison.OrdinalIgnoreCase) ?? false))
+        {
+            tags.Add(repository.Branch.Slugify());
+        }
+        else if (repository.IsOnDevelopBranch())
+        {
+            tags.Add($"{version.Major}-{version.EscapedBranchName}");
+            tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.Major}.{version.Minor}{version.EscapedBranchName}");
+            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
+        }
+        else if (repository.IsOnMainOrMasterBranch())
+        {
+            tags.Add($"{version.Major}");
+            tags.Add($"{version.Major}-latest");
+            tags.Add($"{version.Major}.{version.Minor}");
+            tags.Add($"{version.Major}.{version.Minor}-latest");
+            tags.Add($"{version.MajorMinorPatch}");
+            tags.Add($"{version.MajorMinorPatch}-latest");
+        }
+
+        return tags;
+    }
+
+    public Target PublishFrontend => _ => _.Description("Publish frontend static files")
+        .DependsOn(TestFrontend)
+        .After(TestFrontend)
+        .Consumes(BuildFrontend)
+        .TryAfter<IPack>()
+        .Produces(this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "frontend" / "**" / "*.tar.gz")
+        .Executes(() =>
+        {
+            GitVersion gitVersion = this.Get<IHaveGitVersion>().GitVersion;
+            const string imageName = "agenda.frontend";
+            IReadOnlySet<string> versions = GenerateDockerTagsForBranch(this.Get<IHaveGitRepository>().GitRepository, gitVersion);
+
+            DockerBuild(settings => settings.SetFile(FrontendDirectory / "Dockerfile")
+                    .SetPath(FrontendDirectory)
+                    .SetProcessWorkingDirectory(FrontendDirectory)
+                    .SetTag([.. versions.Select(version => $"{imageName}:{version}")]));
+
+            versions.ForEach(version =>
+            {
+                AbsolutePath publishDirectory = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "frontend" / gitVersion.FullSemVer;
+                string filename = $"{imageName}-{version}.tar.gz";
+                DockerSave(settings => settings
+                        .SetImages($"agenda-frontend:{version}")
+                        .SetOutput(publishDirectory / filename)
+                        .SetProcessWorkingDirectory(FrontendDirectory));
+                
+                Information("Frontend static files (version {Version}) will be tagged as {Tag}", gitVersion.FullSemVer, version);
+
+                Registries.ForEach(registry =>
+                {
+                    string imageNameWithRegistry = $"{registry.Uri}/{this.Get<IHaveGitRepository>().GitRepository.GetGitHubOwner()}/{imageName}";
+
+                    Information("Publishing frontend static files (version {Version}) to {RegistryName} ({RegistryUri}) as {ImageNameWithRegistry}",
+                        version, registry.Name, registry.Uri, imageNameWithRegistry);
+
+
+                    Information("Frontend static files (version {Version}) loaded successfully", version);
+
+                    Verbose("Tagging image {ImageName} with tags: {@Tags}", imageNameWithRegistry, versions);
+
+                    Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
+
+                    if (IsServerBuild)
+                    {
+                        Information("Pushing image {ImageName} to {RegistryName} ({RegistryUri}) with tags: {@Tags}",
+                            imageNameWithRegistry, registry.Name, registry.Uri, versions);
+
+                        Verbose("Logging into {RegistryUri}", registry.Uri);
+
+                        DockerLogin(settings => settings.SetUsername(this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner())
+                            .SetPassword(registry.Password)
+                            .SetServer(registry.Uri));
+
+                        Verbose("Logged into {RegistryUri} successfully", registry.Uri);
+
+                        DockerImagePush(settings =>
+                            settings.CombineWith(versions, (pushSettings, tag) => pushSettings.SetName($"{imageNameWithRegistry}:{tag}")));
+
+                        Information("Image {ImageName} pushed successfully", imageNameWithRegistry);
+                    }
+                });
+
+                Information("Frontend static files (version {Version}) published successfully to {PublishDirectory}", version, publishDirectory);
+            });
+        });
 
     public Target Tests => _ => _.Triggers(ArchitecturalTests,
                                            this.Get<IUnitTest>().UnitTests,
@@ -379,13 +445,13 @@ public class Build : EnhancedBuild,
         .Executes(() =>
         {
 
-            
+
             string migrationName = PromptForInput("New migration name (leave empty to cancel the operation): ", string.Empty);
             if (string.IsNullOrWhiteSpace(migrationName))
             {
                 return;
             }
-            string provider = PromptForChoice("Database provider : ", [ ("Postgres",  "Postgres database engine" ), ("Sqlite", "SQLite database engine")]);
+            string provider = PromptForChoice("Database provider : ", [("Postgres", "Postgres database engine"), ("Sqlite", "SQLite database engine")]);
             if (string.IsNullOrWhiteSpace(provider))
             {
                 return;
@@ -394,7 +460,7 @@ public class Build : EnhancedBuild,
             const string migrationDirectoryName = "Migrations";
             const string contextName = "Agenda.DataStores.AgendaDataStore";
 
-            if(PromptForChoice($"Adding migration '{migrationName}' for provider '{provider}'. Confirm ?",
+            if (PromptForChoice($"Adding migration '{migrationName}' for provider '{provider}'. Confirm ?",
                    [ (ConsoleKey.Y, "Confirm the operation"),
                        (ConsoleKey.N, "Cancel the operation")]) == ConsoleKey.N)
             {
@@ -438,7 +504,7 @@ public class Build : EnhancedBuild,
 
             const string contextName = "Agenda.DataStores.AgendaDataStore";
 
-            if(PromptForChoice($"Removing latest migration for provider '{provider}'. Confirm ?",
+            if (PromptForChoice($"Removing latest migration for provider '{provider}'. Confirm ?",
                    [ (ConsoleKey.Y, "Confirm the operation"),
                        (ConsoleKey.N, "Cancel the operation")]) == ConsoleKey.N)
             {
@@ -463,4 +529,11 @@ public class Build : EnhancedBuild,
 
             Information("Latest migration removed successfully.");
         });
+
+
+    public Target PublishImages => _ => _.Description("Publish images of the API and frontend")
+        .DependsOn(PublishApi, PublishFrontend)
+        .After(Tests)
+        .TryBefore<ICreateGithubRelease>( x => x.AddGithubRelease)
+        .Consumes(this.Get<ICompile>().Compile);
 }
