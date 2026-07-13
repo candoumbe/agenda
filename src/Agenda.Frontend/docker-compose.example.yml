@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agenda-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - AGENDA_AUTH_AUTHORITY=${AGENDA_AUTH_AUTHORITY:-http://keycloak:8080/auth/realms/agenda}
+      - AGENDA_AUTH_CLIENT_ID=${AGENDA_AUTH_CLIENT_ID:-agenda-frontend}
+      - AGENDA_AUTH_SCOPE=${AGENDA_AUTH_SCOPE:-openid profile email}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - agenda
+    restart: unless-stopped
+
+networks:
+  agenda:
+    driver: bridge
