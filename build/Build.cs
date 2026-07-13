@@ -346,7 +346,11 @@ public class Build : EnhancedBuild,
         }
         else if (repository.IsOnHotfixBranch() || repository.IsOnFeatureBranch() || (repository.Branch?.StartsWith("chore/*", StringComparison.OrdinalIgnoreCase) ?? false))
         {
-            tags.Add(repository.Branch.Slugify());
+            tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}.{version.ShortSha}");
+            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}"); 
+            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}.{version.ShortSha}"); 
         }
         else if (repository.IsOnDevelopBranch())
         {
@@ -377,71 +381,58 @@ public class Build : EnhancedBuild,
         .Produces(this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "frontend" / "**" / "*.tar.gz")
         .Executes(() =>
         {
-            GitVersion gitVersion = this.Get<IHaveGitVersion>().GitVersion;
             const string imageName = "agenda.frontend";
+            GitVersion gitVersion = this.Get<IHaveGitVersion>().GitVersion;
             IReadOnlySet<string> versions = GenerateDockerTagsForBranch(this.Get<IHaveGitRepository>().GitRepository, gitVersion);
-
+            
+            string version = gitVersion.SemVer;
+            
             DockerBuild(settings => settings.SetFile(FrontendDirectory / "Dockerfile")
                     .SetPath(FrontendDirectory)
                     .SetProcessWorkingDirectory(FrontendDirectory)
-                    .CombineWith(versions, (dockerBuildSettings, version) => dockerBuildSettings.SetTag($"{imageName}:{version}")));
+                    .SetTag([$"{imageName}:{version}" , .. versions.Select(version => $"{imageName}:{version}")]));
 
-            versions.ForEach(version =>
+            Information("{ImageName} (version {Version}) will be tagged as {Tag}", imageName, gitVersion.FullSemVer, version);
+
+            Registries.ForEach(registry =>
             {
-                AbsolutePath publishDirectory = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "frontend";
-                publishDirectory.CreateOrCleanDirectory();
+                string imageNameWithRegistry = $"{registry.Uri}/{this.Get<IHaveGitRepository>().GitRepository.GetGitHubOwner()}/{imageName}";
 
-                string filename = $"{imageName}-{version}.tar.gz";
-                DockerSave(settings => settings
-                        .SetImages($"{imageName}:{version}")
-                        .SetOutput(publishDirectory / filename)
-                        .SetProcessWorkingDirectory(FrontendDirectory));
-                
-                Information("Frontend static files (version {Version}) will be tagged as {Tag}", gitVersion.FullSemVer, version);
+                Information("Publishing {ImageName} (version {Version}) to {RegistryName} ({RegistryUri}) as {ImageNameWithRegistry}",
+                    imageName, version, registry.Name, registry.Uri, imageNameWithRegistry);
 
-                Registries.ForEach(registry =>
+
+                Information("{ImageName} (version {Version}) loaded successfully", imageName, version);
+
+                Verbose("Tagging image {ImageName} with tags: {@Tags}", imageNameWithRegistry, versions);
+
+                DockerImageTag(settings => settings.SetSourceImage($"{imageName}:{version}")
+                    .CombineWith(versions, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
+
+                Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
+
+                if (IsServerBuild)
                 {
-                    string imageNameWithRegistry = $"{registry.Uri}/{this.Get<IHaveGitRepository>().GitRepository.GetGitHubOwner()}/{imageName}";
+                    Information("Pushing image {ImageName} to {RegistryName} ({RegistryUri}) with tags: {@Tags}",
+                        imageNameWithRegistry, registry.Name, registry.Uri, versions);
 
-                    Information("Publishing frontend static files (version {Version}) to {RegistryName} ({RegistryUri}) as {ImageNameWithRegistry}",
-                        version, registry.Name, registry.Uri, imageNameWithRegistry);
+                    Verbose("Logging into {RegistryUri}", registry.Uri);
 
+                    DockerLogin(settings => settings.SetUsername(this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner())
+                        .SetPassword(registry.Password)
+                        .SetServer(registry.Uri));
 
-                    Information("Frontend static files (version {Version}) loaded successfully", version);
+                    Verbose("Logged into {RegistryUri} successfully", registry.Uri);
 
-                    Verbose("Tagging image {ImageName} with tags: {@Tags}", imageNameWithRegistry, versions);
+                    DockerImagePush(settings =>
+                        settings
+                            .CombineWith(versions, (pushSettings, tag) => pushSettings.SetName($"{imageNameWithRegistry}:{tag}")));
 
-                    DockerImageTag(settings => settings.SetSourceImage($"{imageName}:{version}")
-                        .CombineWith(versions, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
-
-                    Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
-
-                    if (IsServerBuild)
-                    {
-                        Information("Pushing image {ImageName} to {RegistryName} ({RegistryUri}) with tags: {@Tags}",
-                            imageNameWithRegistry, registry.Name, registry.Uri, versions);
-
-                        Verbose("Logging into {RegistryUri}", registry.Uri);
-
-                        DockerLogin(settings => settings.SetUsername(this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner())
-                            .SetPassword(registry.Password)
-                            .SetServer(registry.Uri));
-
-                        Verbose("Logged into {RegistryUri} successfully", registry.Uri);
-
-
-
-                        DockerImagePush(settings =>
-                            settings
-                                .CombineWith(versions, (pushSettings, tag) => pushSettings.SetName($"{imageNameWithRegistry}:{tag}")));
-
-                        Information("Image {ImageName} pushed successfully", imageNameWithRegistry);
-                    }
-                });
-
-                Information("Frontend static files (version {Version}) published successfully to {PublishDirectory}", version, publishDirectory);
+                    Information("Image {ImageName} pushed successfully", imageNameWithRegistry);
+                }
             });
         });
+
 
     public Target Tests => _ => _.Triggers(ArchitecturalTests,
                                            this.Get<IUnitTest>().UnitTests,
