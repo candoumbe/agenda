@@ -288,7 +288,7 @@ public class Build : EnhancedBuild,
                     IDictionary<string, object> publishProperties = new Dictionary<string, object>
                     {
                         ["ContainerArchiveOutputPath"] = containerFullPath,
-                        ["ContainerImageName"] = imageNameWithRegistry,
+                        ["ContainerRepository"] = imageNameWithRegistry,
                         ["ContainerImageTag"] = gitVersion.SemVer,
                         ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
                     };
@@ -359,8 +359,7 @@ public class Build : EnhancedBuild,
                 IDictionary<string, object> publishProperties = new Dictionary<string, object>
                 {
                     ["ContainerArchiveOutputPath"] = containerFullPath,
-                    // TODO Replace ContainerImageName with ContainerImageRepository
-                    ["ContainerImageName"] = imageNameWithRegistry,
+                    ["ContainerRepository"] = imageNameWithRegistry,
                     ["ContainerImageTag"] = gitVersion.SemVer,
                     ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
                 };
