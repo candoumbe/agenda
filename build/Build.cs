@@ -430,7 +430,7 @@ public class Build : EnhancedBuild,
             tags.Add($"{version.Major}-{version.EscapedBranchName}");
             tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
             tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
-            tags.Add($"{version.Major}.{version.Minor}{version.EscapedBranchName}");
+            tags.Add($"{version.Major}.{version.Minor}-{version.EscapedBranchName}");
             tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
         }
         else if (repository.IsOnMainOrMasterBranch())
