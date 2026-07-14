@@ -604,7 +604,7 @@ public class Build : EnhancedBuild,
 
 
     public Target PublishImages => _ => _.Description("Publish images of the API and frontend")
-        .DependsOn(PublishApi, PublishFrontend)
+        .DependsOn(PublishApi, PublishFrontend, PublishWorker)
         .After(Tests)
         .TryBefore<ICreateGithubRelease>(x => x.AddGithubRelease)
         .Consumes(this.Get<ICompile>().Compile);
