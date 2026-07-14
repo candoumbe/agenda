@@ -1,17 +1,14 @@
-using System.Net.Http;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-
-using Agenda.API.Features;
 using Agenda.Ids;
 using Aspire.Hosting;
 using DataFilters.Converters;
 using Json.More;
 using Json.Patch;
-using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Xunit;
