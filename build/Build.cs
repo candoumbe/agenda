@@ -335,6 +335,79 @@ public class Build : EnhancedBuild,
                 });
             });
 
+    public Target PublishWorker => _ => _.Description("Publish image of the migration worker")
+        .After(Tests)
+        .Consumes(this.Get<ICompile>().Compile)
+        .Produces(this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "**" / "*.tar.gz")
+        .Executes(() =>
+        {
+            GitVersion gitVersion = this.Get<IHaveGitVersion>().GitVersion;
+            string version = gitVersion.FullSemVer;
+            const string imageName = "agenda.worker";
+
+            string filename = $"{imageName}-{version}.tar.gz";
+            Project project = this.Get<IHaveSolution>().Solution.AllProjects.Single(project => project.Name == "Agenda.Migrator");
+
+            Registries.ForEach(registry =>
+            {
+                AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / registry.Name / filename;
+
+                Information("Publishing {ImageName} (version {Version}) for {RegistryName} ({RegistryUri}) to {ContainerFullPath}",
+                    project.Name, version, registry.Name, registry.Uri, containerFullPath);
+
+                string imageNameWithRegistry = $"{registry.Uri}/{this.Get<IHaveGitRepository>().GitRepository.GetGitHubOwner()}/{imageName}";
+                IDictionary<string, object> publishProperties = new Dictionary<string, object>
+                {
+                    ["ContainerArchiveOutputPath"] = containerFullPath,
+                    // TODO Replace ContainerImageName with ContainerImageRepository
+                    ["ContainerImageName"] = imageNameWithRegistry,
+                    ["ContainerImageTag"] = gitVersion.SemVer,
+                    ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
+                };
+
+                DotNetPublish(settings => settings.SetProject(project)
+                    .SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
+                    .EnableSelfContained()
+                    .SetProperties(publishProperties)
+                    .SetProcessAdditionalArguments(["/t:PublishContainer", "--tl"]));
+
+                Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
+
+                Verbose("Loading image {ImageName} from {ContainerFullPath}", imageNameWithRegistry, containerFullPath);
+                DockerLoad(settings => settings.SetInput(containerFullPath));
+
+                Verbose("Image {ImageName} loaded successfully", imageNameWithRegistry);
+
+                IReadOnlySet<string> tags = GenerateDockerTagsForBranch(this.Get<IHaveGitHubRepository>().GitRepository, gitVersion);
+                Verbose("Tagging image {ImageName} with tags: {@Tags}", imageNameWithRegistry, tags);
+
+                DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{version}")
+                    .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
+
+                Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
+
+                if (IsServerBuild)
+                {
+                    Information("Pushing image {ImageName} to {RegistryName} ({RegistryUri}) with tags: {@Tags}",
+                        imageNameWithRegistry, registry.Name, registry.Uri, tags);
+
+                    Verbose("Logging into {RegistryUri}", registry.Uri);
+
+                    DockerLogin(settings => settings.SetUsername(this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner())
+                        .SetPassword(registry.Password)
+                        .SetServer(registry.Uri));
+
+                    Verbose("Logged into {RegistryUri} successfully", registry.Uri);
+
+                    DockerImagePush(settings =>
+                        settings.CombineWith(tags, (pushSettings, tag) => pushSettings.SetName($"{imageNameWithRegistry}:{tag}")));
+
+                    Information("Image {ImageName} pushed successfully", imageNameWithRegistry);
+                }
+            });
+        });
+
+
     private static IReadOnlySet<string> GenerateDockerTagsForBranch(GitRepository repository, GitVersion version)
     {
         HashSet<string> tags = new(StringComparer.OrdinalIgnoreCase);
@@ -349,8 +422,8 @@ public class Build : EnhancedBuild,
             tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
             tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
             tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}.{version.ShortSha}");
-            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}"); 
-            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}.{version.ShortSha}"); 
+            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}.{version.ShortSha}");
         }
         else if (repository.IsOnDevelopBranch())
         {
@@ -384,13 +457,13 @@ public class Build : EnhancedBuild,
             const string imageName = "agenda.frontend";
             GitVersion gitVersion = this.Get<IHaveGitVersion>().GitVersion;
             IReadOnlySet<string> versions = GenerateDockerTagsForBranch(this.Get<IHaveGitRepository>().GitRepository, gitVersion);
-            
+
             string version = gitVersion.SemVer;
-            
+
             DockerBuild(settings => settings.SetFile(FrontendDirectory / "Dockerfile")
                     .SetPath(FrontendDirectory)
                     .SetProcessWorkingDirectory(FrontendDirectory)
-                    .SetTag([$"{imageName}:{version}" , .. versions.Select(version => $"{imageName}:{version}")]));
+                    .SetTag([$"{imageName}:{version}", .. versions.Select(version => $"{imageName}:{version}")]));
 
             Information("{ImageName} (version {Version}) will be tagged as {Tag}", imageName, gitVersion.FullSemVer, version);
 
@@ -533,6 +606,6 @@ public class Build : EnhancedBuild,
     public Target PublishImages => _ => _.Description("Publish images of the API and frontend")
         .DependsOn(PublishApi, PublishFrontend)
         .After(Tests)
-        .TryBefore<ICreateGithubRelease>( x => x.AddGithubRelease)
+        .TryBefore<ICreateGithubRelease>(x => x.AddGithubRelease)
         .Consumes(this.Get<ICompile>().Compile);
 }
