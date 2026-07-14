@@ -22,7 +22,7 @@ RUN npm run generate:runtime-auth && \
     npm run build
 
 # Stage 2: Production image with Nginx
-FROM nginx:1.27-alpine
+FROM nginx:1.31-alpine
 
 # Install curl for health checks
 RUN apk add --no-cache curl
