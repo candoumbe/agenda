@@ -173,11 +173,11 @@ describe('AppointmentsListPageComponent', () => {
             subject: 'Meeting 1',
             location: 'Room A',
             startDate: new Date(tomorrow.getTime()),
-            endDate: new Date(tomorrow.getTime() + 3600000),
+            endDate: new Date(tomorrow.getTime() + 3_600_000),
             attendees: [],
-            createdAt: new Date(tomorrow.getTime() - 3600000),
+            createdAt: new Date(tomorrow.getTime() - 3_600_000),
             createdBy: 'user1',
-            updatedAt: new Date(tomorrow.getTime() - 1800000),
+            updatedAt: new Date(tomorrow.getTime() - 1_800_000),
             updatedBy: 'user1'
           },
           links: []
@@ -187,12 +187,12 @@ describe('AppointmentsListPageComponent', () => {
             id: 'appt_002',
             subject: 'Meeting 2',
             location: 'Room B',
-            startDate: new Date(tomorrow.getTime() + 3600000),
-            endDate: new Date(tomorrow.getTime() + 7200000),
+            startDate: new Date(tomorrow.getTime() + 3_600_000),
+            endDate: new Date(tomorrow.getTime() + 7_200_000),
             attendees: [],
-            createdAt: new Date(tomorrow.getTime() - 3600000),
+            createdAt: new Date(tomorrow.getTime() - 3_600_000),
             createdBy: 'Alice',
-            updatedAt: new Date(tomorrow.getTime() - 1800000),
+            updatedAt: new Date(tomorrow.getTime() - 1_800_000),
             updatedBy: 'Bob'
           },
           links: []
@@ -201,12 +201,17 @@ describe('AppointmentsListPageComponent', () => {
       links: {}
     };
 
+    const distinctDates = new Set(mockResponse.items.map(item => item.resource.startDate.toString().substring(0, 10)));
+
     apiServiceSpy.getAppointments.mockReturnValue(of(mockResponse));
 
     fixture.detectChanges();
-
+    // Act
     const groups = component.appointmentGroups();
-    expect(groups.length).toBe(1);
+
+    // Assert
+
+    expect(groups.length).toBe(distinctDates.size);
     expect(groups[0].appointments.length).toBe(2);
   });
 
