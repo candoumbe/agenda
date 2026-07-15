@@ -11,7 +11,7 @@
     <IsPackable>true</IsPackable>
     <PublishSingleFile>true</PublishSingleFile>
     <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
-    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:10.0-jammy</ContainerBaseImage>
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet</ContainerBaseImage>
   </PropertyGroup>
 
 
