@@ -3,7 +3,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
-    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:10.0-jammy</ContainerBaseImage>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL"/>
