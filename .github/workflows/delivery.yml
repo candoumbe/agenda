@@ -84,7 +84,7 @@ jobs:
           name: packages
           path: output/artifacts/packages
       - name: 'Publish: frontend'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: frontend
           path: output/artifacts/publish/frontend
