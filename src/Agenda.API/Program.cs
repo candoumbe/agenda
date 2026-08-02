@@ -43,7 +43,7 @@ builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
     configureDbContextOptions: optionsBuilder =>
     {
         optionsBuilder.UseNpgsql(o => o.UseNodaTime()
-            .MigrationsAssembly("Agenda.DataStores.Postgres"),
+            .MigrationsAssembly("Agenda.DataStores.Postgres")
             );
     });
 builder.Services.AddCustomizedDependencyInjection(builder.Configuration);
