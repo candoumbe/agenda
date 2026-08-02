@@ -418,8 +418,8 @@ public class Build : EnhancedBuild,
         }
         else if (repository.IsOnHotfixBranch()
                  || repository.IsOnFeatureBranch()
-                 || (repository.Branch?.StartsWith("chore/*", StringComparison.OrdinalIgnoreCase) ?? false)
-                 || (repository.Branch?.StartsWith("coldfix/*", StringComparison.OrdinalIgnoreCase) ?? false))
+                 || (repository.Branch?.Like("chore/*", ignoreCase:true) ?? false)
+                 || (repository.Branch?.Like("coldfix/*", ignoreCase:true) ?? false))
         {
             tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
             tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
