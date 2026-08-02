@@ -433,6 +433,7 @@ public class Build : EnhancedBuild,
             tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
             tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
             tags.Add($"{version.Major}.{version.Minor}-{version.EscapedBranchName}");
+            tags.Add($"{version.Major}.{version.Minor}-{version.EscapedBranchName}.{version.ShortSha}");
             tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
         }
         else if (repository.IsOnMainOrMasterBranch())
@@ -442,7 +443,6 @@ public class Build : EnhancedBuild,
             tags.Add($"{version.Major}.{version.Minor}");
             tags.Add($"{version.Major}.{version.Minor}-latest");
             tags.Add($"{version.MajorMinorPatch}");
-            tags.Add($"{version.MajorMinorPatch}-latest");
         }
 
         return tags;
@@ -610,4 +610,99 @@ public class Build : EnhancedBuild,
         .After(Tests)
         .TryBefore<ICreateGithubRelease>(x => x.AddGithubRelease)
         .Consumes(this.Get<ICompile>().Compile);
+
+    public Target CleanImages => _ => _.OnlyWhenStatic(() => IsLocalBuild)
+        .Description("Cleans up all images of the API and frontend")
+        .Executes(async () =>
+        {
+            Information("Select repository where you want to clean up images:");
+            string repository = PromptForChoice("Repository : ", Registries.Select(r => (r.Uri, $"{r.Name} ({r.Uri})")).ToArray());
+            
+            if (string.IsNullOrWhiteSpace(repository))
+            {
+                Information("Operation cancelled by the user.");
+                return;
+            }
+
+            RegistryConfiguration registry = Registries.Single(r => r.Uri == repository);
+            switch (PromptForChoice($"Are you sure you want to clean up all images of the API and frontend from {registry.Name} ({registry.Uri}) ?",
+                   [ (ConsoleKey.Y, "Confirm the operation"),
+                       (ConsoleKey.N, "Cancel the operation")]))
+            {
+                case ConsoleKey.Y:
+                    Information("Cleaning up images from {RegistryName} ({RegistryUri})", registry.Name, registry.Uri);
+                    
+                    if(repository.Like("ghcr.io", ignoreCase: true))
+                    {
+                        string owner = this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner();
+                        string[] images = ["agenda.api", "agenda.frontend", "agenda.worker"];
+                        // Choose which image to delete
+                        string imageToDelete = PromptForChoice("Select image to delete: ", images.Select(image => (image, image)).ToArray());
+                        if (string.IsNullOrWhiteSpace(imageToDelete))
+                        {
+                            Information("Operation cancelled by the user.");
+                            return;
+                        }
+
+                        Information("Deleting image {ImageName} from {RegistryName} ({RegistryUri})", imageToDelete, registry.Name, registry.Uri);
+
+                        // Choose which tag to delete
+                        string tagToDelete = PromptForInput($"Enter the tag to delete for image {imageToDelete} (leave empty to cancel the operation): ", string.Empty);
+                        if (string.IsNullOrWhiteSpace(tagToDelete))
+                        {
+                            Information("Operation cancelled by the user.");
+                            return;
+                        }
+
+                        Information("Deleting tag {Tag} for image {ImageName} from {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
+                        // Delete the image tag using GitHub API
+                        Octokit.GitHubClient client = new (new Octokit.ProductHeaderValue("Agenda.Pipelines"))
+                        {
+                            Credentials = new Octokit.Credentials(this.Get<IHaveGitHubRepository>().GitHubToken)
+                        };
+                        Octokit.Package package = await client.Packages.GetForUser(owner, Octokit.PackageType.Container, imageToDelete);
+                        if(package is null)
+                        {
+                            Information("Image {ImageName} not found in {RegistryName} ({RegistryUri})", imageToDelete, registry.Name, registry.Uri);
+                            return;
+                        }
+
+                        Octokit.ApiOptions options = new()
+                        { PageSize = 100 };
+                        int page = 1;
+                        List<Octokit.PackageVersion> allVersions = new(capacity: 300);
+                        IReadOnlyList<Octokit.PackageVersion> pageOfVersions = Array.Empty<Octokit.PackageVersion>();
+                        do
+                        {
+                            options.StartPage = page;
+                            pageOfVersions = await client.Packages.PackageVersions.GetAllForUser(owner, Octokit.PackageType.Container, imageToDelete, options: options);
+                            allVersions.AddRange(pageOfVersions);
+                            page++;
+                        } while (pageOfVersions.Count == 100);
+
+                        Octokit.PackageVersion versionToDelete = allVersions.SingleOrDefault(v => v.Metadata.Container.Tags.Contains(tagToDelete));
+                        if (versionToDelete is null)
+                        {
+                            Information("Tag {Tag} for image {ImageName} not found in {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
+                        }
+                        else
+                        {
+                            await client.Packages.PackageVersions.DeleteForUser(owner, Octokit.PackageType.Container, imageToDelete, Convert.ToInt32(versionToDelete.Id));
+                            Information("Tag {Tag} for image {ImageName} deleted successfully from {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
+                        }
+
+                    }
+                    else
+                    {
+                        Information("Cleaning up images from {RegistryName} ({RegistryUri}) is not supported yet.", registry.Name, registry.Uri);
+                    }
+                
+                    break;
+                case ConsoleKey.N:
+                    Information("Operation cancelled by the user.");
+                    break;
+            }
+
+
+        });
 }
