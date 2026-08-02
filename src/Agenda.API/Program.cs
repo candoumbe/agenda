@@ -38,7 +38,7 @@ builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
     configureSettings: options =>
     {
-      options.ConnectionString = $"{builder.Configuration.GetConnectionString("postgres")};GSS Encryption Mode=disable";
+      options.ConnectionString = $"{builder.Configuration.GetConnectionString("postgres")};GSS Encryption Mode=Disable";
     },
     configureDbContextOptions: optionsBuilder =>
     {
