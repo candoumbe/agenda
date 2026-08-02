@@ -12,7 +12,7 @@
     <PublishSingleFile>true</PublishSingleFile>
     <RuntimeIdentifiers>linux-x64;win-x64</RuntimeIdentifiers>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet</ContainerBaseImage>
-    <ContainerFamily>noble</ContainerFamily>
+    <ContainerFamily>azurelinux3.0</ContainerFamily>
   </PropertyGroup>
 
 
