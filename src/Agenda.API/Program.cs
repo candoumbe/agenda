@@ -36,10 +36,15 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
+    configureSettings: options =>
+    {
+      options.ConnectionString = $"{builder.Configuration.GetConnectionString("postgres")};GSS Encryption Mode=Disable";
+    },
     configureDbContextOptions: optionsBuilder =>
     {
         optionsBuilder.UseNpgsql(o => o.UseNodaTime()
-            .MigrationsAssembly("Agenda.DataStores.Postgres"));
+            .MigrationsAssembly("Agenda.DataStores.Postgres")
+            );
     });
 builder.Services.AddCustomizedDependencyInjection(builder.Configuration);
 

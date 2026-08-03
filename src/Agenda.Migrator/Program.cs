@@ -13,6 +13,10 @@ builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing.AddSource(MigrationWorker.ActivitySourceName));
 
 builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
+                                            configureSettings: options =>
+                                            {
+                                                options.ConnectionString = $"{builder.Configuration.GetConnectionString("postgres")};GSS Encryption Mode=disable";
+                                            },
                                             configureDbContextOptions: optionsBuilder => optionsBuilder.UseNpgsql(o => o.UseNodaTime()
                                                                            .MigrationsAssembly("Agenda.DataStores.Postgres")));
 
