@@ -206,3 +206,9 @@ When route/topbar auth regressions are fixed, close QA only after both focused a
 - The remaining `5/33` integration failures were not fixture start/stop flakes; they were functional `401 Unauthorized` regressions on search GET/HEAD scenarios that were still executed anonymously.
 - Under repeated local runs, multiple password-grant token requests for the same user can trigger Keycloak temporary lock behavior (`user_temporarily_disabled`) and produce secondary `400` token-issuance failures.
 - Stabilization pattern: keep authenticated request coverage explicit in search tests and cache issued access tokens in the shared integration fixture to avoid redundant logins across classes.
+
+## Learning — 2026-08-04T00:00:00Z: Number OpenAPI tests should follow schema transformer wiring
+
+- When Number wrappers are documented through `AddSchemaTransformer`, unit tests should assert the transformer path directly (`Type`, `Format`, `Minimum`, `Maximum`) instead of legacy `ITypeMapper` expectations.
+- A reliable wiring guard is to assert explicit `AddSchemaTransformer<NumberTypeSchemaTransformer<...>>()` registrations in `Program.cs` for each supported wrapper type.
+- Targeted validation command for this scope: `dotnet test tests/Agenda.API.UnitTests/Agenda.API.UnitTests.csproj --no-restore --verbosity minimal -- --filter-class "Agenda.API.UnitTests.TypeMappers.NumberTypeSchemaTransformerShould"` with `3/3` tests passing.
