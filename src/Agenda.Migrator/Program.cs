@@ -18,7 +18,14 @@ builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
                                                 options.ConnectionString = $"{builder.Configuration.GetConnectionString("postgres")};GSS Encryption Mode=disable";
                                             },
                                             configureDbContextOptions: optionsBuilder => optionsBuilder.UseNpgsql(o => o.UseNodaTime()
-                                                                           .MigrationsAssembly("Agenda.DataStores.Postgres")));
+                                                                           .MigrationsAssembly("Agenda.DataStores.Postgres")
+                                                                           .ConfigureDataSource(
+                                                                               dataSourceBuilder =>
+                                                                               {
+                                                                                   // Disable GSS encryption mode to avoid issues with Kerberos authentication in some environments
+                                                                                   dataSourceBuilder.ConnectionStringBuilder.GssEncryptionMode = Npgsql.GssEncryptionMode.Disable;
+                                                                               })
+                                                                           ));
 
 IHost host = builder.Build();
 

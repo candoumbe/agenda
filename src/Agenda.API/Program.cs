@@ -11,7 +11,7 @@ using Asp.Versioning;
 using Candoumbe.Types.Numerics;
 using FastEndpoints;
 using FastEndpoints.AspVersioning;
-using FastEndpoints.Swagger;
+using FastEndpoints.OpenApi;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
@@ -36,14 +36,16 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
-    configureSettings: options =>
-    {
-      options.ConnectionString = $"{builder.Configuration.GetConnectionString("postgres")};GSS Encryption Mode=Disable";
-    },
     configureDbContextOptions: optionsBuilder =>
     {
         optionsBuilder.UseNpgsql(o => o.UseNodaTime()
             .MigrationsAssembly("Agenda.DataStores.Postgres")
+            .ConfigureDataSource(
+                dataSourceBuilder =>
+                {
+                    // Disable GSS encryption mode to avoid issues with Kerberos authentication in some environments
+                    dataSourceBuilder.ConnectionStringBuilder.GssEncryptionMode = Npgsql.GssEncryptionMode.Disable;
+                })
             );
     });
 builder.Services.AddCustomizedDependencyInjection(builder.Configuration);
@@ -55,20 +57,28 @@ builder.Services.AddCustomAuthentication(builder.Configuration, builder.Environm
 builder.Services.AddSerilog();
 builder.Services.Configure<JsonOptions>(c => optionsSerializerSettings.Invoke(c.SerializerOptions));
 builder.Services
-    .SwaggerDocument(options =>
+    .OpenApiDocument(options =>
                      {
                          options.MaxEndpointVersion = 1;
                          options.ShortSchemaNames = true;
                          options.ShowDeprecatedOps = true;
-                         options.DocumentSettings = docSettings =>
-                                                    {
-                                                        docSettings.SchemaSettings.AllowReferencesWithProperties = true;
-
-                                                        docSettings.SchemaSettings.TypeMappers.Add(new NumberTypeMapper<PositiveInteger, int>());
-                                                        docSettings.SchemaSettings.TypeMappers.Add(new NumberTypeMapper<NonNegativeInteger, int>());
-                                                    };
-                         options.SerializerSettings = optionsSerializerSettings;
+                         options.DocumentName = "v1";
+                         options.Title = "Agenda API";
+                         options.Version = "v1";
+                         options.ConfigureOpenApi = docSettings =>
+                         {
+                             docSettings.AddSchemaTransformer<NumberTypeSchemaTransformer<PositiveInteger, int>>();
+                             docSettings.AddSchemaTransformer<NumberTypeSchemaTransformer<NonNegativeInteger, int>>();
+                         };
+                        //  options.ConfigureOpenApi = docSettings =>
+                        //                             {
+                        //                                 docSettings.SchemaSettings.AllowReferencesWithProperties = true;
+                        //                                 docSettings.SchemaSettings.TypeMappers.Add(new NumberTypeMapper<PositiveInteger, int>());
+                        //                                 docSettings.SchemaSettings.TypeMappers.Add(new NumberTypeMapper<NonNegativeInteger, int>());
+                        //                             };
+                        //  options.Services= optionsSerializerSettings;
                      });
+
 builder.Services.AddFastEndpoints(options => options.IncludeAbstractValidators = false)
                 .AddVersioning(options =>
                 {
@@ -87,8 +97,7 @@ AddLinkHeaderResponseInterceptor addLinkHeaderResponseInterceptor = new(app.Serv
 
 // OpenAPI documentation must remain reachable under the JWT FallbackPolicy. The branch isolates UseOpenApi
 // from the parent auth pipeline so the document is served before authorization is evaluated.
-app.MapWhen(static context => context.Request.Path.StartsWithSegments("/openapi"),
-    branch => branch.UseOpenApi(options => options.Path = "/openapi/{documentName}.json"));
+app.MapOpenApi().AllowAnonymous();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -136,7 +145,10 @@ app.UseFastEndpoints(config =>
                      });
 
 // API documentation must remain reachable in every environment, including production.
-app.MapScalarApiReference(options => options.AddDocument("v1")).AllowAnonymous();
+app.MapScalarApiReference(options =>
+{
+    options.AddDocument("v1");
+}).AllowAnonymous();
 
 app.MapDefaultEndpoints();
 
