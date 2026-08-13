@@ -290,6 +290,7 @@ public class Build : EnhancedBuild,
                         ["ContainerArchiveOutputPath"] = containerFullPath,
                         ["ContainerRepository"] = imageNameWithRegistry,
                         ["ContainerImageTag"] = gitVersion.SemVer,
+                        ["ContainerImageFormat"] = "Docker",
                         ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
                     };
 
@@ -298,9 +299,9 @@ public class Build : EnhancedBuild,
                         .SetProperties(publishProperties)
                         .SetProcessAdditionalArguments(["/t:PublishContainer", "--tl"]));
 
-                    Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
+                    Information("{ImageName} (version {Version}) published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
 
-                    Verbose("Loading image {ImageName} from {ContainerFullPath}", imageNameWithRegistry, containerFullPath);
+                    Verbose("Loading image {ImageName} from archive {ContainerFullPath} ", imageNameWithRegistry, containerFullPath);
                     DockerLoad(settings => settings.SetInput(containerFullPath));
 
                     Verbose("Image {ImageName} loaded successfully", imageNameWithRegistry);
