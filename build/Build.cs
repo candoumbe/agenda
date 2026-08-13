@@ -308,7 +308,7 @@ public class Build : EnhancedBuild,
                     IReadOnlySet<string> tags = GenerateDockerTagsForBranch(this.Get<IHaveGitHubRepository>().GitRepository, gitVersion);
                     Verbose("Tagging image {ImageName} with tags: {@Tags}", imageNameWithRegistry, tags);
 
-                    DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{version}")
+                    DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{gitVersion.SemVer}")
                         .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
 
                     Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
@@ -379,7 +379,7 @@ public class Build : EnhancedBuild,
                 IReadOnlySet<string> tags = GenerateDockerTagsForBranch(this.Get<IHaveGitHubRepository>().GitRepository, gitVersion);
                 Verbose("Tagging image {ImageName} with tags: {@Tags}", imageNameWithRegistry, tags);
 
-                DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{version}")
+                DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{gitVersion.SemVer}")
                     .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
 
                 Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
