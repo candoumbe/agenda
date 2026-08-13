@@ -295,7 +295,6 @@ public class Build : EnhancedBuild,
 
                     DotNetPublish(settings => settings.SetProject(project)
                         .SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
-                        .EnableSelfContained()
                         .SetProperties(publishProperties)
                         .SetProcessAdditionalArguments(["/t:PublishContainer", "--tl"]));
 
