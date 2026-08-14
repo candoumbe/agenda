@@ -2,6 +2,16 @@
 
 ## Active Decisions
 
+### 2026-08-04T00:00:00Z: Number wrapper OpenAPI tests aligned with schema transformer wiring
+**By:** Hicks
+**What:** Replaced legacy NumberTypeMapper unit-test expectations with NumberTypeSchemaTransformer-focused tests that assert integer OpenAPI schema behavior for `PositiveInteger` and `NonNegativeInteger` (`type`, `format`, `minimum`, `maximum`) and verify `Program.cs` uses `AddSchemaTransformer` registrations for these wrappers.
+**Why:** API documentation generation now relies on schema transformers, so tests must validate the active configuration path and avoid duplicated legacy mapper expectations.
+
+### 2026-07-13T10:00:00Z: Frontend Docker runtime should reuse base nginx account
+**By:** Dallas
+**What:** Removed explicit `addgroup`/`adduser` creation for `nginx` from the frontend Dockerfile runtime stage and kept the existing ownership and `USER nginx` directives.
+**Why:** The `nginx:1.27-alpine` base image already provides that user/group, so recreating them is redundant and can break `publish-frontend` with duplicate-account errors.
+
 ### 2026-07-12T00:00:00Z: Search HEAD contract tests authenticate request probes
 **By:** Bishop
 **What:** Updated `SearchAppointmentHeadContractShould` to request a real Keycloak token (`alice`) and send it in the `Authorization: Bearer` header for GET/HEAD contract assertions.
