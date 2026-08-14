@@ -77,3 +77,9 @@ Initial setup complete.
 - Hicks completed regression coverage for auth routing/topbar/logout behavior and reported green validation.
 - Vasquez raised an intermediate callback redirect concern during security review; final callback behavior now enforces safe relative redirect targets.
 - Final coordinator validation reported `npm run test -- --watch false` (77/77 pass) and `npm run build` (pass).
+
+### 2026-08-14: Flaky appointment-card tests stabilized
+
+- Root cause: 4 compounding issues in `appointment-card.spec.ts` — (1) missing `fixture.detectChanges()` after `fixture.componentRef.setInput(...)`, so assertions ran against stale rendering in zoneless mode; (2) an RxJS `timer(0, 1000)` inside the component fired non-deterministically relative to test assertions; (3) the fixture was not destroyed between tests, letting timers/subscriptions leak across specs; (4) `Date.now()` was not pinned, so date-relative assertions could flip depending on wall-clock time.
+- Reusable fix pattern for components using RxJS `timer()`/`interval()` in tests: (a) always call `detectChanges()` immediately after `setInput()`; (b) `await fixture.whenStable()` instead of asserting right after a timer tick, letting zoneless change detection settle before reading the DOM; (c) explicitly destroy the fixture (or rely on `TestBed` teardown) between tests so timers don't leak; (d) pin `Date.now`/`vi.setSystemTime()` at the top of date-relative tests instead of relying on real wall-clock time.
+- Verified via 4 consecutive `ng test --watch=false` runs — all green, 82/82 tests each run.
