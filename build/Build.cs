@@ -287,6 +287,7 @@ public class Build : EnhancedBuild,
                         ["ContainerRepository"] = imageNameWithRegistry,
                         ["ContainerImageTag"] = gitVersion.SemVer,
                         ["ContainerImageFormat"] = "Docker",
+                        ["ContainerRuntime"] = "docker",
                         ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
                     };
 
@@ -352,6 +353,8 @@ public class Build : EnhancedBuild,
                 {
                     ["ContainerRepository"] = imageNameWithRegistry,
                     ["ContainerImageTag"] = gitVersion.SemVer,
+                    ["ContainerImageFormat"] = "Docker",
+                    ["ContainerRuntime"] = "docker",
                     ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
                 };
 
