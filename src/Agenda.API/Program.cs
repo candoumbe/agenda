@@ -50,7 +50,10 @@ builder.Services.AddCustomizedDependencyInjection(builder.Configuration);
 builder.Services.AddDataStores();
 builder.Services.AddCustomBrighter(builder.Configuration, builder.Environment);
 builder.Services.AddCustomAuthentication(builder.Configuration, builder.Environment);
-builder.Services.AddSerilog();
+
+// The parameterless overload binds the uninitialised static Log.Logger and silences every sink.
+builder.Services.AddSerilog((serviceProvider, loggerConfiguration) => loggerConfiguration.ReadFrom.Configuration(builder.Configuration)
+                                                                                        .ReadFrom.Services(serviceProvider));
 builder.Services.Configure<JsonOptions>(c => optionsSerializerSettings.Invoke(c.SerializerOptions));
 builder.Services
     .OpenApiDocument(options =>
