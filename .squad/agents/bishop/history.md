@@ -55,3 +55,13 @@ For `Agenda.API.IntegrationTests`, class targeting should use the MTP/xUnit v3 s
 
 ## Learning — 2026-07-12T00:00:00Z: Search HEAD integration contract now requires authenticated probes
 `SearchAppointmentHeadContractShould` can fail with 401 when GET/HEAD calls are sent without a bearer token. A minimal and stable fix is to mint an `alice` token with `IssueAccessTokenAsync(...)` and attach `Authorization: Bearer` on the GET/HEAD requests under test, while keeping setup POST payload serialization unchanged.
+
+## Learning — 2026-08-16T00:00:00Z: Aspire `https+http://` authority breaks JwtBearer when RequireHttpsMetadata is hardcoded
+`AddKeycloakJwtBearer` composes the authority using the Aspire service-discovery scheme `https+http://`. `RequireHttpsMetadata` is hardcoded `true` outside Development (`src/Agenda.API/ServiceCollectionExtensions.cs:112`), and `JwtBearerPostConfigureOptions` requires `MetadataAddress` to start with `https://`. The result is an `InvalidOperationException` raised by `UseAuthentication` (`Program.cs:98`) on **every** request in `Production`/`Staging` — including `/alive`, which makes it look like a total startup failure rather than an auth misconfiguration. Scalar itself is fine: in `Development`, `/scalar/v1` and `/openapi/v1.json` both return 200 with assets served locally (no CDN dependency).
+
+Two things made this much harder to see than it should have been:
+- The AppHost does not set `ASPNETCORE_ENVIRONMENT`, so containers silently default to `Production` — straight onto the failing path.
+- `builder.Services.AddSerilog()` is called with no argument (`Program.cs:53`), which silences all logging. Always pass a configured logger; a no-arg call turns a diagnosable failure into a black box.
+- `TimedOutboxSweeper` lets an exception escape and kills the process (exit 139); background services need their own exception boundary.
+
+Triage rule learned: when *every* route including the health endpoint returns 500, suspect middleware built at startup (auth, options post-configuration) before suspecting any individual feature.
