@@ -69,13 +69,6 @@ builder.Services
                              docSettings.AddSchemaTransformer<NumberTypeSchemaTransformer<PositiveInteger, int>>();
                              docSettings.AddSchemaTransformer<NumberTypeSchemaTransformer<NonNegativeInteger, int>>();
                          };
-                        //  options.ConfigureOpenApi = docSettings =>
-                        //                             {
-                        //                                 docSettings.SchemaSettings.AllowReferencesWithProperties = true;
-                        //                                 docSettings.SchemaSettings.TypeMappers.Add(new NumberTypeMapper<PositiveInteger, int>());
-                        //                                 docSettings.SchemaSettings.TypeMappers.Add(new NumberTypeMapper<NonNegativeInteger, int>());
-                        //                             };
-                        //  options.Services= optionsSerializerSettings;
                      });
 
 builder.Services.AddFastEndpoints(options => options.IncludeAbstractValidators = false)
