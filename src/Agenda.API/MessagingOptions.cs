@@ -1,13 +1,12 @@
-namespace Agenda.API
+namespace Agenda.API;
+
+/// <summary>
+/// Messaging options.
+/// </summary>
+public record MessagingOptions
 {
     /// <summary>
-    /// Messaging options.
+    /// Outbox tablename
     /// </summary>
-    public record MessagingOptions
-    {
-        /// <summary>
-        /// Outbox tablename
-        /// </summary>
-        public string OutboxTablename { get; set; }
-    }
+    public string OutboxTablename { get; set; }
 }
