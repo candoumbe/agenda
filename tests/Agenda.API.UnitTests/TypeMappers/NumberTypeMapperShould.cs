@@ -1,7 +1,7 @@
 using System;
 using Agenda.API.TypeMappers;
+using AwesomeAssertions;
 using Candoumbe.Types.Numerics;
-using FluentAssertions;
 using NJsonSchema;
 using NJsonSchema.Generation;
 using NJsonSchema.Generation.TypeMappers;

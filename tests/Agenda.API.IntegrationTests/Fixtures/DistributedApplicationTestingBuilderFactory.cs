@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Testing;
-using FluentAssertions.Extensions;
+using AwesomeAssertions.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NodaTime;
+using NodaTime.Extensions;
 using Projects;
 using Xunit;
 
@@ -18,16 +22,22 @@ namespace Agenda.API.IntegrationTests.Fixtures;
 /// </summary>
 /// <remarks>
 /// <para>
-/// This class is used to create a new instance of the <see cref="AgendaApplicationTestingBuilder"/> class for each test.
+/// This class creates <see cref="AgendaApplicationTestingBuilder"/> instances used by the assembly fixture.
 /// </para>
 /// <para>
-/// This is required because the <see cref="AgendaApplicationTestingBuilder"/> class is not thread safe and each test should use its own instance.
+/// The standard integration test path uses one shared app host lifecycle through
+/// <see cref="AgendaApplicationFixture"/> while scenario-specific tests can still request
+/// an explicit builder instance when they need an isolated startup/shutdown validation.
 /// </para>
 /// For more informations, <see href="https://github.com/dotnet/aspire-samples/blob/main/tests/SamplesIntegrationTests/Infrastructure/DistributedApplicationTestFactory.cs">the GitHub sample</see>.
 /// </remarks>
 public static class DistributedApplicationTestingBuilderFactory
 {
     private static readonly TimeSpan s_defaultTimeout = 30.Seconds();
+    public const string TestingNowConfigKey = "Testing:Now";
+#pragma warning disable IDE1006 // Styles d'affectation de noms
+    private static int s_httpsCertificateChecked;
+#pragma warning restore IDE1006 // Styles d'affectation de noms
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DistributedApplicationTestingBuilderFactory"/> class.
@@ -35,15 +45,36 @@ public static class DistributedApplicationTestingBuilderFactory
     /// <param name="outputHelper"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<AgendaApplicationTestingBuilder> CreateBuilderAsync(ITestOutputHelper outputHelper = null, CancellationToken cancellationToken = default)
+    public static async Task<AgendaApplicationTestingBuilder> CreateBuilderAsync(ITestOutputHelper outputHelper = null,
+                                                                                  CancellationToken cancellationToken = default,
+                                                                                  Instant? now = null)
     {
+        EnsureDeveloperHttpsCertificate();
+        Environment.SetEnvironmentVariable("RunningIntegrationTests", bool.TrueString);
         IDistributedApplicationTestingBuilder builder = await DistributedApplicationTestingBuilder.CreateAsync<Agenda_AppHost>(cancellationToken);
 
+        IEnumerable<KeyValuePair<string, string>> testingConfiguration =
+        [
+            new KeyValuePair<string, string>("RunningIntegrationTests", bool.TrueString)
+        ];
 
-        builder.Configuration.AddInMemoryCollection([new KeyValuePair<string, string>("RunningIntegrationTests", bool.TrueString)]);
+        if (now is Instant fixedNow)
+        {
+            string serializedNow = fixedNow.ToDateTimeOffset().ToString("O", CultureInfo.InvariantCulture);
+            testingConfiguration =
+            [
+                new KeyValuePair<string, string>("RunningIntegrationTests", bool.TrueString),
+                new KeyValuePair<string, string>(TestingNowConfigKey, serializedNow)
+            ];
+        }
+
+        builder.Configuration.AddInMemoryCollection(testingConfiguration);
+        builder.Configuration["ConnectionStrings:postgres"] += ";SSL Mode=Disable";
+        
         builder.WithRandomParameterValues();
         builder.WithRandomVolumeNames();
-        // Containers should be re-created for each test.
+        // Session lifetime keeps resources scoped to the current test run
+        // and avoids stale containers reused across runs.
         builder.WithContainersLifetime(ContainerLifetime.Session);
 
         builder.Services.ConfigureHttpClientDefaults(clientBuilder =>
@@ -66,5 +97,47 @@ public static class DistributedApplicationTestingBuilderFactory
                                     });
 
         return new AgendaApplicationTestingBuilder(builder);
+    }
+
+    private static void EnsureDeveloperHttpsCertificate()
+    {
+        if (Interlocked.Exchange(ref s_httpsCertificateChecked, 1) == 1)
+        {
+            return;
+        }
+
+        ProcessStartInfo checkCertificateStartInfo = new("dotnet", "dev-certs https --check")
+        {
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using Process checkCertificateProcess = Process.Start(checkCertificateStartInfo);
+        checkCertificateProcess?.WaitForExit();
+
+        if (checkCertificateProcess is not null && checkCertificateProcess.ExitCode == 0)
+        {
+            return;
+        }
+
+        ProcessStartInfo createCertificateStartInfo = new("dotnet", "dev-certs https")
+        {
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using Process createCertificateProcess = Process.Start(createCertificateStartInfo);
+        createCertificateProcess?.WaitForExit();
+
+        if (createCertificateProcess is null || createCertificateProcess.ExitCode != 0)
+        {
+            string errorOutput = createCertificateProcess?.StandardError.ReadToEnd() ?? string.Empty;
+            string standardOutput = createCertificateProcess?.StandardOutput.ReadToEnd() ?? string.Empty;
+            throw new InvalidOperationException($"Unable to create ASP.NET Core developer HTTPS certificate. stdout='{standardOutput}' stderr='{errorOutput}'");
+        }
     }
 }

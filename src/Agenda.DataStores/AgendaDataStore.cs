@@ -1,4 +1,4 @@
-﻿
+
 using Agenda.Objects;
 
 using Candoumbe.DataAccess.Abstractions;
@@ -6,6 +6,8 @@ using Candoumbe.DataAccess.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 using NodaTime;
+using Paramore.Brighter;
+using Paramore.Brighter.Observability;
 
 namespace Agenda.DataStores;
 /// <summary>
@@ -27,6 +29,7 @@ public class AgendaDataStore : DataStore<AgendaDataStore>
     /// Builds a new <see cref="AgendaDataStore"/> instance.
     /// </summary>
     /// <param name="options">options of the MeasuresContext</param>
+    /// <param name="clock">Clock used to get the current time</param>
     public AgendaDataStore(DbContextOptions<AgendaDataStore> options, IClock clock) : base(options, clock)
     {
     }
@@ -40,4 +43,5 @@ public class AgendaDataStore : DataStore<AgendaDataStore>
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppointmentEntityTypeConfiguration).Assembly);
     }
+
 }

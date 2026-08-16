@@ -3,15 +3,15 @@
 /// <summary>
 /// Gives strongly typed access to API's options.
 /// </summary>
-public class AgendaApiOptions
+public sealed record AgendaApiOptions
 {
     /// <summary>
-    /// Number of items to return when requiring a page of result no hint was provided by the client.
+    /// Pagination options
     /// </summary>
-    public int DefaultPageSize { get; set; }
+    public PaginationOptions PaginationOptions { get; set; }
 
     /// <summary>
-    /// Number of items the API can return in a single call at most
+    /// Messaging options
     /// </summary>
-    public int MaxPageSize { get; set; }
+    public MessagingOptions MessagingOptions { get; set; }
 }

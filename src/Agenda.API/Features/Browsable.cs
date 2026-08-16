@@ -7,7 +7,7 @@ namespace Agenda.API.Features;
 /// Wraps a resource and its <see cref="Links"/>.
 /// </summary>
 /// <typeparam name="TResource">Type of the resource</typeparam>
-public class Browsable<TResource>
+public class Browsable<TResource> : IFormattable
 {
     /// <summary>
     /// The resource being rendered
@@ -18,4 +18,14 @@ public class Browsable<TResource>
     /// Links to resources related to <see cref="Resource"/>.
     /// </summary>
     public IEnumerable<Link> Links { get; set; }
+
+    /// <inheritdoc />
+    public string ToString(string format, IFormatProvider formatProvider)
+    {
+        FormattableString formattable = $"{nameof(Resource)}: {Resource}, {nameof(Links)}: {Links}";
+        return formattable.ToString(formatProvider);
+    }
+
+    /// <inheritdoc />
+    public override string ToString() => $"{nameof(Resource)}: {Resource}, {nameof(Links)}: {Links}";
 }

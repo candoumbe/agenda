@@ -1,0 +1,57 @@
+{
+  "name": "agenda.frontend",
+  "version": "0.0.0",
+  "scripts": {
+    "generate:runtime-auth": "node ./scripts/generate-runtime-auth.js",
+    "prestart:dev": "npm run generate:runtime-auth",
+    "prestart": "npm run generate:runtime-auth",
+    "prebuild": "npm run generate:runtime-auth",
+    "prewatch": "npm run generate:runtime-auth",
+    "pretest": "npm run generate:runtime-auth",
+    "ng": "ng",
+    "start:dev": "ng serve  --host 0.0.0.0 --port ${PORT:-4200} --configuration development",
+    "start": "ng serve --host 0.0.0.0 --port ${PORT:-4200}",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "lint": "ng lint"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "packageManager": "npm@12.0.2",
+  "dependencies": {
+    "@angular/common": "^22.0.0-rc.1",
+    "@angular/compiler": "^22.0.0-rc.1",
+    "@angular/core": "^22.0.0-rc.1",
+    "@angular/forms": "^22.0.0-rc.1",
+    "@angular/platform-browser": "^22.0.0-rc.1",
+    "@angular/router": "^22.0.0-rc.1",
+    "angular-auth-oidc-client": "^21.0.2",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.0.0-rc.1",
+    "@angular/cli": "^22.0.0-rc.1",
+    "@angular/compiler-cli": "^22.0.0-rc.1",
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^4.0.16",
+    "angular-eslint": "22.1.0",
+    "eslint": "^10.3.0",
+    "jsdom": "^30.0.0",
+    "typescript": "~6.0.0",
+    "typescript-eslint": "8.65.0",
+    "vitest": "^4.0.16"
+  }
+}

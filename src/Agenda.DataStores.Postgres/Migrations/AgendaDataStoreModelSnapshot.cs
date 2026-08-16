@@ -18,9 +18,10 @@ namespace Agenda.DataStores.Postgres.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.4")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "citext");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Agenda.Objects.Appointment", b =>
@@ -40,7 +41,7 @@ namespace Agenda.DataStores.Postgres.Migrations
 
                     b.Property<string>("Location")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("citext");
 
                     b.Property<Instant>("StartDate")
                         .HasColumnType("timestamp with time zone");
@@ -48,7 +49,7 @@ namespace Agenda.DataStores.Postgres.Migrations
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("citext");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(255)

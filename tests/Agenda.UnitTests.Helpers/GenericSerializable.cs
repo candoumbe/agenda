@@ -18,6 +18,7 @@ public class GenericSerializable<T> : IXunitSerializable
         _serializerSettings = new JsonSerializerOptions()
             {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                MaxDepth = 64,
             }
             .ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
         _serializerSettings.Converters.Add(new AppointmentId.AppointmentIdSystemTextJsonConverter());

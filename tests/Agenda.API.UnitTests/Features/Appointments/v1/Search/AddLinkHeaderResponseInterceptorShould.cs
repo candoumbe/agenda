@@ -1,14 +1,17 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Agenda.API.Features;
 using Agenda.API.Features.Appointments;
 using Agenda.API.Features.Appointments.v1.Search;
+using Agenda.Ids;
+using AwesomeAssertions;
+using AwesomeAssertions.Execution;
 using Bogus;
 using Candoumbe.Forms;
 using FakeItEasy;
 using FastEndpoints;
-using FluentAssertions;
-using FluentAssertions.Execution;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Logging;
@@ -49,8 +52,11 @@ public class AddLinkHeaderResponseInterceptorShould
         creatingInstanceWithLoggerNull.Should().Throw<ArgumentNullException>();
     }
 
-    [Fact]
-    public async Task Given_a_response_with_an_empty_page_When_post_processing_Then_return_expected_response()
+    [Theory]
+     [InlineData("GET")]
+     [InlineData("HEAD")]
+     [InlineData("POST")]
+    public async Task Given_a_response_with_an_empty_page_When_post_processing_Then_return_expected_response(string method)
     {
         // Arrange
         Link firstPageLink = new() { Href = s_faker.Internet.Url(), Relations = [LinkRelation.First] };
@@ -61,6 +67,11 @@ public class AddLinkHeaderResponseInterceptorShould
         };
         Ok<PageOf<Browsable<AppointmentInfo>>> response = TypedResults.Ok(emptyPage);
         HttpContext fakeHttpContext = A.Fake<HttpContext>(x => x.Strict());
+        HttpRequest fakeRequest = A.Fake<HttpRequest>(x => x.Strict());
+        A.CallTo(() => fakeHttpContext.Request).Returns(fakeRequest);
+        A.CallTo(() => fakeRequest.Method).Returns(method);
+        A.CallTo(() => fakeRequest.Path).Returns("/");
+
         HttpResponse fakeResponse = A.Fake<HttpResponse>(x => x.Strict());
         A.CallTo(() => fakeHttpContext.Response).Returns(fakeResponse);
         Captured<Func<Task>> capturedOnStartingCallback = A.Captured<Func<Task>>();
@@ -83,6 +94,51 @@ public class AddLinkHeaderResponseInterceptorShould
             .And.ContainSingle(link => link.Like("""
                                                  <*>; rel="last"
                                                  """));
+
+        headers.Should().ContainKey("total")
+            .WhoseValue.Should().ContainSingle("0");
+        headers.Should().ContainKey("count")
+            .WhoseValue.Should().ContainSingle("0");
+        headers.Should().NotContainKey("totalCount");
+
+    }
+
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("POST")]
+    [InlineData("HEAD")]
+    public async Task Given_a_response_with_a_browsable_resource_When_post_processing_Then_add_link_header(string method)
+    {
+        // Arrange
+        Browsable<AppointmentInfo> browsable = new()
+        {
+            Resource = new AppointmentInfo { Id = AppointmentId.New(), Subject = s_faker.Lorem.Sentence(), Attendees = [] },
+            Links = [new Link { Href = s_faker.Internet.Url(), Relations = [LinkRelation.Self] }]
+        };
+
+        Ok<Browsable<AppointmentInfo>> response = TypedResults.Ok(browsable);
+        HttpContext fakeHttpContext = A.Fake<HttpContext>(x => x.Strict());
+        HttpRequest fakeRequest = A.Fake<HttpRequest>(x => x.Strict());
+        A.CallTo(() => fakeRequest.Method).Returns(method);
+        A.CallTo(() => fakeRequest.Path).Returns("/");
+
+        HttpResponse fakeResponse = A.Fake<HttpResponse>(x => x.Strict());
+        A.CallTo(() => fakeHttpContext.Request).Returns(fakeRequest);
+        A.CallTo(() => fakeHttpContext.Response).Returns(fakeResponse);
+        Captured<Func<Task>> capturedOnStartingCallback = A.Captured<Func<Task>>();
+        A.CallTo(() => fakeResponse.OnStarting(capturedOnStartingCallback._)).Invokes(() => { });
+        A.CallTo(() => fakeResponse.Headers).Returns(new HeaderDictionary());
+
+        // Act
+        await _sut.InterceptResponseAsync(response, Status200OK, fakeHttpContext, [], TestContext.Current.CancellationToken);
+
+        // Assert
+        IHeaderDictionary headers = fakeHttpContext.Response.Headers;
+        headers.Should().ContainKey("Link");
+        IEnumerable<string> links = headers.Link.AsEnumerable();
+        links.Should().ContainSingle(link => link.Like("""
+                                                       <*>; rel="self"
+                                                       """));
 
     }
 }

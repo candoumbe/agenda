@@ -20,7 +20,7 @@ public class XunitSerializableExpression<T>: IXunitSerializable
     public XunitSerializableExpression()
     {
         JsonSerializer jsonSerializer = new JsonSerializer();
-        jsonSerializer.AddKnownTypes([typeof(AppointmentId), typeof(AttendeeId), typeof(OffsetDateTime)]);
+        jsonSerializer.AddKnownTypes([typeof(AppointmentId), typeof(AttendeeId), typeof(OffsetDateTime), typeof(Instant)]);
         _factorySettings = new FactorySettings();
         _expressionSerializer = new ExpressionSerializer(jsonSerializer);
     }

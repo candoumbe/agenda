@@ -4,5 +4,16 @@
   ],
   "assignees": [ "candoumbe" ],
   "addLabels": [ "package-update" ],
-  "automerge": true
+  "automerge": true,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Pinned container images declared in src/Agenda.AppHost/container-images.json",
+      "fileMatch": [ "^src/Agenda\\.AppHost/container-images\\.json$" ],
+      "matchStrings": [
+        "\"registry\"\\s*:\\s*\"(?<registryUrl>[^\"]+)\"\\s*,\\s*\"image\"\\s*:\\s*\"(?<depName>[^\"]+)\"\\s*,\\s*\"tag\"\\s*:\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ]
 }

@@ -1,20 +1,17 @@
 using System.Runtime.InteropServices;
+using Agenda.API.IntegrationTests.Fixtures;
 using Xunit;
-// using Xunit.Extensions.AssemblyFixture;
 
-// Dans les projets de type SDK comme celui-là, plusieurs attributs d'assembly définis
-// historiquement dans ce fichier sont maintenant automatiquement ajoutés pendant
-// la génération et renseignés avec des valeurs définies dans les propriétés du projet.
-// Pour plus d'informations sur les attributs à inclure et sur la personnalisation
-// de ce processus, consultez : https://aka.ms/assembly-info-properties
+// In SDK-style projects, many assembly attributes historically declared in this
+// file are generated automatically using project properties.
+// For more details: https://aka.ms/assembly-info-properties
 
-// La définition de ComVisible sur False rend les types dans cet assembly invisibles
-// aux composants COM. Si vous devez accéder à un type dans cet assembly à partir
-// de COM, définissez l'attribut ComVisible sur True pour ce type.
+// Setting ComVisible to false makes types in this assembly invisible to COM.
+// If a specific type must be visible from COM, set ComVisible to true on that type.
 
 [assembly: ComVisible(false)]
 
-// Le GUID suivant concerne l'ID de typelib si ce projet est exposé à COM.
+// The following GUID identifies the typelib if this project is exposed to COM.
 
 [assembly: Guid("4975582d-f484-4764-a5d0-200cc24afa6c")]
-// [assembly: TestFramework(AssemblyFixtureFramework.TypeName, AssemblyFixtureFramework.AssemblyName)]
+[assembly: AssemblyFixture(typeof(AgendaApplicationFixture))]

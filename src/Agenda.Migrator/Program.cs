@@ -1,8 +1,7 @@
 using Agenda.DataStores;
+using Agenda.DataStores.Postgres;
 using Agenda.Migrator;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using NodaTime;
 
 HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
@@ -15,8 +14,13 @@ builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing.AddSource(MigrationWorker.ActivitySourceName));
 
 builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
+                                            configureSettings: options =>
+                                            {
+                                                options.ConnectionString = builder.Configuration.GetConnectionString("postgres")!.WithGssDisabled();
+                                            },
                                             configureDbContextOptions: optionsBuilder => optionsBuilder.UseNpgsql(o => o.UseNodaTime()
-                                                                           .MigrationsAssembly("Agenda.DataStores.Postgres")));
+                                                                           .MigrationsAssembly("Agenda.DataStores.Postgres")
+                                                                           ));
 
 IHost host = builder.Build();
 

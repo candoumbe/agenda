@@ -2,6 +2,10 @@
 using System;
 
 namespace Agenda.Objects;
+
+/// <summary>
+/// Appointment status.
+/// </summary>
 [Flags]
 public enum AppointmentStatus
 {

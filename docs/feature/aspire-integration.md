@@ -142,7 +142,7 @@ Patron de base pour tests:
 - Les migrations seront déjà appliquées car migrator est une StartupTask dans le graphe.
 
 Parallélisme:
-- Si exécution en parallèle, envisager bases isolées par test (ex: suffixe db) ou re-création des schémas par test collection.
+- Si exécution en parallèle, envisager bases isolées par test (ex: suffixe db) ou re-création des schémas par lot d'exécution.
 
 ---
 
@@ -292,3 +292,30 @@ builder.Build().Run();
 - [ ] Nettoyer Agenda.API (reprendre la chaîne de connexion et retirer la migration au démarrage)
 - [ ] Adapter les fixtures des tests d’intégration à DistributedApplicationFactory
 - [ ] Vérifier exécution locale et CIs
+
+---
+
+## 11. Authentification (Keycloak)
+
+L'AppHost provisionne en plus une ressource `keycloak` (image officielle, package
+`Aspire.Hosting.Keycloak`) qui :
+
+- importe le realm `agenda` depuis
+  [src/Agenda.AppHost/keycloak/agenda-realm.json](../../src/Agenda.AppHost/keycloak/agenda-realm.json)
+  via `WithRealmImport(...)` ;
+- expose les clients `agenda-frontend`, `agenda-mobile`, `agenda-api` et `agenda-service` ainsi que
+  les rôles realm `agenda-user`, `agenda-admin`, `agenda-service-account` ;
+- est référencée par `Agenda.API` (`WithReference(keycloak)`) afin que l'API démarre avec les
+  bons paramètres d'`Authority`, `Audience` et la JWKS du realm.
+
+Ordonnancement étendu :
+
+1. Postgres démarre et devient healthy.
+2. Keycloak démarre, importe le realm, devient healthy.
+3. Agenda.Migrator s'exécute (exit 0).
+4. Agenda.API démarre, valide les tokens RS256 émis par Keycloak (audience `agenda-api`).
+
+Pour la mise en route locale, les utilisateurs seedés et la récupération de tokens, se référer à
+[docs/development/authentication.md](../development/authentication.md). Pour la procédure d'export
+ou de re-import du realm, voir
+[src/Agenda.AppHost/keycloak/README.md](../../src/Agenda.AppHost/keycloak/README.md).

@@ -7,15 +7,18 @@ namespace Agenda.Objects.Exceptions;
 /// </summary>
 public class InvalidDateException : Exception
 {
+    ///<inheritdoc/>
     public InvalidDateException(string message) : base(message)
     {
 
     }
 
+    ///<inheritdoc/>
     public InvalidDateException()
     {
     }
 
+    ///<inheritdoc/>
     public InvalidDateException(string message, Exception innerException) : base(message, innerException)
     {
     }

@@ -138,16 +138,16 @@ public static class DistributedApplicationExtensions
     public static TBuilder WithRandomVolumeNames<TBuilder>(this TBuilder builder) where TBuilder : IDistributedApplicationTestingBuilder
     {
         // Named volumes that aren't shared across resources should be replaced with anonymous volumes.
-        // Named volumes shared by mulitple resources need to have their name randomized but kept shared across those resources.
+        // Named volumes shared by multiple resources need to have their name randomized but kept shared across those resources.
 
-        // Find all shared volumes and make a map of their original name to a new randomized name
+        // Find all named volumes and make a map of shared volume original names to new randomized names
         List<(IResource Resource, ContainerMountAnnotation Volume)> allResourceNamedVolumes = builder.Resources.SelectMany(r => r.Annotations
                                                                                                                                .OfType<ContainerMountAnnotation>()
                                                                                                                                .Where(m => m.Type == ContainerMountType.Volume && !string.IsNullOrEmpty(m.Source))
                                                                                                                                .Select(m => (Resource: r, Volume: m)))
             .ToList();
-        HashSet<string> seenVolumes = new HashSet<string>();
-        Dictionary<string, string> renamedVolumes = new Dictionary<string, string>();
+        HashSet<string> seenVolumes = new HashSet<string>(StringComparer.Ordinal);
+        Dictionary<string, string> renamedVolumes = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach ((IResource Resource, ContainerMountAnnotation Volume) resourceVolume in allResourceNamedVolumes)
         {
             string name = resourceVolume.Volume.Source!;

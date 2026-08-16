@@ -1,5 +1,5 @@
-﻿using Bogus;
-using FluentAssertions;
+﻿using AwesomeAssertions;
+using Bogus;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;

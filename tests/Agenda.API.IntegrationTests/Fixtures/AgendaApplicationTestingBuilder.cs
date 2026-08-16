@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
-using FluentAssertions.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Agenda.API.IntegrationTests.Fixtures;
@@ -17,16 +20,54 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// HTTP client for the API.
     /// </summary>
     public HttpClient ApiClient { get; private set; }
+
+    /// <summary>
+    /// HTTP client for the API that does not attach any bearer token.
+    /// </summary>
+    public HttpClient AnonymousApiClient { get; private set; }
+
+    /// <summary>
+    /// HTTP client for the Keycloak resource used to mint real access tokens.
+    /// </summary>
+    public HttpClient KeycloakClient { get; private set; }
+
     public const string ApiResourceName = "api";
+    public const string KeycloakResourceName = "keycloak";
 
     /// <summary>
     /// Time to wait after which the application under test will be considered as "not started".
     /// </summary>
-    private static readonly TimeSpan s_startStopTimeout = TimeSpan.FromSeconds(120);
+    public static readonly TimeSpan StartStopTimeout = ResolveStartStopTimeout();
+    private const string StartStopTimeoutSecondsEnvironmentVariable = "AGENDA_INTEGRATION_TESTS_STARTSTOP_TIMEOUT_SECONDS";
+    private static readonly TimeSpan s_readinessProbeDelay = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan s_requestProbeTimeout = TimeSpan.FromSeconds(5);
+    private const int RequiredConsecutiveSuccessfulProbes = 1;
     /// <summary>
     /// Time to wait after which building the infrastructure will be considered as failed.
     /// </summary>
     private static readonly TimeSpan s_buildStopTimeout = TimeSpan.FromSeconds(60);
+
+    internal static TimeSpan ResolveStartStopTimeout(string ci, string githubActions)
+    {
+        bool isCi = string.Equals(ci, bool.TrueString, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(githubActions, bool.TrueString, StringComparison.OrdinalIgnoreCase);
+
+        return isCi ? TimeSpan.FromMinutes(5) : TimeSpan.FromMinutes(2);
+    }
+
+    private static TimeSpan ResolveStartStopTimeout()
+    {
+        string configuredTimeoutSeconds = Environment.GetEnvironmentVariable(StartStopTimeoutSecondsEnvironmentVariable);
+        if (int.TryParse(configuredTimeoutSeconds, out int timeoutSeconds)
+            && timeoutSeconds > 0)
+        {
+            return TimeSpan.FromSeconds(timeoutSeconds);
+        }
+
+        string ci = Environment.GetEnvironmentVariable("CI");
+        string githubActions = Environment.GetEnvironmentVariable("GITHUB_ACTIONS");
+        return ResolveStartStopTimeout(ci, githubActions);
+    }
 
 
     /// <summary>
@@ -51,12 +92,97 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     {
         _app  = await _sutBuilder.BuildAsync(cancellationToken).WaitAsync(s_buildStopTimeout, cancellationToken);
 
-        await _app.StartAsync(cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
-        await _app.WaitForResourcesAsync(cancellationToken: cancellationToken).WaitAsync(s_startStopTimeout, cancellationToken);
-
-        ApiClient = _app.CreateHttpClient(ApiResourceName);
+        await _app.StartAsync(cancellationToken).WaitAsync(StartStopTimeout, cancellationToken);
+        await _app.ResourceNotifications.WaitForResourceHealthyAsync(ApiResourceName, cancellationToken).WaitAsync(StartStopTimeout, cancellationToken);
+        ApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http", builder =>
+        {
+            builder.AddStandardResilienceHandler();
+        });
+        AnonymousApiClient = _app.CreateHttpClient(ApiResourceName, endpointName: "http", builder =>
+        {
+            builder.AddStandardResilienceHandler();
+        });
+        KeycloakClient = _app.CreateHttpClient(KeycloakResourceName);
+        await WaitUntilApiIsReachableAsync(cancellationToken);
 
         return _app;
+    }
+
+    /// <summary>
+    /// Issues a real Keycloak access token via the Resource Owner Password Grant
+    /// against the <c>agenda-frontend</c> client.
+    /// </summary>
+    /// <param name="username">Keycloak user.</param>
+    /// <param name="password">Keycloak user password.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The issued access token.</returns>
+    public async Task<string> IssueAccessTokenAsync(string username, string password, CancellationToken cancellationToken)
+    {
+        Dictionary<string, string> form = new()
+        {
+            ["grant_type"] = "password",
+            ["client_id"] = "agenda-frontend",
+            ["username"] = username,
+            ["password"] = password,
+            ["scope"] = "openid"
+        };
+
+        using HttpRequestMessage request = new(HttpMethod.Post, "/realms/agenda/protocol/openid-connect/token")
+        {
+            Content = new FormUrlEncodedContent(form)
+        };
+
+        using HttpResponseMessage response = await KeycloakClient.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        string payload = await response.Content.ReadAsStringAsync(cancellationToken);
+        using JsonDocument document = JsonDocument.Parse(payload);
+        return document.RootElement.GetProperty("access_token").GetString();
+    }
+
+    private async Task WaitUntilApiIsReachableAsync(CancellationToken cancellationToken)
+    {
+        Exception lastException = null;
+        int consecutiveSuccessCount = 0;
+
+        using CancellationTokenSource timeoutCancellationTokenSource = new(StartStopTimeout);
+        using CancellationTokenSource linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCancellationTokenSource.Token);
+
+        while (!linkedCancellationTokenSource.IsCancellationRequested)
+        {
+            try
+            {
+                // Probe the readiness endpoint to avoid coupling test bootstrap
+                // to business routes that may evolve independently.
+                using HttpRequestMessage request = new(HttpMethod.Get, "/health");
+                using CancellationTokenSource requestCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(linkedCancellationTokenSource.Token);
+                requestCancellationTokenSource.CancelAfter(s_requestProbeTimeout);
+
+                using HttpResponseMessage response = await ApiClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, requestCancellationTokenSource.Token);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    consecutiveSuccessCount++;
+                    if (consecutiveSuccessCount >= RequiredConsecutiveSuccessfulProbes)
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    consecutiveSuccessCount = 0;
+                }
+            }
+            catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
+            {
+                lastException = exception;
+                consecutiveSuccessCount = 0;
+            }
+
+            await Task.Delay(s_readinessProbeDelay, linkedCancellationTokenSource.Token);
+        }
+
+        throw new TimeoutException("The API endpoint did not become reachable before the startup timeout elapsed.", lastException);
     }
 
 
@@ -66,12 +192,12 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        // Approche en deux phases : arrêt gracieux puis forcé
+        // Two-phase shutdown: graceful attempt first, forced cleanup if needed.
         bool stopped = await TryGracefulStopAsync();
 
         if (!stopped && _app is not null)
         {
-            Console.WriteLine("Arrêt gracieux échoué, nettoyage forcé...");
+            Console.WriteLine("Graceful shutdown failed, forcing resource cleanup...");
             await _app.DisposeAsync();
         }
 
@@ -87,19 +213,19 @@ public class AgendaApplicationTestingBuilder : IAsyncLifetime
 
         try
         {
-            // Timeout plus court pour l'arrêt gracieux
-            using CancellationTokenSource cts = new (s_startStopTimeout);
+            // Shorter timeout for graceful stop.
+            using CancellationTokenSource cts = new (StartStopTimeout);
             await _app.StopAsync(cts.Token);
             return true;
         }
         catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
         {
-            Console.WriteLine($"Timeout lors de l'arrêt gracieux: {ex.Message}");
+            Console.WriteLine($"Timeout while performing graceful shutdown: {ex.Message}");
             return false;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors de l'arrêt gracieux: {ex.Message}");
+            Console.WriteLine($"Unexpected error during graceful shutdown: {ex.Message}");
             return false;
         }
     }

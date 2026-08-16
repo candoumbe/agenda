@@ -1,27 +1,32 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Agenda.AppHost;
 using Candoumbe.Pipelines.Components;
 using Candoumbe.Pipelines.Components.Formatting;
 using Candoumbe.Pipelines.Components.GitHub;
 using Candoumbe.Pipelines.Components.NuGet;
 using Candoumbe.Pipelines.Components.Workflows;
-using Candoumbe.Types.Numerics;
-using Nuke.Common;
-using Nuke.Common.CI.GitHubActions;
-using Nuke.Common.Git;
-using Nuke.Common.IO;
-using Nuke.Common.ProjectModel;
-using Nuke.Common.Tooling;
-using Nuke.Common.Tools.Codecov;
-using Nuke.Common.Tools.Docker;
-using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.GitHub;
-using Nuke.Common.Tools.GitVersion;
-using static Nuke.Common.Tools.Docker.DockerTasks;
-using static Nuke.Common.Tools.DotNet.DotNetTasks;
+using Fallout.Common;
+using Fallout.Common.CI.GitHubActions;
+using Fallout.Common.Git;
+using Fallout.Common.IO;
+using Fallout.Common.ProjectModel;
+using Fallout.Common.Tooling;
+using Fallout.Common.Tools.Codecov;
+using Fallout.Common.Tools.Docker;
+using Fallout.Common.Tools.DotNet;
+using Fallout.Common.Tools.EntityFramework;
+using Fallout.Common.Tools.GitHub;
+using Fallout.Common.Tools.GitVersion;
+using Fallout.Common.Tools.Npm;
+using static Fallout.Common.Tools.Docker.DockerTasks;
+using static Fallout.Common.Tools.DotNet.DotNetTasks;
+using static Fallout.Common.Tools.EntityFramework.EntityFrameworkTasks;
+using static Fallout.Common.Tools.Npm.NpmTasks;
+using static Fallout.Common.Utilities.ConsoleUtility;
 using static Serilog.Log;
-using Project = Nuke.Common.ProjectModel.Project;
+using Project = Fallout.Common.ProjectModel.Project;
 
 [GitHubActions(
     "integration",
@@ -31,7 +36,7 @@ using Project = Nuke.Common.ProjectModel.Project;
     OnPushBranchesIgnore = [IHaveMainBranch.MainBranchName],
     PublishArtifacts = true,
     EnableGitHubToken = true,
-    InvokedTargets = [nameof(Tests), nameof(IPushNugetPackages.Publish), nameof(IPack.Pack)],
+    InvokedTargets = [nameof(Tests), nameof(PublishImages), nameof(IPack.Pack)],
     CacheKeyFiles = ["global.json", "src/**/*.csproj"],
     ImportSecrets =
     [
@@ -39,9 +44,9 @@ using Project = Nuke.Common.ProjectModel.Project;
         nameof(IReportCoverage.CodecovToken),
         nameof(IMutationTest.StrykerDashboardApiKey)
     ],
-    OnPullRequestExcludePaths =
+    OnPushExcludePaths =
     [
-        "docs/*",
+        "docs/**",
         "README.md",
         "CHANGELOG.md",
         "LICENSE"
@@ -52,8 +57,8 @@ using Project = Nuke.Common.ProjectModel.Project;
     GitHubActionsImage.UbuntuLatest,
     FetchDepth = 0,
     AutoGenerate = false,
-    OnPushBranches = [ IHaveMainBranch.MainBranchName ],
-    InvokedTargets = [nameof(Tests), nameof(IPushNugetPackages.Publish), nameof(ICreateGithubRelease.AddGithubRelease)],
+    OnPushBranches = [IHaveMainBranch.MainBranchName],
+    InvokedTargets = [nameof(Tests), nameof(PublishImages), nameof(ICreateGithubRelease.AddGithubRelease)],
     EnableGitHubToken = true,
     CacheKeyFiles = ["global.json", "src/**/*.csproj"],
     PublishArtifacts = true,
@@ -63,16 +68,16 @@ using Project = Nuke.Common.ProjectModel.Project;
         nameof(IReportCoverage.CodecovToken),
         nameof(IMutationTest.StrykerDashboardApiKey)
     ],
-    OnPullRequestExcludePaths =
+    OnPushExcludePaths =
     [
-        "docs/*",
+        "docs/**",
         "README.md",
         "CHANGELOG.md",
         "LICENSE"
     ]
 )]
 [DotNetVerbosityMapping]
-public class Build : EnhancedNukeBuild,
+public class Build : EnhancedBuild,
     IHaveGitVersion,
     IHaveSourceDirectory,
     IHaveTestDirectory,
@@ -81,15 +86,15 @@ public class Build : EnhancedNukeBuild,
     IClean,
     IRestore,
     IDotnetFormat,
-    IMutationTest,
     IBenchmark,
     IReportUnitTestCoverage,
     IReportIntegrationTestCoverage,
     IPushNugetPackages,
-    ICreateGithubRelease
+    ICreateGithubRelease,
+    ICanRegenerateGitHubWorkflows
 {
 
-    [Solution] [Required] public readonly Solution Solution;
+    [Solution][Required] public readonly Solution Solution;
 
     /// <inheritdoc />
     Solution IHaveSolution.Solution => Solution;
@@ -109,8 +114,25 @@ public class Build : EnhancedNukeBuild,
     ///<inheritdoc/>
     AbsolutePath IHaveTestDirectory.TestDirectory => RootDirectory / "tests";
 
+    /// <summary>
+    /// Path to the frontend directory.
+    /// </summary>
+    AbsolutePath FrontendDirectory => this.Get<IHaveSourceDirectory>().SourceDirectory / "Agenda.Frontend";
+
     ///<inheritdoc/>
     IEnumerable<Project> IUnitTest.UnitTestsProjects => this.Get<IHaveSolution>().Solution.GetAllProjects("*.UnitTests");
+
+    ///<inheritdoc/>
+    Configure<DotNetTestSettings, (Project project, string framework)> IUnitTest.ProjectUnitTestSettings => (settings, unitTestRunContext) => settings
+        .ResetProjectFile()
+        .ClearLoggers()
+        .SetProcessAdditionalArguments($"--project {unitTestRunContext.project.Path}");
+
+    ///<inheritdoc/>
+    Configure<DotNetTestSettings, (Project project, string framework)> IIntegrationTest.ProjectIntegrationTestSettings => (settings, testRunContext) => settings
+        .ResetProjectFile()
+        .ClearLoggers()
+        .SetProcessAdditionalArguments($"--project {testRunContext.project.Path}");
 
     ///<inheritdoc/>
     IEnumerable<Project> IIntegrationTest.IntegrationTestsProjects => this.Get<IHaveSolution>().Solution.GetAllProjects("*.IntegrationTests");
@@ -181,7 +203,7 @@ public class Build : EnhancedNukeBuild,
                                                                          .SetNoBuild(SucceededTargets.Contains(this.Get<ICompile>().Compile))
                                                                          .SetNoRestore(SucceededTargets.Contains(this.Get<IRestore>().Restore))
                                                                          .CombineWith(ArchitecturalTestsProjects,
-                                                                                      (setting, project) => setting.SetProjectFile(project)
+                                                                                      (setting, project) => setting.SetProcessAdditionalArguments($"--project {project.Path}")
                                                                                           .CombineWith(project.GetTargetFrameworks(),
                                                                                                        (x, framework) => x.SetFramework(framework)))
                                                                     )
@@ -197,9 +219,49 @@ public class Build : EnhancedNukeBuild,
                                   this.Get<IHaveGitHubRepository>().GitHubToken)
     ];
 
-    public Target PublishApi => _ =>
-    {
-        return _.Description("Publish image of the API")
+
+    public Target RestoreFrontend => _ => _.Description("Restore frontend dependencies")
+        .TryTriggeredBy<IRestore>()
+        .Before(BuildFrontend)
+        .Executes(() => NpmInstall(settings => settings.SetProcessWorkingDirectory(FrontendDirectory)));
+
+    public Target BuildFrontend => _ => _.Description("Builds the frontend")
+        .TryTriggeredBy<ICompile>()
+        .DependsOn(RestoreFrontend)
+        .Executes(() =>
+        {
+            NpmRun(settings => settings.SetProcessWorkingDirectory(FrontendDirectory)
+                                                                   .SetCommand("build"));
+        });
+
+    public Target TestFrontend => _ => _.Description("Run frontend tests")
+        .TryTriggeredBy<IUnitTest>()
+        .DependsOn(BuildFrontend)
+        .TryBefore<IReportUnitTestCoverage>()
+        .Executes(() => NpmRun(settings => settings.SetProcessWorkingDirectory(FrontendDirectory)
+                                                                         .SetProcessAdditionalArguments("--watch false")
+                                                                         .SetCommand("test")));
+
+    /// <summary>
+    /// Pre-pulls every container image declared in <see cref="ContainerImages"/> so the download
+    /// cost is paid before the integration test fixture starts the AppHost. This keeps cold CI
+    /// runs from exhausting the AppHost startup timeout while pulling Postgres/RabbitMQ/Keycloak.
+    /// </summary>
+    public Target PrePullImages => _ => _
+        .Description("Pulls Docker images required by integration tests so the pull time does not count against the AppHost startup timeout.")
+        .TryDependentFor<IIntegrationTest>()
+        .Executes(() =>
+        {
+            string[] references = [.. ContainerImages.All.Values.Select(image => image.FullReference)];
+            DockerPull(settings => settings
+                           .CombineWith(references,
+                                        (s, image) => s.SetName(image)),
+                       degreeOfParallelism: references.Length,
+                       completeOnFailure: false);
+        });
+
+
+    public Target PublishApi => _ => _.Description("Publish image of the API")
             .DependsOn<IPushNugetPackages>()
             .TriggeredBy<IPushNugetPackages>()
             .After(Tests)
@@ -217,7 +279,7 @@ public class Build : EnhancedNukeBuild,
 
                 Registries.ForEach(registry =>
                 {
-                    AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish"/ registry.Name / filename;
+                    AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / registry.Name / filename;
 
                     Information("Publishing {ImageName} (version {Version}) for {RegistryName} ({RegistryUri}) to {ContainerFullPath}",
                         project.Name, version, registry.Name, registry.Uri, containerFullPath);
@@ -226,38 +288,37 @@ public class Build : EnhancedNukeBuild,
                     IDictionary<string, object> publishProperties = new Dictionary<string, object>
                     {
                         ["ContainerArchiveOutputPath"] = containerFullPath,
-                        ["ContainerImageName"] = imageNameWithRegistry,
+                        ["ContainerRepository"] = imageNameWithRegistry,
                         ["ContainerImageTag"] = gitVersion.SemVer,
+                        ["ContainerImageFormat"] = "Docker",
+                        ["ContainerRuntime"] = "docker",
                         ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
                     };
 
                     DotNetPublish(settings => settings.SetProject(project)
                         .SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
-                        .EnableSelfContained()
                         .SetProperties(publishProperties)
-                        .SetProcessAdditionalArguments([
-                            "/t:PublishContainer",
-                            "--tl"]));
+                        .SetProcessAdditionalArguments(["/t:PublishContainer", "--tl"]));
 
-                    Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
+                    Information("{ImageName} (version {Version}) published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
 
-                    Verbose("Loading image {ImageName} from {ContainerFullPath}", imageNameWithRegistry, containerFullPath);
+                    Verbose("Loading image {ImageName} from archive {ContainerFullPath} ", imageNameWithRegistry, containerFullPath);
                     DockerLoad(settings => settings.SetInput(containerFullPath));
 
                     Verbose("Image {ImageName} loaded successfully", imageNameWithRegistry);
 
-                    IReadOnlyList<string> tags =  GenerateDockerTagsForBranch(this.Get<IHaveGitHubRepository>().GitRepository, gitVersion);
-                    Verbose("Tagging image {ImageName} with tags: {Tags}", imageNameWithRegistry, string.Join(", ", tags));
+                    IReadOnlySet<string> tags = GenerateDockerTagsForBranch(this.Get<IHaveGitHubRepository>().GitRepository, gitVersion);
+                    Verbose("Tagging image {ImageName} with tags: {@Tags}", imageNameWithRegistry, tags);
 
-                    DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{version}")
+                    DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{gitVersion.SemVer}")
                         .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
 
                     Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
 
                     if (IsServerBuild)
                     {
-                        Information("Pushing image {ImageName} to {RegistryName} ({RegistryUri}) with tags: {Tags}",
-                            imageNameWithRegistry, registry.Name, registry.Uri, string.Join(", ", tags));
+                        Information("Pushing image {ImageName} to {RegistryName} ({RegistryUri}) with tags: {@Tags}",
+                            imageNameWithRegistry, registry.Name, registry.Uri, tags);
 
                         Verbose("Logging into {RegistryUri}", registry.Uri);
 
@@ -273,43 +334,182 @@ public class Build : EnhancedNukeBuild,
                         Information("Image {ImageName} pushed successfully", imageNameWithRegistry);
                     }
                 });
-
             });
 
-        IReadOnlyList<string> GenerateDockerTagsForBranch(GitRepository repository, GitVersion version)
+    public Target PublishWorker => _ => _.Description("Publish image of the migration worker")
+        .After(Tests)
+        .Consumes(this.Get<ICompile>().Compile)
+        .Produces(this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "**" / "*.tar.gz")
+        .Executes(() =>
         {
-            List<string> tags = [];
+            GitVersion gitVersion = this.Get<IHaveGitVersion>().GitVersion;
+            string version = gitVersion.FullSemVer;
+            const string imageName = "agenda.worker";
 
-            if(repository.IsOnReleaseBranch())
-            {
-                tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
-                tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
-            }
-            else if (repository.IsOnHotfixBranch() || repository.IsOnFeatureBranch() || (repository.Branch?.StartsWith("chore/*", StringComparison.OrdinalIgnoreCase) ?? false))
-            {
-                tags.Add(repository.Branch.Slugify());
-            }
-            else if (repository.IsOnDevelopBranch())
-            {
-                tags.Add($"{version.Major}-{version.EscapedBranchName}");
-                tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
-                tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
-                tags.Add($"{version.Major}.{version.Minor}{version.EscapedBranchName}");
-                tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
-            }
-            else if (repository.IsOnMainOrMasterBranch())
-            {
-                tags.Add($"{version.Major}");
-                tags.Add($"{version.Major}-latest");
-                tags.Add($"{version.Major}.{version.Minor}");
-                tags.Add($"{version.Major}.{version.Minor}-latest");
-                tags.Add($"{version.MajorMinorPatch}");
-                tags.Add($"{version.MajorMinorPatch}-latest");
-            }
+            string filename = $"{imageName}-{version}.tar.gz";
+            Project project = this.Get<IHaveSolution>().Solution.AllProjects.Single(project => project.Name == "Agenda.Migrator");
 
-            return tags;
+            Registries.ForEach(registry =>
+            {
+                AbsolutePath containerFullPath = this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / registry.Name / filename;
+
+                Information("Publishing {ImageName} (version {Version}) for {RegistryName} ({RegistryUri}) to {ContainerFullPath}",
+                    project.Name, version, registry.Name, registry.Uri, containerFullPath);
+
+                string imageNameWithRegistry = $"{registry.Uri}/{this.Get<IHaveGitRepository>().GitRepository.GetGitHubOwner()}/{imageName}";
+                IDictionary<string, object> publishProperties = new Dictionary<string, object>
+                {
+                    ["ContainerArchiveOutputPath"] = containerFullPath,
+                    ["ContainerRepository"] = imageNameWithRegistry,
+                    ["ContainerImageTag"] = gitVersion.SemVer,
+                    ["ContainerImageFormat"] = "Docker",
+                    ["ContainerRuntime"] = "docker",
+                    ["ContainerGenerateLabelsImageCreated"] = DateTime.UtcNow.ToString("O")
+                };
+
+                DotNetPublish(settings => settings.SetProject(project)
+                    .SetConfiguration(this.Get<IHaveConfiguration>().Configuration)
+                    .EnableSelfContained()
+                    .SetProperties(publishProperties)
+                    .SetProcessAdditionalArguments(["/t:PublishContainer", "--tl"]));
+
+                Information("{ImageName} (version {Version} published successfully to {ContainerFullPath}", project.Name, version, containerFullPath);
+
+                Verbose("Loading image {ImageName} from {ContainerFullPath}", imageNameWithRegistry, containerFullPath);
+                DockerLoad(settings => settings.SetInput(containerFullPath));
+
+                Verbose("Image {ImageName} loaded successfully", imageNameWithRegistry);
+
+                IReadOnlySet<string> tags = GenerateDockerTagsForBranch(this.Get<IHaveGitHubRepository>().GitRepository, gitVersion);
+                Verbose("Tagging image {ImageName} with tags: {@Tags}", imageNameWithRegistry, tags);
+
+                DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{gitVersion.SemVer}")
+                    .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
+
+                Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
+
+                if (IsServerBuild)
+                {
+                    Information("Pushing image {ImageName} to {RegistryName} ({RegistryUri}) with tags: {@Tags}",
+                        imageNameWithRegistry, registry.Name, registry.Uri, tags);
+
+                    Verbose("Logging into {RegistryUri}", registry.Uri);
+
+                    DockerLogin(settings => settings.SetUsername(this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner())
+                        .SetPassword(registry.Password)
+                        .SetServer(registry.Uri));
+
+                    Verbose("Logged into {RegistryUri} successfully", registry.Uri);
+
+                    DockerImagePush(settings =>
+                        settings.CombineWith(tags, (pushSettings, tag) => pushSettings.SetName($"{imageNameWithRegistry}:{tag}")));
+
+                    Information("Image {ImageName} pushed successfully", imageNameWithRegistry);
+                }
+            });
+        });
+
+
+    private static IReadOnlySet<string> GenerateDockerTagsForBranch(GitRepository repository, GitVersion version)
+    {
+        HashSet<string> tags = new(StringComparer.OrdinalIgnoreCase);
+
+        if (repository.IsOnReleaseBranch())
+        {
+            tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
         }
-    };
+        else if (repository.IsOnHotfixBranch()
+                 || repository.IsOnFeatureBranch()
+                 || (repository.Branch?.Like("chore/*", ignoreCase:true) ?? false)
+                 || (repository.Branch?.Like("coldfix/*", ignoreCase:true) ?? false))
+        {
+            tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}.{version.ShortSha}");
+            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}.{version.ShortSha}");
+        }
+        else if (repository.IsOnDevelopBranch())
+        {
+            tags.Add($"{version.Major}-{version.EscapedBranchName}");
+            tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
+            tags.Add($"{version.Major}.{version.Minor}-{version.EscapedBranchName}");
+            tags.Add($"{version.Major}.{version.Minor}-{version.EscapedBranchName}.{version.ShortSha}");
+            tags.Add($"{version.MajorMinorPatch}{version.PreReleaseLabelWithDash}");
+        }
+        else if (repository.IsOnMainOrMasterBranch())
+        {
+            tags.Add($"{version.Major}");
+            tags.Add($"{version.Major}-latest");
+            tags.Add($"{version.Major}.{version.Minor}");
+            tags.Add($"{version.Major}.{version.Minor}-latest");
+            tags.Add($"{version.MajorMinorPatch}");
+        }
+
+        return tags;
+    }
+
+    public Target PublishFrontend => _ => _.Description("Publish frontend static files")
+        .DependsOn(TestFrontend)
+        .After(TestFrontend)
+        .Consumes(BuildFrontend)
+        .TryAfter<IPack>()
+        .Produces(this.Get<IHaveArtifacts>().ArtifactsDirectory / "publish" / "frontend" / "**" / "*.tar.gz")
+        .Executes(() =>
+        {
+            const string imageName = "agenda.frontend";
+            GitVersion gitVersion = this.Get<IHaveGitVersion>().GitVersion;
+            IReadOnlySet<string> versions = GenerateDockerTagsForBranch(this.Get<IHaveGitRepository>().GitRepository, gitVersion);
+
+            string version = gitVersion.SemVer;
+
+            DockerBuild(settings => settings.SetFile(FrontendDirectory / "Dockerfile")
+                    .SetPath(FrontendDirectory)
+                    .SetProcessWorkingDirectory(FrontendDirectory)
+                    .SetTag([$"{imageName}:{version}", .. versions.Select(version => $"{imageName}:{version}")]));
+
+            Information("{ImageName} (version {Version}) will be tagged as {Tag}", imageName, gitVersion.FullSemVer, version);
+
+            Registries.ForEach(registry =>
+            {
+                string imageNameWithRegistry = $"{registry.Uri}/{this.Get<IHaveGitRepository>().GitRepository.GetGitHubOwner()}/{imageName}";
+
+                Information("Publishing {ImageName} (version {Version}) to {RegistryName} ({RegistryUri}) as {ImageNameWithRegistry}",
+                    imageName, version, registry.Name, registry.Uri, imageNameWithRegistry);
+
+
+                Information("{ImageName} (version {Version}) loaded successfully", imageName, version);
+
+                Verbose("Tagging image {ImageName} with tags: {@Tags}", imageNameWithRegistry, versions);
+
+                DockerImageTag(settings => settings.SetSourceImage($"{imageName}:{version}")
+                    .CombineWith(versions, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
+
+                Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
+
+                if (IsServerBuild)
+                {
+                    Information("Pushing image {ImageName} to {RegistryName} ({RegistryUri}) with tags: {@Tags}",
+                        imageNameWithRegistry, registry.Name, registry.Uri, versions);
+
+                    Verbose("Logging into {RegistryUri}", registry.Uri);
+
+                    DockerLogin(settings => settings.SetUsername(this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner())
+                        .SetPassword(registry.Password)
+                        .SetServer(registry.Uri));
+
+                    Verbose("Logged into {RegistryUri} successfully", registry.Uri);
+
+                    DockerImagePush(settings =>
+                        settings
+                            .CombineWith(versions, (pushSettings, tag) => pushSettings.SetName($"{imageNameWithRegistry}:{tag}")));
+
+                    Information("Image {ImageName} pushed successfully", imageNameWithRegistry);
+                }
+            });
+        });
 
 
     public Target Tests => _ => _.Triggers(ArchitecturalTests,
@@ -317,17 +517,195 @@ public class Build : EnhancedNukeBuild,
                                            this.Get<IIntegrationTest>().IntegrationTests)
                                .Description("Runs all tests");
 
+    public Target AddMigration => _ => _.Description("Add a new migration to the database")
+        .OnlyWhenStatic(() => IsLocalBuild)
+        .Executes(() =>
+        {
 
-    /// <summary>
-    /// Projects to be targeted by mutation tests.
-    /// </summary>
-    private static readonly string[] s_projects = ["Agenda.Ids", "Agenda.Objects", "Agenda.API"];
 
-    /// <inheritdoc />
-    IEnumerable<MutationProjectConfiguration> IMutationTest.MutationTestsProjects =>
-    [
-        ..s_projects.Select(projectName => new MutationProjectConfiguration(sourceProject: Solution.AllProjects.Single(csproj => csproj.Name == projectName),
-                                                                           testProjects: Solution.AllProjects.Where(csproj => string.Equals(csproj.Name, $"{projectName}.UnitTests")),
-                                                                           configurationFile: this.Get<IHaveTestDirectory>().TestDirectory / $"{projectName}.UnitTests" / "stryker-config.json"))
-    ];
+            string migrationName = PromptForInput("New migration name (leave empty to cancel the operation): ", string.Empty);
+            if (string.IsNullOrWhiteSpace(migrationName))
+            {
+                return;
+            }
+            string provider = PromptForChoice("Database provider : ", [("Postgres", "Postgres database engine"), ("Sqlite", "SQLite database engine")]);
+            if (string.IsNullOrWhiteSpace(provider))
+            {
+                return;
+            }
+
+            const string migrationDirectoryName = "Migrations";
+            const string contextName = "Agenda.DataStores.AgendaDataStore";
+
+            if (PromptForChoice($"Adding migration '{migrationName}' for provider '{provider}'. Confirm ?",
+                   [ (ConsoleKey.Y, "Confirm the operation"),
+                       (ConsoleKey.N, "Cancel the operation")]) == ConsoleKey.N)
+            {
+                Information("Operation cancelled by the user.");
+                return;
+            }
+
+            string connectionString = provider switch
+            {
+                "Postgres" => "Host=localhost;Port=5432;Database=agenda;Username=postgres;Password=!",
+                "Sqlite" => "Data Source=agenda.db",
+                _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, "Unsupported provider")
+            };
+
+            EntityFrameworkMigrationsAdd(s => s.SetStartupProject(ApiProject)
+                .SetName(migrationName)
+                .SetContext(contextName)
+                .SetFramework("net10.0")
+                .SetProject(this.Get<IHaveSourceDirectory>().SourceDirectory / $"Agenda.DataStores.{provider}" / $"Agenda.DataStores.{provider}.csproj")
+                .SetStartupProject(ApiProject)
+                .SetOutputDirectory(migrationDirectoryName)
+                .SetProcessAdditionalArguments($"""
+                                                -- --provider {provider.ToLowerInvariant()} --ConnectionStrings:agenda "{connectionString}"
+                                                """));
+
+            Information("Migration '{MigrationName}' added successfully.", migrationName);
+
+
+        });
+
+    public Target RemoveMigration => _ => _.Description("Remove latest migration")
+        .OnlyWhenStatic(() => IsLocalBuild)
+        .Executes(() =>
+        {
+            string provider = PromptForChoice("Database provider : ",
+                                              [("Postgres", "Postgres database engine"), ("Sqlite", "SQLite database engine")]);
+            if (string.IsNullOrWhiteSpace(provider))
+            {
+                return;
+            }
+
+            const string contextName = "Agenda.DataStores.AgendaDataStore";
+
+            if (PromptForChoice($"Removing latest migration for provider '{provider}'. Confirm ?",
+                   [ (ConsoleKey.Y, "Confirm the operation"),
+                       (ConsoleKey.N, "Cancel the operation")]) == ConsoleKey.N)
+            {
+                Information("Operation cancelled by the user.");
+                return;
+            }
+
+            string connectionString = provider switch
+            {
+                "Postgres" => "Host=localhost;Port=5432;Database=agenda;Username=postgres;Password=!",
+                "Sqlite" => "Data Source=agenda.db",
+                _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, "Unsupported provider")
+            };
+
+            EntityFrameworkMigrationsRemove(s => s.SetStartupProject(ApiProject)
+                .SetContext(contextName)
+                .SetProject(this.Get<IHaveSourceDirectory>().SourceDirectory / $"Agenda.DataStores.{provider}" / $"Agenda.DataStores.{provider}.csproj")
+                .SetStartupProject(ApiProject)
+                .SetProcessAdditionalArguments($"""
+                                                -- --provider {provider.ToLowerInvariant()} --ConnectionStrings:agenda "{connectionString}"
+                                                """));
+
+            Information("Latest migration removed successfully.");
+        });
+
+
+    public Target PublishImages => _ => _.Description("Publish images of the API and frontend")
+        .DependsOn(PublishApi, PublishFrontend, PublishWorker)
+        .After(Tests)
+        .TryBefore<ICreateGithubRelease>(x => x.AddGithubRelease)
+        .Consumes(this.Get<ICompile>().Compile);
+
+    public Target CleanImages => _ => _.OnlyWhenStatic(() => IsLocalBuild)
+        .Description("Cleans up all images of the API and frontend")
+        .Executes(async () =>
+        {
+            Information("Select repository where you want to clean up images:");
+            string repository = PromptForChoice("Repository : ", Registries.Select(r => (r.Uri, $"{r.Name} ({r.Uri})")).ToArray());
+            
+            if (string.IsNullOrWhiteSpace(repository))
+            {
+                Information("Operation cancelled by the user.");
+                return;
+            }
+
+            RegistryConfiguration registry = Registries.Single(r => r.Uri == repository);
+            switch (PromptForChoice($"Are you sure you want to clean up all images of the API and frontend from {registry.Name} ({registry.Uri}) ?",
+                   [ (ConsoleKey.Y, "Confirm the operation"),
+                       (ConsoleKey.N, "Cancel the operation")]))
+            {
+                case ConsoleKey.Y:
+                    Information("Cleaning up images from {RegistryName} ({RegistryUri})", registry.Name, registry.Uri);
+                    
+                    if(repository.Like("ghcr.io", ignoreCase: true))
+                    {
+                        string owner = this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner();
+                        string[] images = ["agenda.api", "agenda.frontend", "agenda.worker"];
+                        // Choose which image to delete
+                        string imageToDelete = PromptForChoice("Select image to delete: ", images.Select(image => (image, image)).ToArray());
+                        if (string.IsNullOrWhiteSpace(imageToDelete))
+                        {
+                            Information("Operation cancelled by the user.");
+                            return;
+                        }
+
+                        Information("Deleting image {ImageName} from {RegistryName} ({RegistryUri})", imageToDelete, registry.Name, registry.Uri);
+
+                        // Choose which tag to delete
+                        string tagToDelete = PromptForInput($"Enter the tag to delete for image {imageToDelete} (leave empty to cancel the operation): ", string.Empty);
+                        if (string.IsNullOrWhiteSpace(tagToDelete))
+                        {
+                            Information("Operation cancelled by the user.");
+                            return;
+                        }
+
+                        Information("Deleting tag {Tag} for image {ImageName} from {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
+                        // Delete the image tag using GitHub API
+                        Octokit.GitHubClient client = new (new Octokit.ProductHeaderValue("Agenda.Pipelines"))
+                        {
+                            Credentials = new Octokit.Credentials(this.Get<IHaveGitHubRepository>().GitHubToken)
+                        };
+                        Octokit.Package package = await client.Packages.GetForUser(owner, Octokit.PackageType.Container, imageToDelete);
+                        if(package is null)
+                        {
+                            Information("Image {ImageName} not found in {RegistryName} ({RegistryUri})", imageToDelete, registry.Name, registry.Uri);
+                            return;
+                        }
+
+                        Octokit.ApiOptions options = new()
+                        { PageSize = 100 };
+                        int page = 1;
+                        List<Octokit.PackageVersion> allVersions = new(capacity: 300);
+                        IReadOnlyList<Octokit.PackageVersion> pageOfVersions = Array.Empty<Octokit.PackageVersion>();
+                        do
+                        {
+                            options.StartPage = page;
+                            pageOfVersions = await client.Packages.PackageVersions.GetAllForUser(owner, Octokit.PackageType.Container, imageToDelete, options: options);
+                            allVersions.AddRange(pageOfVersions);
+                            page++;
+                        } while (pageOfVersions.Count == 100);
+
+                        Octokit.PackageVersion versionToDelete = allVersions.SingleOrDefault(v => v.Metadata.Container.Tags.Contains(tagToDelete));
+                        if (versionToDelete is null)
+                        {
+                            Information("Tag {Tag} for image {ImageName} not found in {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
+                        }
+                        else
+                        {
+                            await client.Packages.PackageVersions.DeleteForUser(owner, Octokit.PackageType.Container, imageToDelete, Convert.ToInt32(versionToDelete.Id));
+                            Information("Tag {Tag} for image {ImageName} deleted successfully from {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
+                        }
+
+                    }
+                    else
+                    {
+                        Information("Cleaning up images from {RegistryName} ({RegistryUri}) is not supported yet.", registry.Name, registry.Uri);
+                    }
+                
+                    break;
+                case ConsoleKey.N:
+                    Information("Operation cancelled by the user.");
+                    break;
+            }
+
+
+        });
 }

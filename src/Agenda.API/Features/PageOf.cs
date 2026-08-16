@@ -15,22 +15,32 @@ public class PageOf<TResource> where TResource : class
     public int Page { get; init; }
 
     /// <summary>
-    /// Indicates the number of elements the current page is a subset of
+    /// Indicates the number of <typeparamref name="TResource"/> elements the current page is a subset of
     /// </summary>
     public long Total { get; init; }
 
     /// <summary>
-    /// The number of elements the current page holds
+    /// Size requested for each page.
+    /// </summary>
+    public int PageSize { get; init; }
+
+    /// <summary>
+    /// Total number of <typeparamref name="TResource"/> elements matching the criteria.
+    /// </summary>
+    public long TotalCount { get; init; }
+
+    /// <summary>
+    /// The number of <typeparamref name="TResource"/> elements the current page holds
     /// </summary>
     public long Count { get; init; }
 
     /// <summary>
-    /// Resources hold in the current page
+    /// <typeparamref name="TResource"/> elements held in the current page
     /// </summary>
     public IEnumerable<TResource> Items
     {
         get => _items;
-        set => _items = value ?? Enumerable.Empty<TResource>();
+        set => _items = value ?? []; // Avoid null reference exceptions when enumerating over items
     }
 
     private IEnumerable<TResource> _items;

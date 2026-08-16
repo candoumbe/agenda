@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Agenda.API.Features;
@@ -12,73 +11,39 @@ using Agenda.API.Features.Appointments;
 using Agenda.API.Features.v1.Appointments;
 using Agenda.API.IntegrationTests.Fixtures;
 using Agenda.Ids;
-using Aspire.Hosting;
-using Aspire.Hosting.Testing;
+using AwesomeAssertions;
 using Bogus;
 using Candoumbe.Forms;
-using DataFilters.Converters;
-using FluentAssertions;
-using Json.More;
-using Json.Patch;
 using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
-using xRetry.v3;
 using Xunit;
 using Xunit.OpenCategories.V3;
 
 namespace Agenda.API.IntegrationTests.Appointments.v1.Create;
 
-[IntegrationTests]
+[IntegrationTest]
 [Feature(nameof(Appointments))]
-public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : IAsyncLifetime
+public class CreateAppointmentEndpointShould
 {
-    private HttpClient _client;
+    private readonly HttpClient _client;
+    private readonly ITestOutputHelper _outputHelper;
+    private readonly AgendaApplicationFixture _fixture;
     private static readonly Faker s_faker = new();
-    private AgendaApplicationTestingBuilder _appHost;
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions;
-    private DistributedApplication _sut;
 
-    static CreateAppointmentEndpointShould()
+    public CreateAppointmentEndpointShould(AgendaApplicationFixture fixture, ITestOutputHelper outputHelper)
     {
-        s_jsonSerializerOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            AllowTrailingCommas = true
-        };
-
-        s_jsonSerializerOptions.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-        s_jsonSerializerOptions.Converters.Add(new MultiFilterConverter());
-        s_jsonSerializerOptions.Converters.Add(new FilterConverter());
-        s_jsonSerializerOptions.Converters.Add(new PatchJsonConverter());
-        s_jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<OperationType>());
-        s_jsonSerializerOptions.Converters.Add(new EnumStringConverter<OperationType>());
-        s_jsonSerializerOptions.Converters.Add(new AppointmentId.AppointmentIdSystemTextJsonConverter());
-        s_jsonSerializerOptions.Converters.Add(new AttendeeId.AttendeeIdSystemTextJsonConverter());
+        _fixture = fixture;
+        _outputHelper = outputHelper;
+        _client = fixture.ApiClient;
     }
 
 
-    ///<inheritdoc/>
-    public async ValueTask InitializeAsync()
-    {
-        _appHost = await DistributedApplicationTestingBuilderFactory.CreateBuilderAsync(outputHelper);
-
-        _sut = await _appHost.StartAsync(TestContext.Current.CancellationToken);
-        _client = _appHost.ApiClient;
-    }
-
-    ///<inheritdoc/>
-    public async ValueTask DisposeAsync() => await _appHost.DisposeAsync();
-
-
-    [RetryFact(maxRetries: 3, delayBetweenRetriesMs: 2000, SkipExceptions = [typeof(DistributedApplicationException)])]
+    [Fact]
     public async Task Returns_the_appointment_when_created_successfully()
     {
         // Arrange
-        //_client = _sut.CreateHttpClient("api");
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
 
-        outputHelper.WriteLine("Client: " + _client.BaseAddress);
+        _outputHelper.WriteLine("Client: " + _client.BaseAddress);
         Instant startDate = s_faker.Noda().Instant.Soon();
         Instant endDate = s_faker.Noda().Instant.Future(reference: startDate);
 
@@ -93,13 +58,13 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
         };
 
         // Act
-        using HttpResponseMessage response = await _client.PostAsJsonAsync("/appointments", newAppointmentInfo, s_jsonSerializerOptions, cancellationToken: cancellationToken);
+        using HttpResponseMessage response = await _client.PostAsJsonAsync("/appointments", newAppointmentInfo, _fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
 
         // Assert
         response.StatusCode.Should()
             .Be(HttpStatusCode.Created);
 
-        Browsable<AppointmentInfo> browsable = await response.Content.ReadFromJsonAsync<Browsable<AppointmentInfo>>(s_jsonSerializerOptions, cancellationToken: cancellationToken);
+        Browsable<AppointmentInfo> browsable = await response.Content.ReadFromJsonAsync<Browsable<AppointmentInfo>>(_fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
 
         IEnumerable<Link> links = browsable.Links;
         links.Should()
@@ -115,5 +80,36 @@ public class CreateAppointmentEndpointShould(ITestOutputHelper outputHelper) : I
         resource.StartDate.Should().Be(newAppointmentInfo.StartDate);
         resource.EndDate.Should().Be(newAppointmentInfo.EndDate);
         resource.Attendees.Should().BeEquivalentTo(newAppointmentInfo.Attendees);
+    }
+
+    [Fact]
+    public async Task Return_no_pagination_headers_when_creating_an_appointment()
+    {
+        // Arrange
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+
+        Instant startDate = s_faker.Noda().Instant.Soon();
+        Instant endDate = s_faker.Noda().Instant.Future(reference: startDate);
+
+        AppointmentInfo newAppointmentInfo = new()
+        {
+            Id = AppointmentId.New(),
+            StartDate = startDate.InUtc().ToOffsetDateTime(),
+            EndDate = endDate.InUtc().ToOffsetDateTime(),
+            Location = s_faker.Address.City(),
+            Attendees = [.. s_faker.Make(2, () => new AttendeeInfo { Name = s_faker.Name.FullName(), Email = s_faker.Internet.Email(), PhoneNumber = s_faker.Phone.PhoneNumber() })],
+            Subject = s_faker.Lorem.Sentence()
+        };
+
+        // Act
+        using HttpResponseMessage response = await _client.PostAsJsonAsync("/appointments", newAppointmentInfo, _fixture.ApiJsonSerializerOptions, cancellationToken: cancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        response.Headers.Should().NotContain(header => string.Equals(header.Key, "total", StringComparison.OrdinalIgnoreCase));
+        response.Headers.Should().NotContain(header => string.Equals(header.Key, "totalCount", StringComparison.OrdinalIgnoreCase));
+        response.Headers.Should().NotContain(header => string.Equals(header.Key, "count", StringComparison.OrdinalIgnoreCase));
+        response.Headers.Should().NotContain(header => string.Equals(header.Key, "Link", StringComparison.OrdinalIgnoreCase));
+        response.Headers.Should().Contain(header => string.Equals(header.Key, "Location", StringComparison.OrdinalIgnoreCase));
     }
 }

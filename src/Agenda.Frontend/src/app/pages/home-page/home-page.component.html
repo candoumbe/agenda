@@ -1,0 +1,32 @@
+<section class="home-page">
+  <div class="glow glow-left" aria-hidden="true"></div>
+  <div class="glow glow-right" aria-hidden="true"></div>
+
+  <div class="home-container">
+    <header class="home-header">
+      <p class="kicker">Agenda</p>
+      <h1>Bienvenue dans votre agenda</h1>
+      <p class="subtitle">Gérez vos rendez-vous en toute simplicité.</p>
+    </header>
+
+    <div class="nav-cards">
+      <button type="button" class="nav-card nav-card--primary" (click)="goToAppointments()">
+        <span class="nav-card__icon" aria-hidden="true">📅</span>
+        <h2 class="nav-card__title">Agenda</h2>
+        <p class="nav-card__description">Consulter vos rendez-vous des 2 prochaines semaines</p>
+      </button>
+
+      <button type="button" class="nav-card nav-card--accent" (click)="goToNewAppointment()">
+        <span class="nav-card__icon" aria-hidden="true">➕</span>
+        <h2 class="nav-card__title">Nouveau rendez-vous</h2>
+        <p class="nav-card__description">Planifier un nouveau rendez-vous</p>
+      </button>
+
+      <button type="button" class="nav-card nav-card--tertiary" (click)="goToAttendees()">
+        <span class="nav-card__icon" aria-hidden="true">🔍</span>
+        <h2 class="nav-card__title">Participants</h2>
+        <p class="nav-card__description">Rechercher un participant par nom ou adresse email</p>
+      </button>
+    </div>
+  </div>
+</section>

@@ -1,9 +1,0 @@
-{
-  "$schema": "build.schema.json",
-  "Formatters": [],
-  "GitHubToken": "v1:XIFz94zM189ypjR+Vos3XW1gPgNhcY3lBh7ESJiEwClicUBndnE61XcPguJxJqb2NrTc/zpU1qULZyIx8R4pJCaNG1vCqc+QMYKLqqk1GAjP1cyPg/uHCF7RVg4QB112",
-  "NuGetApiKey": "v1:RfqkbWHLmw79GhKpdE82LtyB7hmMemazOlv21EPwou1922l5KqEEnGJ/WoHsI0bn",
-  "StrykerDashboardApiKey": "v1:3r5ENMyGKw5AX3CENrDH/rg1pOCpRHbMER6JBoxXfdArTIF+eJdc2f1T5UmoEwYf",
-  "DeleteLocalOnSuccess": true,
-  "NoLogo": true
-}

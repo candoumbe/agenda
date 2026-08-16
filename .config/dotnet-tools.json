@@ -3,23 +3,30 @@
   "isRoot": true,
   "tools": {
     "dotnet-ef": {
-      "version": "9.0.9",
+      "version": "10.0.10",
       "commands": [
         "dotnet-ef"
       ],
       "rollForward": false
     },
-    "nuke.globaltool": {
-      "version": "9.0.4",
+    "gitversion.tool": {
+      "version": "6.8.2",
       "commands": [
-        "nuke"
+        "dotnet-gitversion"
       ],
       "rollForward": false
     },
-    "gitversion.tool": {
-      "version": "6.4.0",
+    "fallout.migrate": {
+      "version": "10.3.49",
       "commands": [
-        "dotnet-gitversion"
+        "fallout-migrate"
+      ],
+      "rollForward": false
+    },
+    "fallout.globaltool": {
+      "version": "10.3.49",
+      "commands": [
+        "fallout"
       ],
       "rollForward": false
     }

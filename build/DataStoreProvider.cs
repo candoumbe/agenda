@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using Nuke.Common.Tooling;
+using Fallout.Common.Tooling;
 
 [TypeConverter(typeof(Enumeration.TypeConverter<DataStoreProvider>))]
 public class DataStoreProvider : Enumeration

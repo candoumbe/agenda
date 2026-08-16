@@ -13,17 +13,30 @@ A REST API designed to handle appointments
 
 This repo follows the gitflow to manage its branches.
 
-## Get started 
+## Get started
 
 1. clone this repo
 
 ## <a id="lnk-contribute">Want to contribute ?</a>
 
-You can start contributing by looking at [`good first issues`](https://github.com/kalic-io/agenda/contribute) 
+You can start contributing by looking at [`good first issues`](https://github.com/kalic-io/agenda/contribute)
 on the issue tracker.
 
 Make sure you've read the [contribution guidelines](CONTRIBUTING.md)
 
+## Authentication
+
+Agenda authenticates API callers against a Keycloak realm provisioned by the Aspire AppHost.
+
+- Local startup, seeded users, token-fetch recipes, and troubleshooting:
+  [docs/development/authentication.md](docs/development/authentication.md).
+- Why Keycloak: [docs/ADRs/001-authentication-provider.md](docs/ADRs/001-authentication-provider.md).
+
+## Tips and tricks
+
+See [docs/tips-and-tricks.md](docs/tips-and-tricks.md) for practical repository tips,
+including GitHub PR branch configuration cleanup.
+
 ## <a id="lnk-contribute">Troubleshooting</a>
 
-If you find an issue, you can submit a pull request (PRs are welcome 😀 !!) or [open an issue](https://github.com/kalic-io/agenda/issues/new). 
+If you find an issue, you can submit a pull request (PRs are welcome 😀 !!) or [open an issue](https://github.com/kalic-io/agenda/issues/new).

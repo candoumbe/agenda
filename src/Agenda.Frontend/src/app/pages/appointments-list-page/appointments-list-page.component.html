@@ -1,0 +1,140 @@
+<section class="appointments-page">
+  <div class="glow glow-left" aria-hidden="true"></div>
+  <div class="glow glow-right" aria-hidden="true"></div>
+
+  <article class="card">
+    <header class="page-header">
+      <p class="kicker">Agenda</p>
+      <h1>Rendez-vous</h1>
+      <p class="subtitle">Consultez et gérez vos rendez-vous à venir.</p>
+    </header>
+
+    <div class="search-section">
+      <form [formGroup]="searchForm" (ngSubmit)="searchAppointments()" class="search-form">
+        <input
+          type="text"
+          formControlName="subject"
+          placeholder="Rechercher par sujet..."
+          class="search-input"
+        />
+        <input
+          type="text"
+          formControlName="location"
+          placeholder="Filtrer par lieu..."
+          class="search-input"
+        />
+        <input
+          type="date"
+          formControlName="fromDate"
+          class="search-input"
+          aria-label="Date de debut"
+        />
+        <input
+          type="time"
+          formControlName="fromTime"
+          class="search-input"
+          aria-label="Heure de debut optionnelle"
+          placeholder="Heure debut (optionnelle)"
+        />
+        <input
+          type="date"
+          formControlName="toDate"
+          class="search-input"
+          aria-label="Date de fin"
+        />
+        <input
+          type="time"
+          formControlName="toTime"
+          class="search-input"
+          aria-label="Heure de fin optionnelle"
+          placeholder="Heure fin (optionnelle)"
+        />
+        <button type="submit" class="primary">Rechercher</button>
+        <button type="button" class="secondary" (click)="clearSearch()">Réinitialiser</button>
+      </form>
+    </div>
+
+    <button type="button" class="primary create-button" (click)="goToAppointmentCreation()">
+      + Nouveau rendez-vous
+    </button>
+
+    <div class="results-count-badge" [class.count-error]="hasCountError()">
+      @if (hasCountError()) {
+        <span>Résultats non disponibles</span>
+      } @else if (totalResultsCount() === null) {
+        <span>Chargement...</span>
+      } @else {
+        <span>{{ totalResultsCount() }} résultat(s) trouvé(s)</span>
+      }
+    </div>
+
+    @if (hasError()) {
+      <p class="feedback failure">{{ errorMessage() }}</p>
+    }
+
+    @if (isLoading()) {
+      <div class="loading">
+        <p>Chargement des rendez-vous...</p>
+      </div>
+    } @else {
+      @if (appointmentGroups().length === 0) {
+        <div class="empty-state">
+          <p>{{ noAppointmentsMessage() }}</p>
+          <button type="button" class="primary" (click)="goToAppointmentCreation()">
+            + Nouveau rendez-vous
+          </button>
+
+          @if (canJumpToFirstIncomingAppointment()) {
+            <button type="button" class="secondary jump-button" (click)="jumpToFirstIncomingAppointment()">
+              Voir le premier rendez-vous à venir
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="appointments-container">
+          @for (group of appointmentGroups(); track group.date) {
+            <section class="date-group" [class.today]="group.isToday" [class.past]="group.isInThePast">
+              <h2 class="date-header">
+                {{ group.date | date: 'EEEE d MMMM yyyy' : '' : 'fr-FR' }}
+                @if (group.isToday) {
+                  <span class="badge today-badge">Aujourd'hui</span>
+                }
+              </h2>
+
+              <div class="appointments-grid">
+                @for (item of group.appointments; track item.resource.id) {
+                  <appointment-card
+                    [key]="item.resource.id"
+                    [appointment]="item.resource"
+                  ></appointment-card>
+                }
+              </div>
+            </section>
+          }
+        </div>
+
+        <div class="pagination">
+          <button
+            type="button"
+            class="secondary"
+            (click)="previousPage()"
+            [disabled]="!canGoToPreviousPage()"
+          >
+            Précédent
+          </button>
+          <span class="page-info">
+            Page {{ currentPage() }} sur {{ totalPages() }}
+          </span>
+          <button
+            type="button"
+            class="secondary"
+            (click)="nextPage()"
+            [disabled]="!canGoToNextPage()"
+          >
+            Suivant
+          </button>
+        </div>
+      }
+    }
+  </article>
+</section>
