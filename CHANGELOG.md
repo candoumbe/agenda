@@ -91,6 +91,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `Candoumbe.Pipelines` package to `3.0.1`
 - Enabled NuGet central transitive pinning and pinned `SQLitePCLRaw.lib.e_sqlite3` to a non-vulnerable version to address NU1903
 
+### 🐛 Bug fixes
+
+#### API
+- Fixed API logging being silently disabled in containers by configuring Serilog from `appsettings.json` instead of binding the uninitialised static `Log.Logger`
+
 ## [0.1.0] / 2025-10-03
 ### 🚀 New features
 - Initial release of the Agenda module
