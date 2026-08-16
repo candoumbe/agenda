@@ -42,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Authentication
 - API now validates Keycloak-issued JWTs (audience `agenda-api`, RS256 only) with `realm_access.roles` flattened into `ClaimTypes.Role` claims. ([#577](https://github.com/candoumbe/agenda/issues/577), [#323](https://github.com/candoumbe/agenda/issues/323))
-- Default authorization policy now requires an authenticated user: OpenAPI/Scalar routes remain anonymous in non-Production environments only. ([#577](https://github.com/candoumbe/agenda/issues/577))
+- Default authorization policy now requires an authenticated user: OpenAPI/Scalar routes remain anonymous in every environment, including `Production`. ([#577](https://github.com/candoumbe/agenda/issues/577))
 - Removed the symmetric `JwtOptions` configuration in favor of Keycloak OIDC discovery. ([#577](https://github.com/candoumbe/agenda/issues/577))
 - All API endpoints now require authentication by default: `DELETE /appointments/{id}` additionally requires the `agenda-admin` realm role. ([#578](https://github.com/candoumbe/agenda/issues/578), [#323](https://github.com/candoumbe/agenda/issues/323))
 
@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated AppHost launch settings to bind Aspire local service endpoints to `127.0.0.1` instead of `localhost`
 - Updated `Candoumbe.Pipelines` package to `3.0.1`
 - Enabled NuGet central transitive pinning and pinned `SQLitePCLRaw.lib.e_sqlite3` to a non-vulnerable version to address NU1903
+- Removed the leftover commented-out NSwag configuration block from the API startup
 
 ### 🐛 Bug fixes
 
@@ -97,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed API logging being silently disabled in containers by configuring Serilog from `appsettings.json` instead of binding the uninitialised static `Log.Logger`
 - Fixed every API route returning `500` outside `Development` by resolving the Keycloak authority from Aspire service discovery instead of leaving the `https+http://` composite scheme as the JWT bearer metadata address
 - Fixed the Scalar API reference rendering a blank page when reached with a trailing slash (`/scalar/v1/`) by redirecting its relative assets back to the canonical `/scalar/{asset}` path
+- Fixed the Scalar API reference being unreachable outside `Development` by mapping it on every environment, including `Production`
 
 #### AppHost
 - Fixed containerised runs silently defaulting to the `Production` environment by propagating `ASPNETCORE_ENVIRONMENT` to the agenda API resource
