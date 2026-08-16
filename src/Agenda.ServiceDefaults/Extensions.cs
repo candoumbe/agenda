@@ -196,7 +196,7 @@ public static class Extensions
         host = string.Empty;
         port = 5672;
 
-        if (!Uri.TryCreate(connectionString, UriKind.Absolute, out Uri uri))
+        if (!Uri.TryCreate(connectionString, UriKind.Absolute, out Uri? uri))
         {
             return false;
         }
