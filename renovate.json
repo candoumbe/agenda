@@ -15,5 +15,19 @@
       ],
       "datasourceTemplate": "docker"
     }
+  ],
+  "packageRules": [
+    {
+      "description": "Group the MAJOR Paramore.Brighter.*",
+      "matchPackagePatterns": ["^Paramore\\.Brighter\\..*"],
+      "matchUpdateTypes": ["major"],
+      "groupName": "Paramore.Brighter-major"
+    },
+    {
+      "description": "Group the minor/patch Paramore.Brighter.*",
+      "matchPackagePatterns": ["^Paramore\\.Brighter\\..*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Paramore.Brighter-non-major"
+    }
   ]
 }
