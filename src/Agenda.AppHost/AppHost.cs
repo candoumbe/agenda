@@ -55,6 +55,8 @@ IResourceBuilder<ProjectResource> migrationService = builder.AddProject<Agenda_M
 IResourceBuilder<ProjectResource> api = builder.AddProject<Agenda_API>("api")
     .WithHttpHealthCheck("/health", endpointName:"http")
     .WithExternalHttpEndpoints()
+    // Containerised runs receive no environment name and silently fall back to Production.
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
     .WithReference(postgres).WaitFor(postgres)
     .WithReference(messaging).WaitFor(messaging)
     .WithReference(keycloak).WaitFor(keycloak)
