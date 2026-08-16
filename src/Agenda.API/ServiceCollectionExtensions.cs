@@ -109,12 +109,18 @@ public static class ServiceCollectionExtensions
 
             string realm = configuration.GetValue("Authentication:Keycloak:Realm", "agenda");
             string audience = configuration.GetValue("Authentication:Keycloak:Audience", "agenda-api");
-            bool requireHttpsMetadata = !environment.IsDevelopment();
+            (string authority, bool requireHttpsMetadata) = ResolveKeycloakAuthority(configuration, realm, environment);
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddKeycloakJwtBearer("keycloak", realm: realm, configureOptions: opt =>
                     {
                         opt.Audience = audience;
+
+                        if (!string.IsNullOrWhiteSpace(authority))
+                        {
+                            opt.Authority = authority;
+                        }
+
                         opt.RequireHttpsMetadata = requireHttpsMetadata;
                         opt.TokenValidationParameters.ValidAlgorithms = s_validAlgorithms;
                         opt.TokenValidationParameters.ClockSkew = TimeSpan.FromSeconds(30);
@@ -188,8 +194,33 @@ public static class ServiceCollectionExtensions
         }
     }
 
-    private static IClock ResolveClock(IConfiguration configuration)
+    /// <summary>
+    /// Resolves the concrete Keycloak realm URL advertised by Aspire service discovery.
+    /// </summary>
+    /// <remarks>
+    /// <c>AddKeycloakJwtBearer</c> assigns the composite service discovery scheme
+    /// <c>https+http://keycloak/realms/{realm}</c> to the authority. The JWT bearer post-configuration
+    /// only accepts a metadata address starting with <c>https://</c>, so it throws on every single request
+    /// as soon as HTTPS metadata is required, which turns the whole API into a blanket <c>500</c>.
+    /// Resolving the endpoint injected by the AppHost yields a real absolute URL and lets the HTTPS
+    /// requirement follow the scheme that is actually in use.
+    /// </remarks>
+    private static (string Authority, bool RequireHttpsMetadata) ResolveKeycloakAuthority(IConfiguration configuration, string realm, IHostEnvironment environment)
     {
+        string baseAddress = configuration["services:keycloak:https:0"] ?? configuration["services:keycloak:http:0"];
+
+        string authority = string.IsNullOrWhiteSpace(baseAddress)
+            ? null
+            : $"{baseAddress.TrimEnd('/')}/realms/{realm}";
+
+        bool defaultRequireHttpsMetadata = authority is not null
+            ? authority.StartsWith(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+            : !environment.IsDevelopment();
+
+        return (authority, configuration.GetValue("Authentication:Keycloak:RequireHttpsMetadata", defaultRequireHttpsMetadata));
+    }
+
+    private static IClock ResolveClock(IConfiguration configuration)    {
         string configuredNow = configuration.GetValue<string>(TestingNowConfigKey);
         if (string.IsNullOrWhiteSpace(configuredNow))
         {
