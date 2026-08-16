@@ -25,7 +25,7 @@ public class PostgresSqlFixture : IAsyncLifetime
     public PostgresSqlFixture()
     {
         // configure the postgres container
-        _container = new PostgreSqlBuilder()
+        _container = new PostgreSqlBuilder("postgres:18-alpine")
             .WithUsername(s_faker.Internet.UserName())
             .WithPassword(s_faker.Internet.Password())
             .Build();
