@@ -6,6 +6,7 @@ using Agenda.API;
 using Agenda.API.Features;
 using Agenda.API.TypeMappers;
 using Agenda.DataStores;
+using Agenda.DataStores.Postgres;
 using Agenda.Ids;
 using Asp.Versioning;
 using Candoumbe.Types.Numerics;
@@ -36,16 +37,11 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
+    configureSettings: settings => settings.ConnectionString = builder.Configuration.GetConnectionString("postgres")!.WithGssDisabled(),
     configureDbContextOptions: optionsBuilder =>
     {
         optionsBuilder.UseNpgsql(o => o.UseNodaTime()
             .MigrationsAssembly("Agenda.DataStores.Postgres")
-            .ConfigureDataSource(
-                dataSourceBuilder =>
-                {
-                    // Disable GSS encryption mode to avoid issues with Kerberos authentication in some environments
-                    dataSourceBuilder.ConnectionStringBuilder.GssEncryptionMode = Npgsql.GssEncryptionMode.Disable;
-                })
             );
     });
 builder.Services.AddCustomizedDependencyInjection(builder.Configuration);
