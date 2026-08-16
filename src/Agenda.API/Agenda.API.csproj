@@ -9,7 +9,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <IsPackable>true</IsPackable>
-    <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
     <ContainerImageFormat>Docker</ContainerImageFormat>
   </PropertyGroup>
 
