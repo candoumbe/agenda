@@ -149,6 +149,12 @@ app.MapScalarApiReference(options =>
     options.AddDocument("v1");
 }).AllowAnonymous();
 
+// Scalar emits relative asset URLs, so browsing "/scalar/v1/" resolves them one segment too deep.
+// Redirecting back to the canonical asset path keeps the reference page usable with a trailing slash.
+app.MapGet("/scalar/{documentName}/{**asset}", (string asset) => Results.LocalRedirect($"/scalar/{asset}"))
+   .AllowAnonymous()
+   .ExcludeFromDescription();
+
 app.MapDefaultEndpoints();
 
 await app.RunAsync().ConfigureAwait(false);

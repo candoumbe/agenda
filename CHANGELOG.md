@@ -96,6 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### API
 - Fixed API logging being silently disabled in containers by configuring Serilog from `appsettings.json` instead of binding the uninitialised static `Log.Logger`
 - Fixed every API route returning `500` outside `Development` by resolving the Keycloak authority from Aspire service discovery instead of leaving the `https+http://` composite scheme as the JWT bearer metadata address
+- Fixed the Scalar API reference rendering a blank page when reached with a trailing slash (`/scalar/v1/`) by redirecting its relative assets back to the canonical `/scalar/{asset}` path
 
 ## [0.1.0] / 2025-10-03
 ### 🚀 New features
