@@ -1,4 +1,5 @@
 using Agenda.DataStores;
+using Agenda.DataStores.Postgres;
 using Agenda.Migrator;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
@@ -15,16 +16,10 @@ builder.Services.AddOpenTelemetry()
 builder.AddNpgsqlDbContext<AgendaDataStore>("postgres",
                                             configureSettings: options =>
                                             {
-                                                options.ConnectionString = $"{builder.Configuration.GetConnectionString("postgres")};GSS Encryption Mode=disable";
+                                                options.ConnectionString = builder.Configuration.GetConnectionString("postgres")!.WithGssDisabled();
                                             },
                                             configureDbContextOptions: optionsBuilder => optionsBuilder.UseNpgsql(o => o.UseNodaTime()
                                                                            .MigrationsAssembly("Agenda.DataStores.Postgres")
-                                                                           .ConfigureDataSource(
-                                                                               dataSourceBuilder =>
-                                                                               {
-                                                                                   // Disable GSS encryption mode to avoid issues with Kerberos authentication in some environments
-                                                                                   dataSourceBuilder.ConnectionStringBuilder.GssEncryptionMode = Npgsql.GssEncryptionMode.Disable;
-                                                                               })
                                                                            ));
 
 IHost host = builder.Build();

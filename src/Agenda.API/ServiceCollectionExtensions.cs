@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using Agenda.API.Authentication;
 using Agenda.DataStores;
+using Agenda.DataStores.Postgres;
 using Agenda.Events;
 using Candoumbe.DataAccess.Abstractions;
 using Candoumbe.DataAccess.EFStore;
@@ -140,7 +141,7 @@ public static class ServiceCollectionExtensions
         /// <param name="environment">The environment onto which the setup is performed</param>
         public void AddCustomBrighter(IConfiguration configuration, IHostEnvironment environment)
         {
-            string databaseConnectionString = configuration.GetConnectionString("postgres")!;
+            string databaseConnectionString = configuration.GetConnectionString("postgres")!.WithGssDisabled();
             MessagingOptions messagingOptions = configuration.GetSection($"ApiOptions:{nameof(AgendaApiOptions.MessagingOptions)}").Get<MessagingOptions>();
             bool runningIntegrationTests = configuration.GetValue<bool>("RunningIntegrationTests");
             RelationalDatabaseConfiguration outboxConfiguration = new(databaseConnectionString, outBoxTableName: "outbox");
