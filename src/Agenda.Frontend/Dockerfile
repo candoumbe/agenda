@@ -40,8 +40,8 @@ COPY --chown=nginx:nginx docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
 
 # Create directory for runtime configuration with proper permissions
-RUN mkdir -p /usr/share/nginx/html/public && \
-    chown -R nginx:nginx /usr/share/nginx/html
+RUN mkdir -p /usr/share/nginx/html/public /tmp/nginx && \
+    chown -R nginx:nginx /usr/share/nginx/html /tmp/nginx
 
 # Switch to non-root user
 USER nginx
