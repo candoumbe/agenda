@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### 🚀 New features
 #### API
-- Added `DELETE /appointments/{id}/attendees/{id}` endpoint ([#338](https://github.com/candoumbe/agenda/issues/338))
 - Added `POST /appointments/{id}/attendees` endpoint ([#337](https://github.com/candoumbe/agenda/issues/337))
 
 ### 🧹 Housekeeping
@@ -31,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a participants search page stub as the first entry point for attendee lookup
 - Frontend OIDC settings are now loaded from a generated `runtime-auth.js` file at startup so the Angular app can pick up the auth authority, client ID, and scope from runtime environment variables without a rebuild
 
+#### API
+- Added `DELETE /appointments/{id}/attendees/{id}` endpoint
 - Added RabbitMQ integration and related configuration.
 - Added publication of `AppointmentScheduled` event when a new appointment is scheduled : 
 - Added publication of `AppointmentCreated` event when a new appointment is created, containing appointment ID, start/end dates (ISO 8601), location, attendees list, and creator ID (#329)
