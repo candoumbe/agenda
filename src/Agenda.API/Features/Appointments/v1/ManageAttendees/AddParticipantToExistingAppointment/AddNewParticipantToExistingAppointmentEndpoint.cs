@@ -56,6 +56,5 @@ public class AddNewParticipantToExistingAppointmentEndpoint : Endpoint<AddNewPar
             },
             none: () => Task.FromResult<Results<NoContent,Conflict, NotFound>>(TypedResults.NotFound())
         );
-        return TypedResults.NotFound();
     }
 }
