@@ -420,8 +420,8 @@ public class Build : EnhancedBuild,
         }
         else if (repository.IsOnHotfixBranch()
                  || repository.IsOnFeatureBranch()
-                 || (repository.Branch?.Like("chore/*", ignoreCase:true) ?? false)
-                 || (repository.Branch?.Like("coldfix/*", ignoreCase:true) ?? false))
+                 || (repository.Branch?.Like("chore/*", ignoreCase: true) ?? false)
+                 || (repository.Branch?.Like("coldfix/*", ignoreCase: true) ?? false))
         {
             tags.Add($"{version.Major}{version.PreReleaseLabelWithDash}");
             tags.Add($"{version.Major}.{version.Minor}{version.PreReleaseLabelWithDash}");
@@ -619,7 +619,7 @@ public class Build : EnhancedBuild,
         {
             Information("Select repository where you want to clean up images:");
             string repository = PromptForChoice("Repository : ", Registries.Select(r => (r.Uri, $"{r.Name} ({r.Uri})")).ToArray());
-            
+
             if (string.IsNullOrWhiteSpace(repository))
             {
                 Information("Operation cancelled by the user.");
@@ -633,8 +633,8 @@ public class Build : EnhancedBuild,
             {
                 case ConsoleKey.Y:
                     Information("Cleaning up images from {RegistryName} ({RegistryUri})", registry.Name, registry.Uri);
-                    
-                    if(repository.Like("ghcr.io", ignoreCase: true))
+
+                    if (repository.Like("ghcr.io", ignoreCase: true))
                     {
                         string owner = this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner();
                         string[] images = ["agenda.api", "agenda.frontend", "agenda.worker"];
@@ -658,12 +658,12 @@ public class Build : EnhancedBuild,
 
                         Information("Deleting tag {Tag} for image {ImageName} from {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
                         // Delete the image tag using GitHub API
-                        Octokit.GitHubClient client = new (new Octokit.ProductHeaderValue("Agenda.Pipelines"))
+                        Octokit.GitHubClient client = new(new Octokit.ProductHeaderValue("Agenda.Pipelines"))
                         {
                             Credentials = new Octokit.Credentials(this.Get<IHaveGitHubRepository>().GitHubToken)
                         };
                         Octokit.Package package = await client.Packages.GetForUser(owner, Octokit.PackageType.Container, imageToDelete);
-                        if(package is null)
+                        if (package is null)
                         {
                             Information("Image {ImageName} not found in {RegistryName} ({RegistryUri})", imageToDelete, registry.Name, registry.Uri);
                             return;
@@ -698,7 +698,7 @@ public class Build : EnhancedBuild,
                     {
                         Information("Cleaning up images from {RegistryName} ({RegistryUri}) is not supported yet.", registry.Name, registry.Uri);
                     }
-                
+
                     break;
                 case ConsoleKey.N:
                     Information("Operation cancelled by the user.");
@@ -707,6 +707,4 @@ public class Build : EnhancedBuild,
 
 
         });
-
-        private 
 }
