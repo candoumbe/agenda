@@ -385,7 +385,6 @@ public class Build : EnhancedBuild,
 
                 DockerImageTag(settings => settings.SetSourceImage($"{imageNameWithRegistry}:{gitVersion.SemVer}")
                     .CombineWith(tags, (dockerTagSettings, tag) => dockerTagSettings.SetTargetImage($"{imageNameWithRegistry}:{tag}")));
-
                 Verbose("Image {ImageName} tagged successfully", imageNameWithRegistry);
 
                 if (IsServerBuild)
@@ -708,4 +707,6 @@ public class Build : EnhancedBuild,
 
 
         });
+
+        private 
 }
