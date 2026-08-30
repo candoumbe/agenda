@@ -707,4 +707,31 @@ public class Build : EnhancedBuild,
 
 
         });
-}
+
+        private const string AspireCliToolName = "Aspire.Cli";
+
+        private Target InstallAspireCli => _ => _.Description("Installs the Aspire CLI tool")
+            .TryDependentFor<ICompile>()
+            .Executes(() =>
+            {
+                Information("Installing Aspire CLI tool");
+
+                if(IsLocalBuild)
+                {
+                    Information("Aspire CLI tool may already be installed. Uninstalling it first to ensure a clean installation.");
+
+                    DotNetToolUninstall(settings => settings.SetPackageName(AspireCliToolName)
+                        .SetGlobal(true)
+                        .SetProcessAdditionalArguments("--ignore-failed-sources"));
+
+                    Information("Aspire CLI tool uninstalled successfully");
+
+                }
+
+                Information("Installing Aspire CLI tool globally");
+                DotNetToolInstall(settings => settings.SetPackageName(AspireCliToolName)
+                    .SetGlobal(true)
+                    .SetProcessAdditionalArguments("--ignore-failed-sources"));
+                Information("Aspire CLI tool installed successfully");
+            });
+    }
