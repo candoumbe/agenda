@@ -38,6 +38,7 @@
         "Feature",
         "Format",
         "Hotfix",
+        "InstallAspireCli",
         "IntegrationTests",
         "Pack",
         "PrePullImages",
