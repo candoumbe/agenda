@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>c3f61c50-6170-407e-9787-4fab3600cc78</UserSecretsId>
     <AspireUseCliBundle>true</AspireUseCliBundle>
+    <AspireCliInvocationMode>Dnx</AspireCliInvocationMode>
   </PropertyGroup>
 
   <ItemGroup>
