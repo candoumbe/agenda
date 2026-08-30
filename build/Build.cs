@@ -99,6 +99,15 @@ public class Build : EnhancedBuild,
     /// <inheritdoc />
     Solution IHaveSolution.Solution => Solution;
 
+    [PathVariable]
+    public Tool Bash {get; init; }
+
+    [PathVariable]
+    public Tool Curl {get; init; }
+    
+    [PathVariable]
+    public Tool Chmod {get; init; }
+
     public static int Main() => Execute<Build>(x => ((ICompile)x).Compile);
 
     ///<inheritdoc/>
@@ -712,26 +721,32 @@ public class Build : EnhancedBuild,
 
         private Target InstallAspireCli => _ => _.Description("Installs the Aspire CLI tool")
             .TryDependentFor<ICompile>()
+            .OnlyWhenStatic(() => OperatingSystem.IsLinux())
             .Executes(() =>
             {
                 Information("Installing Aspire CLI tool");
+                Verbose("Downloading install script from https://aspire.dev/install.sh");
 
-                if(IsLocalBuild)
+                AbsolutePath aspireInstallScriptDirectory = this.Get<IHaveArtifacts>().ArtifactsDirectory / "scripts";
+                if (!aspireInstallScriptDirectory.DirectoryExists())
                 {
-                    Information("Aspire CLI tool may already be installed. Uninstalling it first to ensure a clean installation.");
-
-                    DotNetToolUninstall(settings => settings.SetPackageName(AspireCliToolName)
-                        .SetGlobal(true)
-                        .SetProcessAdditionalArguments("--ignore-failed-sources"));
-
-                    Information("Aspire CLI tool uninstalled successfully");
-
+                    Information("Creating aspire CLI directory at {AspireCliInstallScriptDirectory}", aspireInstallScriptDirectory);
+                    aspireInstallScriptDirectory.CreateDirectory();
                 }
 
-                Information("Installing Aspire CLI tool globally");
-                DotNetToolInstall(settings => settings.SetPackageName(AspireCliToolName)
-                    .SetGlobal(true)
-                    .SetProcessAdditionalArguments("--ignore-failed-sources"));
+                Curl($"-sSL https://aspire.dev/install.sh -o install.sh", workingDirectory: aspireInstallScriptDirectory);
+                AbsolutePath aspireInstallScriptPath = aspireInstallScriptDirectory / "install.sh";
+                Verbose("Downloaded install script to {InstallScriptPath}", aspireInstallScriptPath);
+                
+                Verbose("Making install script executable");
+                Chmod($"+x {aspireInstallScriptPath}");
+                Verbose("Install script is now executable");
+                Verbose("Executing install script");
+
+                Information("Installing Aspire CLI tool using install script at {InstallScriptPath}", aspireInstallScriptPath);
+                Bash($"{aspireInstallScriptPath}");
                 Information("Aspire CLI tool installed successfully");
+
+                aspireInstallScriptDirectory.DeleteDirectory();
             });
     }
