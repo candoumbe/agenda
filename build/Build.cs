@@ -637,7 +637,7 @@ public class Build : EnhancedBuild,
             }
 
             RegistryConfiguration registry = Registries.Single(r => r.Uri == repository);
-            switch (PromptForChoice($"Are you sure you want to clean up all images of the API and frontend from {registry.Name} ({registry.Uri}) ?",
+            switch (PromptForChoice($"Are you sure you want to clean up images of the API / frontend / worker from {registry.Name} ({registry.Uri}) ?",
                    [ (ConsoleKey.Y, "Confirm the operation"),
                        (ConsoleKey.N, "Cancel the operation")]))
             {
@@ -647,7 +647,7 @@ public class Build : EnhancedBuild,
                     if (repository.Like("ghcr.io", ignoreCase: true))
                     {
                         string owner = this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner();
-                        string[] images = ["agenda.api", "agenda.frontend", "agenda.worker"];
+                        HashSet<string> images = ["agenda.api", "agenda.frontend", "agenda.worker"];
                         // Choose which image to delete
                         string imageToDelete = PromptForChoice("Select image to delete: ", images.Select(image => (image, image)).ToArray());
                         if (string.IsNullOrWhiteSpace(imageToDelete))
@@ -659,19 +659,16 @@ public class Build : EnhancedBuild,
                         Information("Deleting image {ImageName} from {RegistryName} ({RegistryUri})", imageToDelete, registry.Name, registry.Uri);
 
                         // Choose which tag to delete
-                        string tagToDelete = PromptForInput($"Enter the tag to delete for image {imageToDelete} (leave empty to cancel the operation): ", string.Empty);
-                        if (string.IsNullOrWhiteSpace(tagToDelete))
-                        {
-                            Information("Operation cancelled by the user.");
-                            return;
-                        }
-
-                        Information("Deleting tag {Tag} for image {ImageName} from {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
-                        // Delete the image tag using GitHub API
                         Octokit.GitHubClient client = new(new Octokit.ProductHeaderValue("Agenda.Pipelines"))
                         {
                             Credentials = new Octokit.Credentials(this.Get<IHaveGitHubRepository>().GitHubToken)
                         };
+
+                        Information("Retrieving tags for image {ImageName} from {RegistryName} ({RegistryUri})",
+                                    imageToDelete,
+                                    registry.Name,
+                                    registry.Uri);
+
                         Octokit.Package package = await client.Packages.GetForUser(owner, Octokit.PackageType.Container, imageToDelete);
                         if (package is null)
                         {
@@ -679,8 +676,7 @@ public class Build : EnhancedBuild,
                             return;
                         }
 
-                        Octokit.ApiOptions options = new()
-                        { PageSize = 100 };
+                        Octokit.ApiOptions options = new(){ PageSize = 100 };
                         int page = 1;
                         List<Octokit.PackageVersion> allVersions = new(capacity: 300);
                         IReadOnlyList<Octokit.PackageVersion> pageOfVersions = Array.Empty<Octokit.PackageVersion>();
@@ -692,6 +688,13 @@ public class Build : EnhancedBuild,
                             page++;
                         } while (pageOfVersions.Count == 100);
 
+                        string tagToDelete = PromptForChoice("Select tag to delete: ", allVersions.SelectMany(v => v.Metadata.Container.Tags).Distinct().Select(tag => (tag, tag)).ToArray());
+                        if (string.IsNullOrWhiteSpace(tagToDelete))
+                        {
+                            Information("Operation cancelled by the user.");
+                            return;
+                        }
+
                         Octokit.PackageVersion versionToDelete = allVersions.SingleOrDefault(v => v.Metadata.Container.Tags.Contains(tagToDelete));
                         if (versionToDelete is null)
                         {
@@ -702,7 +705,6 @@ public class Build : EnhancedBuild,
                             await client.Packages.PackageVersions.DeleteForUser(owner, Octokit.PackageType.Container, imageToDelete, Convert.ToInt32(versionToDelete.Id));
                             Information("Tag {Tag} for image {ImageName} deleted successfully from {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
                         }
-
                     }
                     else
                     {
