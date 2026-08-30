@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Agenda.AppHost;
 using Candoumbe.Pipelines.Components;
@@ -748,5 +749,17 @@ public class Build : EnhancedBuild,
                 Information("Aspire CLI tool installed successfully");
 
                 aspireInstallScriptDirectory.DeleteDirectory();
+
+                // The install script only persists PATH changes to ~/.bashrc, which is not
+                // re-sourced within this (non-interactive) process. Without this, the
+                // subsequent Compile target fails with ASPIRE009 because the "aspire"
+                // command can't be resolved by the Aspire.Hosting.AppHost MSBuild targets.
+                AbsolutePath aspireCliBinDirectory = (AbsolutePath)Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) / ".aspire" / "bin";
+                string currentPath = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+                if (!currentPath.Split(Path.PathSeparator).Contains(aspireCliBinDirectory))
+                {
+                    Environment.SetEnvironmentVariable("PATH", $"{aspireCliBinDirectory}{Path.PathSeparator}{currentPath}");
+                    Verbose("Added {AspireCliBinDirectory} to PATH", aspireCliBinDirectory);
+                }
             });
     }
