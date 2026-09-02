@@ -10,9 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### API
 - Added `POST /appointments/{id}/attendees` endpoint ([#337](https://github.com/candoumbe/agenda/issues/337))
 
+### 🐛 Bug fixes
+#### Build
+- Fixed the `CleanImages` target failing with a `403` error against the GitHub Packages API by authenticating with a dedicated `ImageAdminToken` secret instead of `GitHubToken`
+- Added a `TagPattern` parameter to `CleanImages` to batch-delete multiple matching tags with a confirmation prompt and a progress bar, instead of selecting a single tag interactively
+
 ### 🧹 Housekeeping
 
 - Configured renovate to group `Paramore.Brighter.*` NuGet packages
+- Added `Spectre.Console` package dependency for interactive build tooling console UX
 
 
 ## [0.2.0] / 2026-08-16
