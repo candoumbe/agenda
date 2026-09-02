@@ -10,6 +10,7 @@ using Candoumbe.Pipelines.Components.NuGet;
 using Candoumbe.Pipelines.Components.Workflows;
 using Fallout.Common;
 using Fallout.Common.CI.GitHubActions;
+using Fallout.Common.Execution.Theming;
 using Fallout.Common.Git;
 using Fallout.Common.IO;
 using Fallout.Common.ProjectModel;
@@ -21,6 +22,7 @@ using Fallout.Common.Tools.EntityFramework;
 using Fallout.Common.Tools.GitHub;
 using Fallout.Common.Tools.GitVersion;
 using Fallout.Common.Tools.Npm;
+using Spectre.Console;
 using static Fallout.Common.Tools.Docker.DockerTasks;
 using static Fallout.Common.Tools.DotNet.DotNetTasks;
 using static Fallout.Common.Tools.EntityFramework.EntityFrameworkTasks;
@@ -101,13 +103,17 @@ public class Build : EnhancedBuild,
     Solution IHaveSolution.Solution => Solution;
 
     [PathVariable]
-    public Tool Bash {get; init; }
+    public Tool Bash { get; init; }
 
     [PathVariable]
-    public Tool Curl {get; init; }
-    
+    public Tool Curl { get; init; }
+
     [PathVariable]
-    public Tool Chmod {get; init; }
+    public Tool Chmod { get; init; }
+
+    [Secret]
+    [Parameter("Token used to delete artifacts")]
+    public readonly string ImageAdminToken;
 
     public static int Main() => Execute<Build>(x => ((ICompile)x).Compile);
 
@@ -623,12 +629,20 @@ public class Build : EnhancedBuild,
         .TryBefore<ICreateGithubRelease>(x => x.AddGithubRelease)
         .Consumes(this.Get<ICompile>().Compile);
 
+    [Parameter("Pattern for the tag to delete")]
+    public string TagPattern { get; set; }
+
     public Target CleanImages => _ => _.OnlyWhenStatic(() => IsLocalBuild)
         .Description("Cleans up all images of the API and frontend")
+        .Requires(() => Registries.Any())
         .Executes(async () =>
         {
             Information("Select repository where you want to clean up images:");
-            string repository = PromptForChoice("Repository : ", Registries.Select(r => (r.Uri, $"{r.Name} ({r.Uri})")).ToArray());
+            string repository = Registries.Count switch
+            {
+                1 => Registries[0].Uri,
+                _ => PromptForChoice("Repository : ", Registries.Select(r => (r.Uri, $"{r.Name} ({r.Uri})")).ToArray())
+            };
 
             if (string.IsNullOrWhiteSpace(repository))
             {
@@ -637,7 +651,7 @@ public class Build : EnhancedBuild,
             }
 
             RegistryConfiguration registry = Registries.Single(r => r.Uri == repository);
-            switch (PromptForChoice($"Are you sure you want to clean up all images of the API and frontend from {registry.Name} ({registry.Uri}) ?",
+            switch (PromptForChoice($"Are you sure you want to clean up images of the API / frontend / worker from {registry.Name} ({registry.Uri}) ?",
                    [ (ConsoleKey.Y, "Confirm the operation"),
                        (ConsoleKey.N, "Cancel the operation")]))
             {
@@ -647,7 +661,7 @@ public class Build : EnhancedBuild,
                     if (repository.Like("ghcr.io", ignoreCase: true))
                     {
                         string owner = this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner();
-                        string[] images = ["agenda.api", "agenda.frontend", "agenda.worker"];
+                        HashSet<string> images = ["agenda.api", "agenda.frontend", "agenda.worker"];
                         // Choose which image to delete
                         string imageToDelete = PromptForChoice("Select image to delete: ", images.Select(image => (image, image)).ToArray());
                         if (string.IsNullOrWhiteSpace(imageToDelete))
@@ -659,19 +673,16 @@ public class Build : EnhancedBuild,
                         Information("Deleting image {ImageName} from {RegistryName} ({RegistryUri})", imageToDelete, registry.Name, registry.Uri);
 
                         // Choose which tag to delete
-                        string tagToDelete = PromptForInput($"Enter the tag to delete for image {imageToDelete} (leave empty to cancel the operation): ", string.Empty);
-                        if (string.IsNullOrWhiteSpace(tagToDelete))
-                        {
-                            Information("Operation cancelled by the user.");
-                            return;
-                        }
-
-                        Information("Deleting tag {Tag} for image {ImageName} from {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
-                        // Delete the image tag using GitHub API
                         Octokit.GitHubClient client = new(new Octokit.ProductHeaderValue("Agenda.Pipelines"))
                         {
-                            Credentials = new Octokit.Credentials(this.Get<IHaveGitHubRepository>().GitHubToken)
+                            Credentials = new Octokit.Credentials(ImageAdminToken)
                         };
+
+                        Information("Retrieving tags for image {ImageName} from {RegistryName} ({RegistryUri})",
+                                    imageToDelete,
+                                    registry.Name,
+                                    registry.Uri);
+
                         Octokit.Package package = await client.Packages.GetForUser(owner, Octokit.PackageType.Container, imageToDelete);
                         if (package is null)
                         {
@@ -679,29 +690,71 @@ public class Build : EnhancedBuild,
                             return;
                         }
 
-                        Octokit.ApiOptions options = new()
-                        { PageSize = 100 };
+                        string tagPatternToDelete = TagPattern switch
+                        {
+                            null or "" => await AnsiConsole.AskAsync<string>("Enter the tag pattern to delete (0.2-? or 0.2-develop.*)", string.Empty),
+                            _ => TagPattern
+                        };
+
+                        if (string.IsNullOrWhiteSpace(tagPatternToDelete))
+                        {
+                            Information("No tag pattern provided. Aborting deletion.");
+                            return;
+                        }
+
+                        Octokit.ApiOptions apiOptions = new() { PageSize = 100 };
                         int page = 1;
                         List<Octokit.PackageVersion> allVersions = new(capacity: 300);
                         IReadOnlyList<Octokit.PackageVersion> pageOfVersions = Array.Empty<Octokit.PackageVersion>();
                         do
                         {
-                            options.StartPage = page;
-                            pageOfVersions = await client.Packages.PackageVersions.GetAllForUser(owner, Octokit.PackageType.Container, imageToDelete, options: options);
+                            Verbose("Listing tags for image {ImageName} from {RegistryName} ({RegistryUri}) page {Page}", imageToDelete, registry.Name, registry.Uri, page);
+                            apiOptions.StartPage = apiOptions.StartPage.HasValue ? apiOptions.StartPage.Value + 1 : 1;
+                            pageOfVersions = await client.Packages.PackageVersions.GetAllForUser(owner, Octokit.PackageType.Container, imageToDelete, options: apiOptions);
+                            Verbose("Retrieved {Count} tags for image {ImageName} from {RegistryName} ({RegistryUri}) page {Page}", pageOfVersions.Count, imageToDelete, registry.Name, registry.Uri, page);
                             allVersions.AddRange(pageOfVersions);
                             page++;
                         } while (pageOfVersions.Count == 100);
 
-                        Octokit.PackageVersion versionToDelete = allVersions.SingleOrDefault(v => v.Metadata.Container.Tags.Contains(tagToDelete));
-                        if (versionToDelete is null)
+                        (int versionId, string[] tags)[] tagToVersionIdMapper = [.. allVersions.Select<Octokit.PackageVersion, (int versionId, string[] tags)>(v => (Convert.ToInt32(v.Id), tags: [.. v.Metadata.Container.Tags]))];
+
+                        string[] tagsToBeDeleted = [.. allVersions.SelectMany(v => v.Metadata.Container.Tags).Where(tag => tag.Like(tagPatternToDelete))];
+
+                        if (tagsToBeDeleted.Length == 0)
                         {
-                            Information("Tag {Tag} for image {ImageName} not found in {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
+                            Information("No tags match the pattern {TagPattern} for image {ImageName} from {RegistryName} ({RegistryUri})", tagPatternToDelete, imageToDelete, registry.Name, registry.Uri);
+                            return;
                         }
-                        else
+
+                        Information("The following tags matches the pattern {TagPattern} for image {ImageName} from {RegistryName} ({RegistryUri}){Tags}",
+                                    tagPatternToDelete,
+                                    imageToDelete,
+                                    registry.Name,
+                                    registry.Uri,
+                                    tagsToBeDeleted);
+
+
+                        if (PromptForChoice("Delete these matching tags ??", [(ConsoleKey.Y, $"I want to delete these {tagsToBeDeleted.Length} tags"), (ConsoleKey.N, "No, I changed my mind")]) == ConsoleKey.N)
                         {
-                            await client.Packages.PackageVersions.DeleteForUser(owner, Octokit.PackageType.Container, imageToDelete, Convert.ToInt32(versionToDelete.Id));
-                            Information("Tag {Tag} for image {ImageName} deleted successfully from {RegistryName} ({RegistryUri})", tagToDelete, imageToDelete, registry.Name, registry.Uri);
+                            Information("Aborted deletion of matching tags for image {ImageName} from {RegistryName} ({RegistryUri})", imageToDelete, registry.Name, registry.Uri);
+                            return;
                         }
+
+                        IReadOnlyList<int> versionsToDelete = [.. allVersions.Where(v => v.Metadata.Container.Tags.All(tag => tag.Like(tagPatternToDelete))).Select(v => Convert.ToInt32(v.Id))];
+
+                        Information("Found {Count} versions to delete for image {ImageName} from {RegistryName} ({RegistryUri})", versionsToDelete.Count, imageToDelete, registry.Name, registry.Uri);
+
+                        await AnsiConsole.Progress()
+                            .Start(async ctx =>
+                            {
+                                ProgressTask task = ctx.AddTask("Deleting versions...", maxValue: versionsToDelete.Count);
+                                foreach (int versionToDelete in versionsToDelete)
+                                {
+                                    task.Description = $"Deleting version {versionToDelete} for image {imageToDelete} from {registry.Name} ({registry.Uri})";
+                                    await client.Packages.PackageVersions.DeleteForUser(owner, Octokit.PackageType.Container, imageToDelete, versionToDelete);
+                                    task.Increment(1);
+                                }
+                            });
 
                     }
                     else
@@ -718,48 +771,48 @@ public class Build : EnhancedBuild,
 
         });
 
-        private const string AspireCliToolName = "Aspire.Cli";
+    private const string AspireCliToolName = "Aspire.Cli";
 
-        private Target InstallAspireCli => _ => _.Description("Installs the Aspire CLI tool")
-            .TryDependentFor<ICompile>()
-            .OnlyWhenStatic(() => OperatingSystem.IsLinux())
-            .Executes(() =>
+    private Target InstallAspireCli => _ => _.Description("Installs the Aspire CLI tool")
+        .TryDependentFor<ICompile>()
+        .OnlyWhenStatic(() => OperatingSystem.IsLinux())
+        .Executes(() =>
+        {
+            Information("Installing Aspire CLI tool");
+            Verbose("Downloading install script from https://aspire.dev/install.sh");
+
+            AbsolutePath aspireInstallScriptDirectory = this.Get<IHaveArtifacts>().ArtifactsDirectory / "scripts";
+            if (!aspireInstallScriptDirectory.DirectoryExists())
             {
-                Information("Installing Aspire CLI tool");
-                Verbose("Downloading install script from https://aspire.dev/install.sh");
+                Information("Creating aspire CLI directory at {AspireCliInstallScriptDirectory}", aspireInstallScriptDirectory);
+                aspireInstallScriptDirectory.CreateDirectory();
+            }
 
-                AbsolutePath aspireInstallScriptDirectory = this.Get<IHaveArtifacts>().ArtifactsDirectory / "scripts";
-                if (!aspireInstallScriptDirectory.DirectoryExists())
-                {
-                    Information("Creating aspire CLI directory at {AspireCliInstallScriptDirectory}", aspireInstallScriptDirectory);
-                    aspireInstallScriptDirectory.CreateDirectory();
-                }
+            Curl($"-sSL https://aspire.dev/install.sh -o install.sh", workingDirectory: aspireInstallScriptDirectory);
+            AbsolutePath aspireInstallScriptPath = aspireInstallScriptDirectory / "install.sh";
+            Verbose("Downloaded install script to {InstallScriptPath}", aspireInstallScriptPath);
 
-                Curl($"-sSL https://aspire.dev/install.sh -o install.sh", workingDirectory: aspireInstallScriptDirectory);
-                AbsolutePath aspireInstallScriptPath = aspireInstallScriptDirectory / "install.sh";
-                Verbose("Downloaded install script to {InstallScriptPath}", aspireInstallScriptPath);
-                
-                Verbose("Making install script executable");
-                Chmod($"+x {aspireInstallScriptPath}");
-                Verbose("Install script is now executable");
-                Verbose("Executing install script");
+            Verbose("Making install script executable");
+            Chmod($"+x {aspireInstallScriptPath}");
+            Verbose("Install script is now executable");
+            Verbose("Executing install script");
 
-                Information("Installing Aspire CLI tool using install script at {InstallScriptPath}", aspireInstallScriptPath);
-                Bash($"{aspireInstallScriptPath}");
-                Information("Aspire CLI tool installed successfully");
+            Information("Installing Aspire CLI tool using install script at {InstallScriptPath}", aspireInstallScriptPath);
+            Bash($"{aspireInstallScriptPath}");
+            Information("Aspire CLI tool installed successfully");
 
-                aspireInstallScriptDirectory.DeleteDirectory();
+            aspireInstallScriptDirectory.DeleteDirectory();
 
-                // The install script only persists PATH changes to ~/.bashrc, which is not
-                // re-sourced within this (non-interactive) process. Without this, the
-                // subsequent Compile target fails with ASPIRE009 because the "aspire"
-                // command can't be resolved by the Aspire.Hosting.AppHost MSBuild targets.
-                AbsolutePath aspireCliBinDirectory = (AbsolutePath)Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) / ".aspire" / "bin";
-                string currentPath = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
-                if (!currentPath.Split(Path.PathSeparator).Contains(aspireCliBinDirectory))
-                {
-                    Environment.SetEnvironmentVariable("PATH", $"{aspireCliBinDirectory}{Path.PathSeparator}{currentPath}");
-                    Verbose("Added {AspireCliBinDirectory} to PATH", aspireCliBinDirectory);
-                }
-            });
-    }
+            // The install script only persists PATH changes to ~/.bashrc, which is not
+            // re-sourced within this (non-interactive) process. Without this, the
+            // subsequent Compile target fails with ASPIRE009 because the "aspire"
+            // command can't be resolved by the Aspire.Hosting.AppHost MSBuild targets.
+            AbsolutePath aspireCliBinDirectory = (AbsolutePath)Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) / ".aspire" / "bin";
+            string currentPath = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+            if (!currentPath.Split(Path.PathSeparator).Contains(aspireCliBinDirectory))
+            {
+                Environment.SetEnvironmentVariable("PATH", $"{aspireCliBinDirectory}{Path.PathSeparator}{currentPath}");
+                Verbose("Added {AspireCliBinDirectory} to PATH", aspireCliBinDirectory);
+            }
+        });
+}

@@ -2,6 +2,12 @@
 
 ## Active Decisions
 
+### 2026-09-02: Fix CleanImages 403 + Spectre.Console dependency
+**By:** Ripley
+**What:** Le target `CleanImages` (build/Build.cs) utilise désormais un paramètre secret dédié `ImageAdminToken` (au lieu de `GitHubToken`) pour authentifier les appels Octokit vers l'API GitHub Packages, ce qui corrige l'erreur 403. Un nouveau paramètre `TagPattern` permet de matcher et supprimer plusieurs tags en lot (confirmation Y/N + barre de progression Spectre.Console) au lieu d'une sélection interactive d'un seul tag. La dépendance `Spectre.Console` (0.57.2) a été ajoutée à cet effet.
+**Why:** Le token `GitHubToken` existant n'avait pas les droits suffisants sur l'API GitHub Packages pour supprimer des tags, d'où le 403. La suppression en lot par pattern améliore l'ergonomie du nettoyage des images de containers.
+**Commits:** `2af6cfd` (chore/deps), `f0ecb0f` (fix), `d612b11` (docs/changelog)
+
 ### 2026-08-16T00:00:00Z: Ticket "scalar-fails-to-start-in-azurelinux-image" is misnamed — real cause is Keycloak/Aspire scheme incompatibility
 **By:** Ripley, Bishop (diagnostic), recorded by Scribe
 **What:**
