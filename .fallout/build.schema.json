@@ -192,6 +192,11 @@
           "type": "boolean",
           "description": "Ignore unreachable sources during Restore"
         },
+        "ImageAdminToken": {
+          "type": "string",
+          "description": "Token used to delete artifacts",
+          "default": "Secrets must be entered via 'nuke :secrets [profile]'"
+        },
         "Issues": {
           "type": "array",
           "description": "Issues that will be closed once the pull request is completed",
@@ -219,6 +224,10 @@
         "Solution": {
           "type": "string",
           "description": "Path to a solution file that is automatically loaded"
+        },
+        "TagPattern": {
+          "type": "string",
+          "description": "Pattern for the tag to delete"
         },
         "Title": {
           "type": "string",
