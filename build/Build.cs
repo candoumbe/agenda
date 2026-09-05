@@ -94,7 +94,8 @@ public class Build : EnhancedBuild,
     IReportIntegrationTestCoverage,
     IPushNugetPackages,
     ICreateGithubRelease,
-    ICanRegenerateGitHubWorkflows
+    ICanRegenerateGitHubWorkflows,
+    ICanDeleteContainerPackages
 {
 
     [Solution][Required] public readonly Solution Solution;
@@ -628,148 +629,6 @@ public class Build : EnhancedBuild,
         .After(Tests)
         .TryBefore<ICreateGithubRelease>(x => x.AddGithubRelease)
         .Consumes(this.Get<ICompile>().Compile);
-
-    [Parameter("Pattern for the tag to delete")]
-    public string TagPattern { get; set; }
-
-    public Target CleanImages => _ => _.OnlyWhenStatic(() => IsLocalBuild)
-        .Description("Cleans up all images of the API and frontend")
-        .Requires(() => Registries.Any())
-        .Executes(async () =>
-        {
-            Information("Select repository where you want to clean up images:");
-            string repository = Registries.Count switch
-            {
-                1 => Registries[0].Uri,
-                _ => PromptForChoice("Repository : ", Registries.Select(r => (r.Uri, $"{r.Name} ({r.Uri})")).ToArray())
-            };
-
-            if (string.IsNullOrWhiteSpace(repository))
-            {
-                Information("Operation cancelled by the user.");
-                return;
-            }
-
-            RegistryConfiguration registry = Registries.Single(r => r.Uri == repository);
-            switch (PromptForChoice($"Are you sure you want to clean up images of the API / frontend / worker from {registry.Name} ({registry.Uri}) ?",
-                   [ (ConsoleKey.Y, "Confirm the operation"),
-                       (ConsoleKey.N, "Cancel the operation")]))
-            {
-                case ConsoleKey.Y:
-                    Information("Cleaning up images from {RegistryName} ({RegistryUri})", registry.Name, registry.Uri);
-
-                    if (repository.Like("ghcr.io", ignoreCase: true))
-                    {
-                        string owner = this.Get<IHaveGitHubRepository>().GitRepository.GetGitHubOwner();
-                        HashSet<string> images = ["agenda.api", "agenda.frontend", "agenda.worker"];
-                        // Choose which image to delete
-                        string imageToDelete = PromptForChoice("Select image to delete: ", images.Select(image => (image, image)).ToArray());
-                        if (string.IsNullOrWhiteSpace(imageToDelete))
-                        {
-                            Information("Operation cancelled by the user.");
-                            return;
-                        }
-
-                        Information("Deleting image {ImageName} from {RegistryName} ({RegistryUri})", imageToDelete, registry.Name, registry.Uri);
-
-                        // Choose which tag to delete
-                        Octokit.GitHubClient client = new(new Octokit.ProductHeaderValue("Agenda.Pipelines"))
-                        {
-                            Credentials = new Octokit.Credentials(ImageAdminToken)
-                        };
-
-                        Information("Retrieving tags for image {ImageName} from {RegistryName} ({RegistryUri})",
-                                    imageToDelete,
-                                    registry.Name,
-                                    registry.Uri);
-
-                        Octokit.Package package = await client.Packages.GetForUser(owner, Octokit.PackageType.Container, imageToDelete);
-                        if (package is null)
-                        {
-                            Information("Image {ImageName} not found in {RegistryName} ({RegistryUri})", imageToDelete, registry.Name, registry.Uri);
-                            return;
-                        }
-
-                        string tagPatternToDelete = TagPattern switch
-                        {
-                            null or "" => await AnsiConsole.AskAsync<string>("Enter the tag pattern to delete (0.2-? or 0.2-develop.*)", string.Empty),
-                            _ => TagPattern
-                        };
-
-                        if (string.IsNullOrWhiteSpace(tagPatternToDelete))
-                        {
-                            Information("No tag pattern provided. Aborting deletion.");
-                            return;
-                        }
-
-                        Octokit.ApiOptions apiOptions = new() { PageSize = 100 };
-                        int page = 1;
-                        List<Octokit.PackageVersion> allVersions = new(capacity: 300);
-                        IReadOnlyList<Octokit.PackageVersion> pageOfVersions = Array.Empty<Octokit.PackageVersion>();
-                        do
-                        {
-                            Verbose("Listing tags for image {ImageName} from {RegistryName} ({RegistryUri}) page {Page}", imageToDelete, registry.Name, registry.Uri, page);
-                            apiOptions.StartPage = apiOptions.StartPage.HasValue ? apiOptions.StartPage.Value + 1 : 1;
-                            pageOfVersions = await client.Packages.PackageVersions.GetAllForUser(owner, Octokit.PackageType.Container, imageToDelete, options: apiOptions);
-                            Verbose("Retrieved {Count} tags for image {ImageName} from {RegistryName} ({RegistryUri}) page {Page}", pageOfVersions.Count, imageToDelete, registry.Name, registry.Uri, page);
-                            allVersions.AddRange(pageOfVersions);
-                            page++;
-                        } while (pageOfVersions.Count == 100);
-
-                        (int versionId, string[] tags)[] tagToVersionIdMapper = [.. allVersions.Select<Octokit.PackageVersion, (int versionId, string[] tags)>(v => (Convert.ToInt32(v.Id), tags: [.. v.Metadata.Container.Tags]))];
-
-                        string[] tagsToBeDeleted = [.. allVersions.SelectMany(v => v.Metadata.Container.Tags).Where(tag => tag.Like(tagPatternToDelete))];
-
-                        if (tagsToBeDeleted.Length == 0)
-                        {
-                            Information("No tags match the pattern {TagPattern} for image {ImageName} from {RegistryName} ({RegistryUri})", tagPatternToDelete, imageToDelete, registry.Name, registry.Uri);
-                            return;
-                        }
-
-                        Information("The following tags matches the pattern {TagPattern} for image {ImageName} from {RegistryName} ({RegistryUri}){Tags}",
-                                    tagPatternToDelete,
-                                    imageToDelete,
-                                    registry.Name,
-                                    registry.Uri,
-                                    tagsToBeDeleted);
-
-
-                        if (PromptForChoice("Delete these matching tags ??", [(ConsoleKey.Y, $"I want to delete these {tagsToBeDeleted.Length} tags"), (ConsoleKey.N, "No, I changed my mind")]) == ConsoleKey.N)
-                        {
-                            Information("Aborted deletion of matching tags for image {ImageName} from {RegistryName} ({RegistryUri})", imageToDelete, registry.Name, registry.Uri);
-                            return;
-                        }
-
-                        IReadOnlyList<int> versionsToDelete = [.. allVersions.Where(v => v.Metadata.Container.Tags.All(tag => tag.Like(tagPatternToDelete))).Select(v => Convert.ToInt32(v.Id))];
-
-                        Information("Found {Count} versions to delete for image {ImageName} from {RegistryName} ({RegistryUri})", versionsToDelete.Count, imageToDelete, registry.Name, registry.Uri);
-
-                        await AnsiConsole.Progress()
-                            .Start(async ctx =>
-                            {
-                                ProgressTask task = ctx.AddTask("Deleting versions...", maxValue: versionsToDelete.Count);
-                                foreach (int versionToDelete in versionsToDelete)
-                                {
-                                    task.Description = $"Deleting version {versionToDelete} for image {imageToDelete} from {registry.Name} ({registry.Uri})";
-                                    await client.Packages.PackageVersions.DeleteForUser(owner, Octokit.PackageType.Container, imageToDelete, versionToDelete);
-                                    task.Increment(1);
-                                }
-                            });
-
-                    }
-                    else
-                    {
-                        Information("Cleaning up images from {RegistryName} ({RegistryUri}) is not supported yet.", registry.Name, registry.Uri);
-                    }
-
-                    break;
-                case ConsoleKey.N:
-                    Information("Operation cancelled by the user.");
-                    break;
-            }
-
-
-        });
 
     private const string AspireCliToolName = "Aspire.Cli";
 
