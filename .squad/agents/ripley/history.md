@@ -39,3 +39,7 @@ Ticket `scalar-fails-to-start-in-azurelinux-image` asserted an Azure Linux base 
 ## Learning — 2026-09-06: Atomic commits for mutation test build target
 - When enabling the mutation test pipeline, keep the `dotnet-stryker` tool version bump in its own `chore(build)` commit and commit [build/Build.cs](../../../build/Build.cs) with [.fallout/build.schema.json](../../../.fallout/build.schema.json) together because the schema is derived from Build.cs parameters and targets.
 - `./build.sh mutation-tests --skip format` is the relevant focused validation for the mutation test target; a successful run also exercises compile and frontend build targets in this pipeline.
+
+## Learning — 2026-09-06T14:38:34Z: Mutation test PR handoff
+- Mutation test enablement was pushed on `chore/enable-mutation-tests` and opened as PR https://github.com/candoumbe/agenda/pull/772 targeting `develop`; auto-merge is enabled with rebase.
+- Atomic commit grouping used: `0d80aba` for the Stryker tool update, `656861b` for the mutation test target and generated schema, and `9c7fba3` for Squad metadata.

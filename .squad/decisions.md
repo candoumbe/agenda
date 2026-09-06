@@ -2,6 +2,11 @@
 
 ## Active Decisions
 
+### 2026-09-06: Atomic commit grouping for mutation test enablement
+**By:** Ripley
+**What:** Pending mutation test work was split into two functional commits: one `chore(build)` commit for the `dotnet-stryker` version update, and one `test(build)` commit for the mutation test target plus its generated Fallout build schema. Squad metadata was kept in a separate commit.
+**Why:** The Stryker tool version is a tooling maintenance concern, while the target implementation and generated schema form one behavior change. Keeping Squad files separate follows the repository workflow directive.
+
 ### 2026-09-02: Fix CleanImages 403 + Spectre.Console dependency
 **By:** Ripley
 **What:** Le target `CleanImages` (build/Build.cs) utilise désormais un paramètre secret dédié `ImageAdminToken` (au lieu de `GitHubToken`) pour authentifier les appels Octokit vers l'API GitHub Packages, ce qui corrige l'erreur 403. Un nouveau paramètre `TagPattern` permet de matcher et supprimer plusieurs tags en lot (confirmation Y/N + barre de progression Spectre.Console) au lieu d'une sélection interactive d'un seul tag. La dépendance `Spectre.Console` (0.57.2) a été ajoutée à cet effet.
