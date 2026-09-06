@@ -35,3 +35,11 @@ Ticket `scalar-fails-to-start-in-azurelinux-image` asserted an Azure Linux base 
 - Le fix du bug 403 sur le target `CleanImages` (build/Build.cs) consiste à utiliser un nouveau paramètre secret dédié `ImageAdminToken` pour l'authentification Octokit contre l'API GitHub Packages, à la place de `GitHubToken` qui n'avait pas les droits suffisants. Un paramètre `TagPattern` permet désormais de supprimer plusieurs tags en lot (au lieu d'un seul choix interactif), avec confirmation Y/N et barre de progression Spectre.Console.
 - `.fallout/build.schema.json` est un fichier dérivé généré depuis les attributs `[Parameter]`/`[Secret]` de Build.cs : toujours le committer avec Build.cs, jamais séparément.
 - `.fallout/parameters.local.json` contient des tokens locaux chiffrés et ne doit jamais être indexé/commité — vérifier `git status` avant chaque commit.
+
+## Learning — 2026-09-06: Atomic commits for mutation test build target
+- When enabling the mutation test pipeline, keep the `dotnet-stryker` tool version bump in its own `chore(build)` commit and commit [build/Build.cs](../../../build/Build.cs) with [.fallout/build.schema.json](../../../.fallout/build.schema.json) together because the schema is derived from Build.cs parameters and targets.
+- `./build.sh mutation-tests --skip format` is the relevant focused validation for the mutation test target; a successful run also exercises compile and frontend build targets in this pipeline.
+
+## Learning — 2026-09-06T14:38:34Z: Mutation test PR handoff
+- Mutation test enablement was pushed on `chore/enable-mutation-tests` and opened as PR https://github.com/candoumbe/agenda/pull/772 targeting `develop`; auto-merge is enabled with rebase.
+- Atomic commit grouping used: `0d80aba` for the Stryker tool update, `656861b` for the mutation test target and generated schema, and `9c7fba3` for Squad metadata.

@@ -50,3 +50,9 @@ Initial setup complete.
 - Merged pending decision inbox entries (frontend auth, Keycloak phases, markdown-link directive) into [.squad/decisions.md](.squad/decisions.md) with deduplication.
 - Logged this coordination batch under [.squad/log/](.squad/log/) and [.squad/orchestration-log/](.squad/orchestration-log/).
 - Added concise cross-agent updates to Dallas, Hicks, and Vasquez history files for audit continuity.
+
+### 2026-09-06: Mutation test PR logging
+
+- Logged Ripley's atomic commit and PR creation pass for `chore/enable-mutation-tests`.
+- Merged the ignored decision inbox entry `ripley-atomic-commits.md` into `.squad/decisions.md` and removed it from the inbox.
+- Recorded PR https://github.com/candoumbe/agenda/pull/772, rebase auto-merge status, and validation evidence from `./build.sh mutation-tests --skip format`.
